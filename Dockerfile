@@ -10,6 +10,8 @@ RUN apk add --no-cache git
 FROM base AS builder-web
 
 WORKDIR /srv/
+# I set it to this branch because development was broken. To change to a stable branch when they make one.
+# at the time of this writting streamio web is beta.
 RUN git clone --branch refactor/video-player https://github.com/Stremio/stremio-web.git
 
 
@@ -24,9 +26,7 @@ RUN wget $(cat stremio-shell/server-url.txt)
 
 
 ##########################################################################
-LABEL com.stremio.vendor="Smart Code Ltd."
-LABEL version=${VERSION}
-LABEL description="Stremio's streaming Server"
+LABEL description="Stremio's web player and streaming Server"
 
 # Main image
 FROM node:16-alpine
@@ -44,14 +44,14 @@ ENV FFMPEG_BIN=
 # full path to the ffprobe binary
 ENV FFPROBE_BIN=
 # Custom application path for storing server settings, certificates, etc
-ENV APP_PATH=
+ENV APP_PATH="/srv/stremio-config/"
 ENV NO_CORS=1
 ENV CASTING_DISABLED=
 ENV IPADDRESS=
 
 RUN apk add --no-cache ffmpeg openssl curl
 
-VOLUME ["/root/.stremio-server"]
+VOLUME [$APP_PATH]
 
 # Expose default ports
 EXPOSE 8080 11470 12470

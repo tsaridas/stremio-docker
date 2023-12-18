@@ -39,19 +39,20 @@ COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
 RUN npm install -g http-server
 
-# full path to the ffmpeg binary
+
 ENV FFMPEG_BIN=
-# full path to the ffprobe binary
 ENV FFPROBE_BIN=
+
 # Custom application path for storing server settings, certificates, etc
 ENV APP_PATH="/srv/stremio-config/"
 ENV NO_CORS=1
 ENV CASTING_DISABLED=
+# Set this to your lan or public ip.
 ENV IPADDRESS=
 
 RUN apk add --no-cache ffmpeg openssl curl
 
-VOLUME [$APP_PATH]
+VOLUME ["$APP_PATH"]
 
 # Expose default ports
 EXPOSE 8080 11470 12470

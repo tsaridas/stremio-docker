@@ -36,6 +36,7 @@ jobs:
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
+        logout: false
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -44,5 +45,5 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: true
-        platforms: linux/amd64, linux/arm64/v8
+        platforms: linux/arm64/v8
         tags: ghcr.io/tsaridas/stremio-docker:nightly

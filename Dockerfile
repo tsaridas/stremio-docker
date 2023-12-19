@@ -8,6 +8,7 @@ RUN apk add --no-cache git
 
 # Builder image
 FROM base AS builder-web
+ARG BRANCH
 
 WORKDIR /srv
 # change to use some other branch

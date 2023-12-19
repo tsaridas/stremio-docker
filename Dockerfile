@@ -16,6 +16,8 @@ RUN git clone https://github.com/Stremio/stremio-web.git
 
 
 WORKDIR /srv/stremio-web
+RUN echo "fetch-retry-maxtimeout = 6000000" >> ~/.npmrc
+RUN echo "fetch-retry-mintimeout = 1000000" >> ~/.npmrc
 RUN npm ci --no-audit
 RUN npm run build
 

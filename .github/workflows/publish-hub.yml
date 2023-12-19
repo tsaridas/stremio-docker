@@ -1,4 +1,4 @@
-name: DockerHub
+name: DockerHub-Main
 
 on:
   push:

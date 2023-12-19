@@ -1,4 +1,4 @@
-name: DockerHub
+name: DockerHub-Nightly
 
 on:
   schedule:

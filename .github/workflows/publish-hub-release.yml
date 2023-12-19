@@ -1,8 +1,8 @@
 name: DockerHub-Release
 
 on:
-  repository_dispatch:
-    types: [new-release]
+  push:
+  tags: [ 'v*.*.*' ]
 
 jobs:
   build:

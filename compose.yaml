@@ -1,7 +1,7 @@
 version: "3"
 services:
   stremio:
-    image: tsaridas/stremio-docker:testing
+    image: tsaridas/stremio-docker:latest
     restart: unless-stopped
     environment:
       NO_CORS: 1

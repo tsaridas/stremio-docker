@@ -1,9 +1,8 @@
 name: DockerHub
 
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   build:
@@ -36,4 +35,4 @@ jobs:
       with:
         push: true
         platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
-        tags: tsaridas/stremio-docker:latest
+        tags: tsaridas/stremio-docker:nightly

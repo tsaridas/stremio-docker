@@ -88,6 +88,6 @@ And then run the `docker run -d \ ...` command above again.
 
 ## Common Use Cases
 
-* [Using HTTP](https://github.com/tsaridas/tsaridas/wiki/Using-Stremio-Server-HTTP)
-* [Using HTTPS Local IP](https://github.com/tsaridas/tsaridas/wiki/Using-Stremio-Server-with-Private-IP)
-* [Using HTTPS Public IP](https://github.com/tsaridas/tsaridas/wiki/Using-Stremio-Server-with-Public-IP)
+* [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)
+* [Using HTTPS Local IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
+* [Using HTTPS Public IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)

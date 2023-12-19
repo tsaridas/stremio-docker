@@ -39,9 +39,6 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-  
-    - name: Generate container tag
-      run: echo "::set-env name=TAG_NAME::nightly"
       
     - name: Build & Publish Docker Image
       uses: docker/build-push-action@v5

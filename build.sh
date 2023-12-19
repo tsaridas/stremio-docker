@@ -1,1 +1,1 @@
-docker buildx build -t tsaridas/stremio-docker:testing .
+docker buildx build -t ghcr.io/tsaridas/stremio-docker:latest .

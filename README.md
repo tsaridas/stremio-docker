@@ -44,7 +44,7 @@ To automatically install & run stremio, simply run:
 
 <pre>
 $ docker run -d \
-  --name=stremio \
+  --name=stremio-docker \
   -e NO_CORS=1
   -e IPADDRESS=`YOURIPADDRESS`
   -v ~/.stremio-server:/root/.stremio-server \

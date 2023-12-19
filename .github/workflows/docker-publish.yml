@@ -11,8 +11,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches: [ "main" ]
 
 
 jobs:
@@ -27,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: production
+        ref: main
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1

@@ -6,11 +6,9 @@ name: Docker
 # documentation.
 
 on:
-  schedule:
-    - cron: '25 10 * * *'
-#  push:
-#    branches:
-#      - main
+  push:
+    branches:
+      - main
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -53,7 +51,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: true
-        platforms: linux/arm64/v8
-        tags: ${{ steps.meta.outputs.tags }}
+        platforms: linux/arm64
+        tags: testing
         labels: ${{ steps.meta.outputs.labels }}
 

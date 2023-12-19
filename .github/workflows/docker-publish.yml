@@ -8,9 +8,9 @@ name: Docker
 on:
   schedule:
     - cron: '25 10 * * *'
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}

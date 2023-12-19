@@ -10,7 +10,7 @@ RUN apk add --no-cache git
 FROM base AS builder-web
 
 WORKDIR /srv
-# development branch is broken so 
+# change to use some other branch
 #RUN git clone --branch 5.0.0-beta.2 https://github.com/Stremio/stremio-web.git
 RUN git clone https://github.com/Stremio/stremio-web.git
 

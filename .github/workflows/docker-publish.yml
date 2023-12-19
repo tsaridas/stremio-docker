@@ -10,7 +10,7 @@ on:
     - cron: '25 10 * * *'
   push:
     branches:
-      - latest
+      - main
 
 
 jobs:

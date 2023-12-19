@@ -44,5 +44,5 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: true
-        platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
+        platforms: linux/amd64, linux/arm64/v8
         tags: ghcr.io/tsaridas/stremio-docker:nightly

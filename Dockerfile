@@ -11,8 +11,8 @@ FROM base AS builder-web
 
 WORKDIR /srv
 # change to use some other branch
-#RUN git clone --branch 5.0.0-beta.2 https://github.com/Stremio/stremio-web.git
-RUN git clone https://github.com/Stremio/stremio-web.git
+RUN git clone --branch $BRANCH https://github.com/Stremio/stremio-web.git
+#RUN git clone https://github.com/Stremio/stremio-web.git
 
 
 WORKDIR /srv/stremio-web

@@ -11,8 +11,10 @@ on:
   push:
     branches:
       - main
-
-
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  
 jobs:
   build:
 
@@ -37,13 +39,21 @@ jobs:
       uses: docker/login-action@v3
       with:
         logout: false
-        registry: ghcr.io
+        registry: ${{ REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-      
+
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    
     - name: Build & Publish Docker Image
       uses: docker/build-push-action@v5
       with:
         push: true
         platforms: linux/arm64/v8
-        tags: ghcr.io/tsaridas/stremio-docker:nightly
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+

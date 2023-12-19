@@ -52,7 +52,7 @@ $ docker run -d \
   -p 11470:11470/tcp \
   -p 12470:12470/tcp \
   --restart unless-stopped \
-  ghcr.io/tsaridas/stremio-docker:latest
+  tsaridas/stremio-docker:latest
 </pre>
 
 > 💡 Replace `YOUR_SERVER_IP` with your WAN IP or LAN IP

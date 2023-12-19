@@ -6,7 +6,7 @@ if (args[2] === undefined ) {
 }
 const config = require(args[2] + '/httpsCert.json');
 const fullCert = config.key + config.cert;
-fs.writeFile(config.domain+'.pem', fullCert, (err) => {
+fs.writeFile(args[2]+config.domain+'.pem', fullCert, (err) => {
     if (err) {
       console.log('Failed to write updated data to file');
       process.exit(1);

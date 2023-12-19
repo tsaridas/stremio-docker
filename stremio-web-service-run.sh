@@ -4,7 +4,7 @@ sleep 1
 if [ -z "$APP_PATH" ]; then
 	CONFIG_FOLDER="$HOME"/.stremio-server/
 else
-	CONFIG_FOLDER=$APP_PATH
+	CONFIG_FOLDER=$APP_PATH/
 fi
 
 if [ ! -z "$IPADDRESS" ]; then 

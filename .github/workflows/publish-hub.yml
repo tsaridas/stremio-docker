@@ -1,17 +1,11 @@
 name: DockerHub
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 on:
   schedule:
-    - cron: '25 10 * * *'
+    - cron: '0 0 * * *'
   push:
     branches:
       - main
-
 
 jobs:
   build:
@@ -43,5 +37,5 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: true
-        platforms: linux/arm64/v8
+        platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
         tags: tsaridas/stremio-docker:nightly

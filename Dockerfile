@@ -24,7 +24,9 @@ RUN wget $(cat stremio-shell/server-url.txt)
 
 
 ##########################################################################
-LABEL description="Stremio's web player and streaming Server"
+LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
+LABEL org.opencontainers.image.description="Stremio Web and Server"
+LABEL org.opencontainers.image.licenses=MIT
 LABEL version="1.0.0"
 
 # Main image

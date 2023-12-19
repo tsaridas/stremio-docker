@@ -45,14 +45,14 @@ To automatically install & run stremio, simply run:
 <pre>
 $ docker run -d \
   --name=stremio-docker \
-  -e NO_CORS=1
-  -e IPADDRESS=`YOURIPADDRESS`
+  -e NO_CORS=1 \
+  -e IPADDRESS=`YOURIPADDRESS` \
   -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   -p 11470:11470/tcp \
   -p 12470:12470/tcp \
   --restart unless-stopped \
-  tsaridas/stremio-docker:latest
+  ghcr.io/tsaridas/stremio-docker:latest
 </pre>
 
 > 💡 Replace `YOUR_SERVER_IP` with your WAN IP or LAN IP

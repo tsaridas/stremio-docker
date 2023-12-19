@@ -35,7 +35,7 @@ jobs:
       with:
         push: true
         platforms: linux/arm/v6,linux/amd64,linux/arm64/v8,linux/arm/v7
-        tags: tsaridas/stremio-docker:${{ env.GITHUB_REF_NAME }}, tsaridas/stremio-docker:latest
+        tags: tsaridas/stremio-docker:${{ github.event.release.tag_name }}, tsaridas/stremio-docker:latest
         build-args: BRANCH=refactor/video-player
         cache-from: type=gha
         cache-to: type=gha,mode=max

@@ -16,7 +16,7 @@ RUN git clone https://github.com/Stremio/stremio-web.git
 
 
 WORKDIR /srv/stremio-web
-RUN npm install
+RUN npm install --no-audit
 RUN npm run build
 
 RUN git clone https://github.com/Stremio/stremio-shell.git

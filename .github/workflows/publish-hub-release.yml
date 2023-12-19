@@ -29,13 +29,18 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_PASS }}
-      
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: tsaridas/stremio-docker
+
     - name: Build & Publish Docker Image
       uses: docker/build-push-action@v5
       with:
         push: true
         platforms: linux/arm/v6,linux/amd64,linux/arm64/v8,linux/arm/v7
-        tags: tsaridas/stremio-docker:${{ github.event.release.tag_name }}, tsaridas/stremio-docker:latest
+        tags: tsaridas/stremio-docker:${{ github.event.client_payload.tag }}, tsaridas/stremio-docker:latest
         build-args: BRANCH=refactor/video-player
         cache-from: type=gha
         cache-to: type=gha,mode=max

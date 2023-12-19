@@ -1,9 +1,8 @@
-name: DockerHub-Main
+name: DockerHub-Release
 
 on:
-  push:
-    branches:
-      - main
+  repository_dispatch:
+    types: [new-release]
 
 jobs:
   build:
@@ -36,7 +35,7 @@ jobs:
       with:
         push: true
         platforms: linux/arm/v6,linux/amd64,linux/arm64/v8,linux/arm/v7
-        tags: tsaridas/stremio-docker:latest
+        tags: stremio/server:${{ github.event.client_payload.tag }}, tsaridas/stremio-docker:latest
         build-args: BRANCH=refactor/video-player
         cache-from: type=gha
         cache-to: type=gha,mode=max

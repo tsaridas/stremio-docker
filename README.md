@@ -33,7 +33,7 @@ In order to find the fqdn that the certificate is pointing to you can look at th
 
 ## Thoughts
 
-You don't need to have both Stremio Server and Web Player running. One could disable CORS and use the stremio web player (https://app.strem.io/#/). Stremio's web player should also work for option 2 and 3 above because the webplayer requires that the server's url is in HTTPS.
+You don't need to have both Stremio Server and Web Player running. One could use the stremio web player (https://app.strem.io/#/). Stremio's web player should also work for option 2 and 3 above because the webplayer requires that the server's url is in HTTPS.
 
 You can also use the native clients for options 2-3 since they use https. Its probably the best since I imagine your docker servers might not be that powerful.
 
@@ -58,7 +58,7 @@ And log in again.
 
 ### 2. Run Stremio Web + Server
 
-To automatically install & run stremio, simply run:
+To automatically run stremio web player and server, simply run:
 
 <pre>
 $ docker run -d \
@@ -77,7 +77,7 @@ $ docker run -d \
 > 
 The Web UI will now be available on `http://0.0.0.0:8080`.
 
-> 💡 Your configuration files will be saved in `~/.stremio-server`
+> 💡 Your configuration files and cache will be saved in `~/.stremio-server`
 
 ## Options
 
@@ -108,7 +108,7 @@ And then run the `docker run -d \ ...` command above again.
 
 ## Builds
 
-Builds are setup to make images for the below arch :
+Builds are setup to make images for the below archs :
 
 * linux/arm/v6
 * linux/amd64
@@ -119,7 +119,6 @@ Builds are setup to make images for the below arch :
 
 * latest -> ones I tested all three options I described and release
 * nightly -> builds daily from development branch of web player and gets latest version of server.
-* testing -> only builds for arm64 and pushes to ghcr. 
 * release version (example v1.0.0) -> to have old releases available 
 
 ## Common Use Cases - ToDo

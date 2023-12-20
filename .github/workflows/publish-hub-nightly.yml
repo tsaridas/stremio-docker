@@ -36,6 +36,6 @@ jobs:
         push: true
         platforms: linux/arm/v6,linux/amd64,linux/arm64/v8,linux/arm/v7
         tags: tsaridas/stremio-docker:nightly
-        build-args: BRANCH=development
+        build-args: BRANCH=development,VERSION=nightly
         cache-from: type=gha
         cache-to: type=gha,mode=max

@@ -53,6 +53,6 @@ jobs:
         push: true
         platforms: linux/arm64
         tags: ${{ env.REGISTRY }}/tsaridas/stremio-docker:testing
-        build-args: BRANCH=development
+        build-args: BRANCH=development,VERSION=testing
         labels: ${{ steps.meta.outputs.labels }}
 

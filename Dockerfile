@@ -76,7 +76,7 @@ ENV IPADDRESS=
 
 #--------------------------
 # We build our own ffmpeg since after checking 4.X has way better performance than later versions.
-ENV SOFTWARE_VERSION="4.4.1"
+ENV SOFTWARE_VERSION="4.4.3"
 ENV SOFTWARE_VERSION_URL="http://ffmpeg.org/releases/ffmpeg-${SOFTWARE_VERSION}.tar.bz2"
 ENV BIN="/usr/bin"
 

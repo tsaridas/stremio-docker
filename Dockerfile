@@ -8,7 +8,7 @@ RUN apk add --no-cache git
 
 # Builder image
 FROM base AS builder-web
-ARG BRANCH
+ARG BRANCH=development
 
 WORKDIR /srv
 # change to use some other branch
@@ -20,7 +20,7 @@ WORKDIR /srv/stremio-web
 RUN npm ci --no-audit
 RUN npm run build
 
-RUN git --depth 1 clone https://github.com/Stremio/stremio-shell.git
+RUN git --depth 1 --branch master clone https://github.com/Stremio/stremio-shell.git
 RUN echo "Downloading server from $(cat stremio-shell/server-url.txt)"
 RUN wget $(cat stremio-shell/server-url.txt)
 

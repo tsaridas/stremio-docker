@@ -2,7 +2,7 @@
 FROM node:18-alpine AS base
 
 WORKDIR /srv/
-RUN apk add --no-cache git
+RUN apk add --no-cache git curl
 
 #########################################################################
 
@@ -19,7 +19,7 @@ WORKDIR /srv/stremio-web
 RUN npm ci --no-audit --no-fund
 RUN npm run build
 
-RUN wget $(curl -o - https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt)
+RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt)
 
 
 ##########################################################################

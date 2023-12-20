@@ -8,12 +8,13 @@ RUN apk add --no-cache git
 
 # Builder image
 FROM base AS builder-web
-ARG BRANCH=development
+
 
 WORKDIR /srv
+
 # change to use some other branch
+ARG BRANCH=development
 RUN git clone --depth 1 --branch $BRANCH https://github.com/Stremio/stremio-web.git
-#RUN git clone https://github.com/Stremio/stremio-web.git
 
 
 WORKDIR /srv/stremio-web
@@ -21,18 +22,20 @@ RUN npm ci --no-audit
 RUN npm run build
 
 RUN git clone --depth 1 https://github.com/Stremio/stremio-shell.git
-RUN echo "Downloading server from $(cat stremio-shell/server-url.txt)"
+RUN echo "Downloading server from '$(cat stremio-shell/server-url.txt)'"
 RUN wget $(cat stremio-shell/server-url.txt)
 
 
 ##########################################################################
-LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
-LABEL org.opencontainers.image.description="Stremio Web and Server"
-LABEL org.opencontainers.image.licenses=MIT
-LABEL version="1.0.0"
 
 # Main image
 FROM node:18-alpine
+
+ARG VERSION=master
+LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
+LABEL org.opencontainers.image.description="Stremio Web Player and Server"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL version=${VERSION}
 
 WORKDIR /srv/stremio-server
 COPY ./stremio-web-service-run.sh ./

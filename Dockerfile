@@ -16,7 +16,7 @@ ARG BRANCH=development
 RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
 
 WORKDIR /srv/stremio-web
-RUN npm ci --no-audit
+RUN npm ci --no-audit --no-fund
 RUN npm run build
 
 RUN git clone --depth 1 https://github.com/Stremio/stremio-shell.git
@@ -36,12 +36,13 @@ LABEL org.opencontainers.image.licenses=MIT
 LABEL version=${VERSION}
 
 WORKDIR /srv/stremio-server
-COPY ./stremio-web-service-run.sh ./
-COPY ./extract_certificate.js ./
-RUN chmod +x stremio-web-service-run.sh
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
 RUN npm install -g http-server
+
+COPY ./stremio-web-service-run.sh ./
+COPY ./extract_certificate.js ./
+RUN chmod +x stremio-web-service-run.sh
 
 ENV FFMPEG_BIN=
 ENV FFPROBE_BIN=

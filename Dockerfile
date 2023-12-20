@@ -85,6 +85,7 @@ RUN cd && \
   apk upgrade && \
   apk add --no-cache --virtual \ 
   .build-dependencies \ 
+  gnutls \
   freetype-dev \
   gnutls-dev \
   lame-dev \
@@ -99,9 +100,7 @@ RUN cd && \
   rtmpdump-dev \
   x264-dev \
   x265-dev \
-  yasm-dev && \
-  apk add --no-cache --virtual \ 
-  .build-dependencies \ 
+  yasm-dev \
   build-base \ 
   bzip2 \ 
   coreutils \ 

@@ -73,7 +73,76 @@ ENV CASTING_DISABLED=
 # Set this to your lan or public ip.
 ENV IPADDRESS=
 
-RUN apk add --no-cache ffmpeg openssl curl
+
+#--------------------------
+# We build our own ffmpeg since after checking 4.X has way better performance than later versions.
+ENV SOFTWARE_VERSION="4.4.4"
+ENV SOFTWARE_VERSION_URL="http://ffmpeg.org/releases/ffmpeg-${SOFTWARE_VERSION}.tar.bz2"
+ENV BIN="/usr/bin"
+
+RUN cd && \
+  apk update && \
+  apk upgrade && \
+  apk add --no-cache --virtual \ 
+  .build-dependencies \ 
+  freetype-dev \
+  gnutls-dev \
+  lame-dev \
+  libass-dev \
+  libogg-dev \
+  libtheora-dev \
+  libvorbis-dev \ 
+  libvpx-dev \
+  libwebp-dev \ 
+  libssh2 \
+  opus-dev \
+  rtmpdump-dev \
+  x264-dev \
+  x265-dev \
+  yasm-dev \
+  build-base \ 
+  bzip2 \ 
+  coreutils \ 
+  gnutls \ 
+  nasm \ 
+  tar \ 
+  x264 && \
+  DIR=$(mktemp -d) && \
+  cd "${DIR}" && \
+  wget "${SOFTWARE_VERSION_URL}" && \
+  tar xjvf "ffmpeg-${SOFTWARE_VERSION}.tar.bz2" && \
+  cd ffmpeg* && \
+  PATH="$BIN:$PATH" && \
+  ./configure --help && \
+  ./configure --bindir="$BIN" --disable-debug \
+  --disable-doc \ 
+  --disable-ffplay \ 
+  --enable-gnutls \
+  --enable-gpl \ 
+  --enable-libass \ 
+  --enable-libfreetype \ 
+  --enable-libmp3lame \ 
+  --enable-libopus \ 
+  --enable-librtmp \ 
+  --enable-libtheora \ 
+  --enable-libvorbis \ 
+  --enable-libvpx \ 
+  --enable-libwebp \ 
+  --enable-libx264 \ 
+  --enable-libx265 \ 
+  --enable-nonfree \ 
+  --enable-postproc \ 
+  --enable-small \ 
+  --enable-version3 && \
+  make -j4 && \
+  make install && \
+  make distclean && \
+  rm -rf "${DIR}"  && \
+  apk del --purge .build-dependencies && \
+  apk add --no-cache libxcb libass lame-libs libwebp libvorbis librtmp libtheora opus libvpx libwebpmux x265-libs x264-libs curl && \
+  rm -rf /var/cache/apk/* && rm -rf /tmp/*
+
+#--------------------------
 
 VOLUME ["/root/.stremio-server"]
 

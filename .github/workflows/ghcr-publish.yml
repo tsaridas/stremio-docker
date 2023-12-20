@@ -44,6 +44,7 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:testing
           build-args: |
                BRANCH=development
                VERSION=testing

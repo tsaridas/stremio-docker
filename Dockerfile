@@ -43,32 +43,31 @@ RUN npm install -g http-server
 
 ENV FFMPEG_BIN=
 ENV FFPROBE_BIN=
+# default https://app.strem.io/shell-v4.4/
+ENV WEBUI_LOCATION=
+ENV OPEN=
+ENV HLS_DEBUG=
+ENV DEBUG=
+ENV DEBUG_MIME=
+ENV DEBUG_FD=
+ENV FFMPEG_DEBUG=
+ENV FFSPLIT_DEBUG=
+ENV NODE_DEBUG=
+ENV NODE_ENV=
+ENV HTTPS_CERT_ENDPOINT=
+ENV DISABLE_CACHING=
+# disable or enable
+ENV READABLE_STREAM=
+# remote or local
+ENV HLSV2_REMOTE=
 
 # Custom application path for storing server settings, certificates, etc
 # You can change this but server.js always saves cache to /root/.stremio-server/
 ENV APP_PATH=
 ENV NO_CORS=
 ENV CASTING_DISABLED=
-# remote or local
-ENV HLSV2_REMOTE=
 
-ENV DEBUG_MIME=
-ENV HTTPS_CERT_ENDPOINT=
-
-# default https://app.strem.io/shell-v4.4/
-ENV WEBUI_LOCATION=
-
-ENV OPEN=
-ENV HLS_DEBUG=
-ENV DEBUG=
-ENV DEBUG_FD=
-ENV DEBUG_MIME=
-ENV FFMPEG_DEBUG=
-ENV FFSPLIT_DEBUG=
-ENV NODE_DEBUG=
-
-# disable or enable
-ENV READABLE_STREAM=
+# Do not change the above ENVs. 
 
 # Set this to your lan or public ip.
 ENV IPADDRESS=

@@ -44,12 +44,11 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:testing
           build-args: |
                BRANCH=development
                VERSION=testing
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true,tags=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:testing
       - name: Export digest
         run: |
           mkdir -p /tmp/digests

@@ -28,6 +28,7 @@ Then you can point your browser to https://192-168-1-10.519b6502d940.stremio.roc
 
 
 In order to find the fqdn that the certificate is pointing to you can look at the folder you mounted for a file that has .pem extension. The filename is the domain you need to add your your hosts in case of local ip address.
+
 -----
 
 ## Thoughts

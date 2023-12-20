@@ -50,7 +50,7 @@ jobs:
         platforms: linux/arm/v6,linux/amd64,linux/arm64/v8,linux/arm/v7
         tags: tsaridas/stremio-docker:${{ env.TAG_NAME }}, tsaridas/stremio-docker:latest
         build-args: |
-            BRANCH=v5.0.0-beta.3
+            BRANCH=release
             VERSION=${{ env.TAG_NAME }}
         cache-from: type=gha
         cache-to: type=gha,mode=max

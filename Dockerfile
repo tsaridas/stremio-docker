@@ -12,10 +12,8 @@ FROM base AS builder-web
 
 WORKDIR /srv
 
-# change to use some other branch
 ARG BRANCH=development
-RUN git clone --depth 1 --branch $BRANCH https://github.com/Stremio/stremio-web.git
-
+RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
 
 WORKDIR /srv/stremio-web
 RUN npm ci --no-audit

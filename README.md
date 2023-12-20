@@ -108,15 +108,19 @@ And then run the `docker run -d \ ...` command above again.
 
 ## Builds
 
-Builds are setup to make images for :
+Builds are setup to make images for the below arch :
 
-linux/arm/v6,linux/amd64,linux/arm64/v8,linux/arm/v7
+* linux/arm/v6
+* linux/amd64
+* linux/arm64/v8
+* linux/arm/v7
 
-there are two builds. 
+### Build tags
 
-latest -> ones I tested all three options I described and release
-nightly -> builds daily from development branches
-testing -> only builds for arm64
+* latest -> ones I tested all three options I described and release
+* nightly -> builds daily from development branch of web player and gets latest version of server.
+* testing -> only builds for arm64 and pushes to ghcr. 
+* release version (example v1.0.0) -> to have old releases available 
 
 ## Common Use Cases - ToDo
 

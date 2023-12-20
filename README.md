@@ -18,7 +18,7 @@ In order to find the fqdn that the certificate is pointing to you can look at th
 
 -----
 
-3) If you set your private ip address to IPADDRESS then the server should still set the certificate to the wildcard *.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
+3) If you set IPADDRESS to your private ip address then the server should still set the certificate to the wildcard *.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
 
 ```bash
 192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks # this is an example. set your own ip and fqnd here.
@@ -92,7 +92,7 @@ These options can be configured by setting environment variables using `-e KEY="
 | `CASTING_DISABLED` | - | `1` | Set to disable casting |
 | `IPADDRESS` | - | `192.168.1.10` | Set this to enable https |
 
-THere are multiple other options defined but probably best not settings any.
+There are multiple other options defined but probably best not settings any.
 
 ## Updating
 

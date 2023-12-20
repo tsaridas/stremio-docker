@@ -86,7 +86,6 @@ RUN cd && \
   apk add --no-cache --virtual \ 
   .build-dependencies \ 
   freetype-dev \
-  binutils \
   gnutls-dev \
   lame-dev \
   libass-dev \
@@ -100,7 +99,9 @@ RUN cd && \
   rtmpdump-dev \
   x264-dev \
   x265-dev \
-  yasm-dev \
+  yasm-dev && \
+  apk add --no-cache --virtual \ 
+  .build-dependencies \ 
   build-base \ 
   bzip2 \ 
   coreutils \ 
@@ -118,6 +119,7 @@ RUN cd && \
   ./configure --bindir="$BIN" --disable-debug \
   --disable-doc \ 
   --disable-ffplay \ 
+  --enable-avresample \ 
   --enable-gnutls \
   --enable-gpl \ 
   --enable-libass \ 

@@ -20,7 +20,7 @@ WORKDIR /srv/stremio-web
 RUN npm ci --no-audit
 RUN npm run build
 
-RUN git --depth 1 --branch master clone https://github.com/Stremio/stremio-shell.git
+RUN git clone --depth 1 https://github.com/Stremio/stremio-shell.git
 RUN echo "Downloading server from $(cat stremio-shell/server-url.txt)"
 RUN wget $(cat stremio-shell/server-url.txt)
 

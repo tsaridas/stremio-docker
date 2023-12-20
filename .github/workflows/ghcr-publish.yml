@@ -1,4 +1,4 @@
-name: ci
+name: ghcr-publish
 
 on:
   push:
@@ -6,10 +6,12 @@ on:
       - main
 
 env:
-  TMP_LOCAL_IMAGE: localhost:5000/user/app
+  TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY: ghcr.io
   REGISTRY_IMAGE: ${{ github.repository }}
   REGISTRY_TAG: testing
+  VERSION: testing
+  BRANCH: development
 
 jobs:
   build:
@@ -45,6 +47,9 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
+          build-args: |
+               BRANCH=${{ env.BRANCH }}
+               VERSION=${{ env.VERSION }}
           tags: ${{ env.TAG }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
       -

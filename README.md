@@ -18,7 +18,7 @@ In order to find the fqdn that the certificate is pointing to you can look at th
 
 -----
 
-3) If you set your private ip address to IPADDRESS then the server should still set the certificate to the wildcard *.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private is is 192.168.1.10. Full domain should be 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
+3) If you set your private ip address to IPADDRESS then the server should still set the certificate to the wildcard *.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
 
 ```bash
 192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks # this is an example. set your own ip and fqnd here.
@@ -34,6 +34,7 @@ In order to find the fqdn that the certificate is pointing to you can look at th
 
 You don't need to have both Stremio Server and Web Player running. One could disable CORS and use the stremio web player (https://app.strem.io/#/). Stremio's web player should also work for option 2 and 3 above because the webplayer requires that the server's url is in HTTPS.
 
+You can also use the native clients for options 2-3 since they use https. Its probably the best since I imagine your docker servers might not be that powerful.
 
 
 ## Requirements
@@ -90,6 +91,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | `CASTING_DISABLED` | - | `1` | Set to disable casting |
 | `IPADDRESS` | - | `192.168.1.10` | Set this to enable https |
 
+THere are multiple other options defined but probably best not settings any.
+
 ## Updating
 
 To update to the latest version, simply run:
@@ -102,7 +105,19 @@ docker pull tsaridas/stremio-docker:latest
 
 And then run the `docker run -d \ ...` command above again.
 
-## Common Use Cases
+## Builds
+
+Builds are setup to make images for :
+
+linux/arm/v6,linux/amd64,linux/arm64/v8,linux/arm/v7
+
+there are two builds. 
+
+latest -> ones I tested all three options I described and release
+nightly -> builds daily from development branches
+testing -> only builds for arm64
+
+## Common Use Cases - ToDo
 
 * [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)
 * [Using HTTPS Local IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)

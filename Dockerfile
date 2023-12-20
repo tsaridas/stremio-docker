@@ -107,6 +107,7 @@ RUN cd && \
   gnutls \ 
   nasm \ 
   tar \ 
+  binutils \
   x264 && \
   DIR=$(mktemp -d) && \
   cd "${DIR}" && \

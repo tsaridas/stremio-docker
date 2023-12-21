@@ -76,10 +76,7 @@ ENV IPADDRESS=
 
 #--------------------------
 # We build our own ffmpeg since after checking 4.X has way better performance than later versions.
-ENV SOFTWARE_VERSION="4.1"
-ENV SOFTWARE_VERSION_URL="http://ffmpeg.org/releases/ffmpeg-${SOFTWARE_VERSION}.tar.bz2"
 ENV BIN="/usr/bin"
-
 RUN cd && \
   apk update && \
   apk upgrade && \
@@ -102,46 +99,29 @@ RUN cd && \
   x265-dev \
   yasm-dev \
   build-base \ 
-  bzip2 \ 
   coreutils \ 
   gnutls \ 
   nasm \ 
-  tar \ 
+  dav1d-dev \
+  libbluray-dev \
+  libdrm-dev \
+  zimg-dev \
+  git \
   x264 && \
   DIR=$(mktemp -d) && \
   cd "${DIR}" && \
-  wget "${SOFTWARE_VERSION_URL}" && \
-  tar xjvf "ffmpeg-${SOFTWARE_VERSION}.tar.bz2" && \
-  cd ffmpeg* && \
+  git clone --depth 1 --branch v4.4.1-1 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
+  cd jellyfin-ffmpeg* && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
   ./configure --bindir="$BIN" --disable-debug \
-  --disable-doc \ 
-  --disable-ffplay \ 
-  --enable-avresample \ 
-  --enable-gnutls \
-  --enable-gpl \ 
-  --enable-libass \ 
-  --enable-libfreetype \ 
-  --enable-libmp3lame \ 
-  --enable-libopus \ 
-  --enable-librtmp \ 
-  --enable-libtheora \ 
-  --enable-libvorbis \ 
-  --enable-libvpx \ 
-  --enable-libwebp \ 
-  --enable-libx264 \ 
-  --enable-libx265 \ 
-  --enable-nonfree \ 
-  --enable-postproc \ 
-  --enable-small \ 
-  --enable-version3 && \
+  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-static --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --toolchain=hardened && \
   make -j4 && \
   make install && \
   make distclean && \
   rm -rf "${DIR}"  && \
   apk del --purge .build-dependencies && \
-  apk add --no-cache libxcb libass lame-libs libwebp libvorbis librtmp libtheora opus libvpx libwebpmux x265-libs x264-libs curl && \
+  apk add --no-cache libvorbis x265-libs x264-libs libass opus libwebpmux libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg && \
   rm -rf /var/cache/apk/* && rm -rf /tmp/*
 
 #--------------------------

@@ -116,7 +116,7 @@ RUN cd && \
   x264 && \
   DIR=$(mktemp -d) && \
   cd "${DIR}" && \
-  git clone --depth 1 --branch v4.4.1-1 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
+  git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
   cd jellyfin-ffmpeg* && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \

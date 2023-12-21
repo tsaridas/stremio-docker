@@ -2,7 +2,7 @@
 FROM node:18-alpine3.18 AS base
 
 WORKDIR /srv/
-RUN apk add --no-cache git curl
+RUN apk add --no-cache git
 
 #########################################################################
 
@@ -16,7 +16,9 @@ ARG BRANCH=development
 RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
 
 WORKDIR /srv/stremio-web
-RUN npm ci --no-audit --no-fund
+# Workaround to run it twice since if it fails because of timeout issues when building container in github
+# npm ERR! code ECONNRESET
+RUN npm ci --no-audit --no-fund || npm ci
 RUN npm run build
 
 RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt)
@@ -123,7 +125,7 @@ RUN cd && \
   make distclean && \
   rm -rf "${DIR}"  && \
   apk del --purge .build-dependencies && \
-  apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore && \
+  apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore curl && \
   rm -rf /var/cache/apk/* && rm -rf /tmp/*
 
 #--------------------------

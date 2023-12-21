@@ -115,13 +115,13 @@ RUN cd && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
   ./configure --bindir="$BIN" --disable-debug \
-  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-static --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --toolchain=hardened && \
+  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-static --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --toolchain=hardened && \
   make -j4 && \
   make install && \
   make distclean && \
   rm -rf "${DIR}"  && \
   apk del --purge .build-dependencies && \
-  apk add --no-cache libvorbis x265-libs x264-libs libass opus libwebpmux libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d && \
+  apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d && \
   rm -rf /var/cache/apk/* && rm -rf /tmp/*
 
 #--------------------------

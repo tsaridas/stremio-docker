@@ -43,37 +43,6 @@ You don't need to have both Stremio Server and Web Player running. One could use
 
 You can also use the native clients for options 2-3 since they use https. Its probably the best since I imagine your docker servers might not be that powerful.
 
-## FFMPEG
-
-We build our own ffmpeg from jellyfin repo with version 4.4.1. This plays well and its what stremio officially supports. 
-
-### FFMPEG add configure options
-You could build your own image with extra ffmpeg configure options. Your new option will probably require that you have the -dev libraries installed for alpine. 
-
-If you cannot find the -dev libraries in the alpine repo then you might need to compile them as well. 
-
-```bash
-  xvidcore-dev \
-  fdk-aac-dev \
-  libva-dev \
-  git \
-  x264 `ADD-DEV-PACKAGE-HERE` && \
-```
-
-Add your extra options at the end line before the && :
-
-```bash
---prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened `ADD-OPTION-HERE` &&
-```
-
-You also add the dev libraries to the above line from configure where you see lots of -dev packages installed. Those packages are purged later so you will also need to install the normal library (not the headers) in the end.
-
-```bash
-apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac curl libva `ADD-NON-DEV-PACKAGE-HERE` && \
-```
-
-The lines shown above might have changed so just try to use common sense on where to add your package.
-
 ## Requirements
 
 * A host with Docker installed.
@@ -141,6 +110,37 @@ docker pull tsaridas/stremio-docker:latest
 ```
 
 And then run the `docker run -d \ ...` command above again.
+
+## FFMPEG
+
+We build our own ffmpeg from jellyfin repo with version 4.4.1. This plays well and its what stremio officially supports. 
+
+### FFMPEG add configure options
+You could build your own image with extra ffmpeg configure options. Your new option will probably require that you have the -dev libraries installed for alpine. 
+
+If you cannot find the -dev libraries in the alpine repo then you might need to compile them as well. 
+
+```bash
+  xvidcore-dev \
+  fdk-aac-dev \
+  libva-dev \
+  git \
+  x264 `ADD-DEV-PACKAGE-HERE` && \
+```
+
+Add your extra options at the end line before the && :
+
+```bash
+--prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened `ADD-OPTION-HERE` &&
+```
+
+You also add the dev libraries to the above line from configure where you see lots of -dev packages installed. Those packages are purged later so you will also need to install the normal library (not the headers) in the end.
+
+```bash
+apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac curl libva `ADD-NON-DEV-PACKAGE-HERE` && \
+```
+
+The lines shown above might have changed so just try to use common sense on where to add your package. If you want hardware acceleration you might need to compile it with the driver for your hardware.
 
 ## Builds
 

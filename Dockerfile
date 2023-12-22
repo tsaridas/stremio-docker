@@ -18,7 +18,7 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 WORKDIR /srv/stremio-web
 # Workaround to run it twice since if it fails because of timeout issues when building container in github
 # npm ERR! code ECONNRESET
-RUN yarn install --no-audit --no-optional --mutex network
+RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 RUN yarn build
 
 RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt)

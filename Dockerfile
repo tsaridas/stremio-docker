@@ -16,8 +16,7 @@ ARG BRANCH=development
 RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
 
 WORKDIR /srv/stremio-web
-# Workaround to run it twice since if it fails because of timeout issues when building container in github
-# npm ERR! code ECONNRESET
+
 RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 RUN yarn build
 

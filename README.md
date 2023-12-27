@@ -4,7 +4,7 @@
 
 Stremio is a free application which lets you stream your favorite shows and movies. 
 
-The docker images in this repo have the stremio server with ffmpeg and web player setup for you and ready to use in a small alpine image.
+The Docker images in this repository have the Stremio server with ffmpeg and web player set up for you, ready to use in a small Alpine image.
 
 ## Features
 Idea here is to have both Stremio web player and server run on the same container and if IPADDRESS env variable is setup generate a certificate and use it for both.
@@ -17,10 +17,9 @@ This is the easy option since there is **no need to setup and dns or have an ext
 
 -----
 
-2) If you set your public ip address for the IPADDRESS env variable then streamio server should automatically set the certificate to the wild card *.519b6502d940.stremio.rocks and should generate an A record for your public ip address. You should then expose ports 8080 and 12470 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 12047.
+2) If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. You should then expose ports 8080 and 12470 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 12047.
 
-In order to find the fqdn that the certificate is pointing to you can look at the folder you mounted for a file that has
-.pem extension. The filename is the domain you need to add your your hosts in case of local ip address.
+To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
 
 -----
 
@@ -33,15 +32,15 @@ In order to find the fqdn that the certificate is pointing to you can look at th
 Then you can point your browser to https://192-168-1-10.519b6502d940.stremio.rocks:8080 and setup Streaming server to https://192-168-1-10.519b6502d940.stremio.rocks:12470 .
 
 
-In order to find the fqdn that the certificate is pointing to you can look at the folder you mounted for a file that has .pem extension. The filename is the domain you need to add your your hosts in case of local ip address.
+To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
 
 -----
 
 ## Thoughts
 
-You don't need to have both Stremio Server and Web Player running. One could use the stremio web player (https://app.strem.io/#/). Stremio's web player should also work for option 2 and 3 above because the webplayer requires that the server's url is in HTTPS.
+You don't need to have both Stremio Server and Web Player running. One could use the Stremio web player ([https://app.strem.io/#/](https://app.strem.io/#/)). Stremio's web player should also work for options 2 and 3 above because the web player requires that the server's URL is in HTTPS.
 
-You can also use the native clients for options 2-3 since they use https. Its probably the best since I imagine your docker servers might not be that powerful.
+You can also use the native clients for options 2-3 since they use https but those clients also run a server so there is no point doing this.
 
 ## Requirements
 
@@ -80,7 +79,7 @@ $ docker run -d \
 
 > 💡 Replace `YOUR_SERVER_IP` with your WAN IP or LAN IP
 > 
-The Web UI will now be available on `http://0.0.0.0:8080`.
+The Web UI will now be available on `https://`YOUR_SERVER_IP`:8080`.
 
 > 💡 Your configuration files and cache will be saved in `~/.stremio-server`
 
@@ -113,7 +112,7 @@ And then run the `docker run -d \ ...` command above again.
 
 ## FFMPEG
 
-We build our own ffmpeg from jellyfin repo with version 4.4.1. This plays well and its what stremio officially supports. 
+We build our own ffmpeg from jellyfin repo with version 4.4.1-4 This plays well and its what stremio officially supports. 
 
 ### FFMPEG add configure options
 You could build your own image with extra ffmpeg configure options. Your new option will probably require that you have the -dev libraries installed for alpine. 
@@ -155,9 +154,11 @@ I can add more build archs if you require them and you can ask but I doubt anybo
 
 ### Build tags
 
-* latest -> ones I tested all three options I described and release
+* latest -> ones I tested all three options I described and release. Uses latest release for web player and latest server.
 * nightly -> builds daily from development branch of web player and gets latest version of server.
-* release version (example v1.0.0) -> to have old releases available 
+* release version (example v1.0.0) -> to have old releases available
+
+Images saved in [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker)
 
 ## Common Use Cases - ToDo
 

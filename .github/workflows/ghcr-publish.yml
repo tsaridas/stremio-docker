@@ -14,8 +14,28 @@ env:
   BRANCH: development
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Pull Docker Image
+        run: docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
+
+      - name: Run Docker Container
+        run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
   build:
     runs-on: ubuntu-latest
+    needs:
+      - test
     strategy:
       fail-fast: false
       matrix:
@@ -104,23 +124,3 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
   
-  test:
-    runs-on: ubuntu-latest
-    needs:
-      - push
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Pull Docker Image
-        run: docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
-
-      - name: Run Docker Container
-        run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: npx playwright test
-

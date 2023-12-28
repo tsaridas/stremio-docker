@@ -10,6 +10,7 @@ on:
 env:
   REGISTRY_IMAGE: ${{ github.repository }}
   WEBREPO: "https://github.com/Stremio/stremio-web.git"
+  MYREPO: "https://github.com/tsaridas/stremio-docker"
 
 jobs:
   check_release:
@@ -17,14 +18,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Download Files from Artifacts
+        id: download-artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: version-files
       - name: CheckRelease
         run: |
           TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
           URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
-          echo $TAG > latest_tag_web.txt
-          echo $URL > latest_server_url.txt
+          OLDTAG=$(cat latest_tag_web.txt)
+          OLDURL=$(cat latest_server_url.txt)
+          if [ "$TAG" == "$OLDTAG" ]; then
+            echo "${TAG} is the same as ${OLDTAG} "
+          else
+            echo "We need to release. Found new tag ${TAG}"
+            echo $TAG > latest_tag_web.txt
+            RELEASE=true
+          fi
+          if [ "$URL" == "$OLDURL" ]; then
+            echo "${URL} is the same as ${OLDURL}" 
+          else
+            echo "We need to release. Found new url ${URL}"
+            echo $URL > latest_server_url.txt
+            RELEASE=true
+          fi
+          if [ "$RELESE" == "true" ]; then
+            VERSION=$(git ls-remote --tags --refs $MYREPO | tail -n1 | cut -d/ -f3)
+            gh release create $VERSION --title "Release ${VERSION}" --notes "Web version ${TAG} - Server url ${URL}" --token ${{ secrets.GITHUB_TOKEN }}
+          fi
       - name: Upload Files as Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: version-files
           path: |

@@ -1,0 +1,34 @@
+name: Check-Release-Nightly
+
+on:
+  push:
+    branches:
+      - development
+  schedule:
+    - cron: '3 0 * * *'
+
+env:
+  REGISTRY_IMAGE: ${{ github.repository }}
+  WEBREPO: "https://github.com/Stremio/stremio-web.git"
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: CheckRelease
+        run: |
+          TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
+          URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
+          echo $TAG > latest_tag_web.txt
+          echo $URL > latest_server_url.txt
+      - name: Upload Files as Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: version-files
+          path: |
+            latest_tag_web.txt
+            latest_server_url.txt
+
+

@@ -23,6 +23,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: version-files
+          path: ./
       - name: CheckRelease
         run: |
           TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
@@ -51,15 +52,13 @@ jobs:
             VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
             NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
             echo "We need to release $NEWVERSION"
-            gh auth login --with-token ${{ secrets.GITHUB_TOKEN }}
+            echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
           fi
       - name: Upload Files as Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: version-files
-          path: |
-            latest_tag_web.txt
-            latest_server_url.txt
+          path: [latest_tag_web.txt, latest_server_url.txt]
 
 

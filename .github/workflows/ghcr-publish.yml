@@ -14,39 +14,6 @@ env:
   BRANCH: development
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - linux/amd64
-          - linux/arm/v6
-          - linux/arm/v7
-          - linux/arm64
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Pull Docker Image
-        run: docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
-
-      - name: Run Docker Container
-        run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install Playwright 
-        run: npm install @playwright/test
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: cd tests;npx playwright test
-
   build:
     runs-on: ubuntu-latest
     needs:
@@ -96,6 +63,47 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm/v6
+          - linux/arm/v7
+          - linux/arm64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download images
+        uses: actions/download-artifact@v3
+        with:
+          name: images
+          path: /tmp/images
+      - name: Load images
+        run: |
+          for image in /tmp/images/*.tar; do
+            docker load -i $image
+          done
+
+      - name: Run Docker Container
+        run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.TMP_LOCAL_IMAGE }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Playwright 
+        run: npm install @playwright/test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: cd tests;npx playwright test
+
   push:
     runs-on: ubuntu-latest
     needs:
@@ -106,36 +114,29 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      -
-        name: Download images
+      - name: Download images
         uses: actions/download-artifact@v3
         with:
           name: images
           path: /tmp/images
-      -
-        name: Load images
+      - name: Load images
         run: |
           for image in /tmp/images/*.tar; do
             docker load -i $image
           done
-      -
-        name: Push images to local registry
+      - name: Push images to local registry
         run: |
           docker push -a ${{ env.TMP_LOCAL_IMAGE }}
-      -
-        name: Login to GitHub
+      - name: Login to GitHub
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Create manifest list and push
+      - name: Create manifest list and push
         run: |
           docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }} \
             $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE }}' | tr '\n' ' ')
-      -
-        name: Inspect image
+      - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
-  

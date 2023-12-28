@@ -1,16 +1,12 @@
 name: Check-Release-Nightly
 
 on:
-  push:
-    branches:
-      - development
   schedule:
     - cron: '3 0 * * *'
 
 env:
   REGISTRY_IMAGE: ${{ github.repository }}
   WEBREPO: "https://github.com/Stremio/stremio-web.git"
-  MYREPO: "https://github.com/tsaridas/stremio-docker"
 
 jobs:
   check_release:

@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Download Files from Artifacts
         id: download-artifacts
+        continue-on-error: true
         uses: actions/download-artifact@v3
         with:
           name: version-files
@@ -27,6 +28,10 @@ jobs:
         run: |
           TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
           URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
+          if [ ! -f latest_tag_web.txt ]; then
+            touch latest_tag_web.txt
+            touch latest_server_url.txt
+          fi
           OLDTAG=$(cat latest_tag_web.txt)
           OLDURL=$(cat latest_server_url.txt)
           if [ "$TAG" == "$OLDTAG" ]; then

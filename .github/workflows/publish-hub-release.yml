@@ -2,7 +2,7 @@ name: DockerHub-Release
 
 on:
   release:
-    types: [released]
+    types: [created]
   workflow_dispatch:
     inputs:
       TAG_NAME:

@@ -21,23 +21,23 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Pull Docker Image
-        run: pwd;docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
+        run: docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
 
       - name: Run Docker Container
-        run: pwd;docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
+        run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
 
       - uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install Playwright 
-        run: pwd;npm install @playwright/test
+        run: npm install @playwright/test
 
       - name: Install Playwright Browsers
-        run: pwd;npx playwright install --with-deps
+        run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: pwd;ls -lta;npx playwright test
+        run: npx playwright test --project=tests/playwright.config.ts
 
   build:
     runs-on: ubuntu-latest

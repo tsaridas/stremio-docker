@@ -37,7 +37,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: npx playwright test --project=tests/playwright.config.ts
+        run: cd tests;npx playwright test
 
   build:
     runs-on: ubuntu-latest

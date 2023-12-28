@@ -16,36 +16,23 @@ jobs:
   check_release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Download Files from Artifacts
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: version-files
-          path: ./
       - name: CheckRelease
         run: |
           TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
           URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
-          if [ ! -f latest_tag_web.txt ]; then
-            touch latest_tag_web.txt
-            touch latest_server_url.txt
-          fi
-          OLDTAG=$(cat latest_tag_web.txt)
-          OLDURL=$(cat latest_server_url.txt)
+          BODY=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest  | grep body | awk -F\" '{print $4}')
+          OLDTAG=$(echo $BODY | awk '{print $3}')
+          OLDURL=$(echo $BODY | awk '{print $7}')
           if [ "$TAG" == "$OLDTAG" ]; then
             echo "${TAG} is the same as ${OLDTAG} "
           else
             echo "We need to release. Found new tag ${TAG}"
-            echo $TAG > latest_tag_web.txt
             RELEASE="true"
           fi
           if [ "$URL" == "$OLDURL" ]; then
             echo "${URL} is the same as ${OLDURL}" 
           else
             echo "We need to release. Found new url ${URL}"
-            echo $URL > latest_server_url.txt
             RELEASE="true"
           fi
           if [ "$RELEASE" ]; then
@@ -55,12 +42,5 @@ jobs:
             echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
           fi
-      - name: Upload Files as Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: version-files
-          path: | 
-            latest_tag_web.txt
-            latest_server_url.txt
 
 

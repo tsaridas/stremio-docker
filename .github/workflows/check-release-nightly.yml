@@ -2,7 +2,7 @@ name: Check-Release-Nightly
 
 on:
   schedule:
-    - cron: '3 0 * * *'
+    - cron: '0 3 * * *'
 
 env:
   REGISTRY_IMAGE: ${{ github.repository }}

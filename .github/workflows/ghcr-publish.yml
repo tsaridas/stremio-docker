@@ -59,7 +59,7 @@ jobs:
           done
 
       - name: Run Docker Container
-        run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.TMP_LOCAL_IMAGE }}:${{ matrix.platform }}
+        run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
 
       - uses: actions/setup-node@v3
         with:

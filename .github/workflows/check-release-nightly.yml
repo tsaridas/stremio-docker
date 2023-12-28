@@ -19,7 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Download Files from Artifacts
-        id: download-artifacts
         continue-on-error: true
         uses: actions/download-artifact@v3
         with:
@@ -48,7 +47,7 @@ jobs:
             echo $URL > latest_server_url.txt
             RELEASE="true"
           fi
-          if [ "$RELESE" ]; then
+          if [ "$RELEASE" ]; then
             VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
             NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
             echo "We need to release $NEWVERSION"

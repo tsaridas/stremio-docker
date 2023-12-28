@@ -26,6 +26,13 @@ jobs:
       - name: Run Docker Container
         run: docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 

@@ -48,12 +48,13 @@ jobs:
             echo $URL > latest_server_url.txt
             RELEASE="true"
           fi
-          #if [ "$RELESE" ]; then
+          if [ "$RELESE" ]; then
             VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
             NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
             echo "We need to release $NEWVERSION"
-            gh release create $VERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" --token ${{ secrets.GITHUB_TOKEN }}
-            #fi
+            gh auth login --with-token ${{ secrets.GITHUB_TOKEN }}
+            gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
+          fi
       - name: Upload Files as Artifacts
         uses: actions/upload-artifact@v3
         with:

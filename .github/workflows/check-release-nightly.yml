@@ -42,7 +42,7 @@ jobs:
             echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
           fi
-          exit 0;
+          exit 2;
       - name: NextCommand
         run: |
           ls -lta;uname -a;cat /proc/cpuinfo

@@ -59,13 +59,13 @@ jobs:
     steps:
       - name: NextCommand
         run: |
-          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo echo ${{ needs.check_release.outputs.v }}
+          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.v }}; echo ${{ needs.check_release.outputs.id.continue }}; echo ${{ needs.check_release.outputs.id }}
   push:
     runs-on: ubuntu-latest
     if: ${{ needs.check_release.outputs.id.continue == false }}
     steps:
       - name: NextCommand
         run: |
-          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}
+          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.id.continue }};echo ${{ needs.check_release.outputs.v }}
 
 

@@ -70,6 +70,6 @@ jobs:
     steps:
       - name: NextCommand
         run: |
-          echo [${{ needs.check_release.outputs.version }}]; echo [${{ needs.check_release.outputs }}];echo [${{ needs.check_release.outputs.continue }}];echo [${{ needs.check_release.outputs.* }}]
+          echo [${{ needs.check_release.outputs.version }}]; echo [${{ needs.check_release.outputs }}];echo [${{ needs.check_release.outputs.continue }}];echo [${{ needs.check_release.outputs.version.version }}]
 
 

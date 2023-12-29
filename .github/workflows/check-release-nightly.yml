@@ -51,7 +51,7 @@ jobs:
           fi
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ needs.your_job.outputs.continue == 'true' }}
+    if: ${{ needs.your_job.outputs.continue == 'false' }}
     steps:
       - name: NextCommand
         run: |

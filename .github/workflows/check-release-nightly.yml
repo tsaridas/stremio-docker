@@ -52,7 +52,7 @@ jobs:
             #echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
           else
-            echo nothing
+            echo nothing at all
             # echo "continue=false" >> $GITHUB_OUTPUT
           fi
   deploy:

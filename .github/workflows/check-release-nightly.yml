@@ -48,7 +48,6 @@ jobs:
             #echo "::set-output name=continue::true"
           else
             echo "{version}=$NEWVERSION" >> $GITHUB_OUTPUT
-            echo "{NEWVERSION}=$NEWVERSION" >> $GITHUB_ENV
             echo "{continue}={false}" >> $GITHUB_OUTPUT
             #echo "::set-output name=continue::false"
           fi
@@ -63,10 +62,12 @@ jobs:
           ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.v }}; echo ${{ needs.check_release.outputs.id.continue }}; echo ${{ needs.check_release.outputs.id }}
   push:
     runs-on: ubuntu-latest
+    needs:
+      - check_release
     if: ${{ needs.check_release.outputs.id.continue == false }}
     steps:
       - name: NextCommand
         run: |
-          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.id.continue }};echo ${{ needs.check_release.outputs.v }}; echo "from env :${{ env.VERSION }}"
+          echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.v }}
 
 

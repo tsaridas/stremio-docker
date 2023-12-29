@@ -16,7 +16,7 @@ jobs:
   check_release:
     runs-on: ubuntu-latest
     outputs:
-      id: continue
+      id: ${{ steps.check.outputs.continue }}
       version: ${{steps.check.outputs.version }}
     steps:
       - name: Checkout
@@ -24,7 +24,6 @@ jobs:
 
       - name: CheckRelease
         id: check
-        if: ${{ always() }}
         run: |
           TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
           URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)

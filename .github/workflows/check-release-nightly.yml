@@ -43,9 +43,11 @@ jobs:
             echo "We need to release $NEWVERSION"
             echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
-            echo "::set-output name=continue::true"
+            echo "{continue}={true}" >> $GITHUB_OUTPUT
+            #echo "::set-output name=continue::true"
           else
-            echo "::set-output name=continue::false"
+            echo "{continue}={false}" >> $GITHUB_OUTPUT
+            #echo "::set-output name=continue::false"
           fi
   deploy:
     runs-on: ubuntu-latest

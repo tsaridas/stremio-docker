@@ -14,6 +14,8 @@ env:
 jobs:
   check_release:
     runs-on: ubuntu-latest
+    outputs:
+      id: continue
     steps:
       - name: CheckRelease
         if: ${{ always() }}
@@ -41,8 +43,14 @@ jobs:
             echo "We need to release $NEWVERSION"
             echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
+            echo "::set-output name=continue::true"
+          else
+            echo "::set-output name=continue::false"
           fi
-          exit 2;
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ needs.your_job.outputs.continue == 'true' }}
+    steps:
       - name: NextCommand
         run: |
           ls -lta;uname -a;cat /proc/cpuinfo

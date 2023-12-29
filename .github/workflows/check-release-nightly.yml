@@ -48,7 +48,7 @@ jobs:
           if [ "$RELEASE" ]; then
             echo $NEWVERSION
             echo "version=$NEWVERSION" >> $GITHUB_OUTPUT
-            echo "continue=true" >> $GITHUB_OUTPUT
+            echo "continue='true'" >> $GITHUB_OUTPUT
             echo "We need to release $NEWVERSION"
             #echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 

@@ -122,7 +122,7 @@ jobs:
   
   push:
     runs-on: ubuntu-latest
-    if: ${{ needs.check_release.outputs.continue }}
+    if: ${{ needs.check_release.outputs.id }}
     needs:
       - build
       - check_release
@@ -166,7 +166,7 @@ jobs:
   
   release:
     runs-on: ubuntu-latest
-    if: ${{ needs.check_release.outputs.continue }}
+    if: ${{ needs.check_release.outputs.id }}
     needs:
       - build
       - check_release

@@ -38,16 +38,17 @@ jobs:
             echo "We need to release. Found new url ${URL}"
             RELEASE="true"
           fi
+          VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
+          NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
           if [ "$RELEASE" ]; then
-            VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
-            NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
-            echo "{version}={$NEWVERSION}" >> $GITHUB_OUTPUT
             echo "We need to release $NEWVERSION"
             echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
             echo "{continue}={true}" >> $GITHUB_OUTPUT
             #echo "::set-output name=continue::true"
           else
+            echo "{version}={$NEWVERSION}" >> $GITHUB_OUTPUT
+            echo "Variable value: $NEWVERSION" >> $GITHUB_ENV
             echo "{continue}={false}" >> $GITHUB_OUTPUT
             #echo "::set-output name=continue::false"
           fi
@@ -66,6 +67,6 @@ jobs:
     steps:
       - name: NextCommand
         run: |
-          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.id.continue }};echo ${{ needs.check_release.outputs.v }}
+          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.id.continue }};echo ${{ needs.check_release.outputs.v }}; echo "from env :${{ env.VERSION }}"
 
 

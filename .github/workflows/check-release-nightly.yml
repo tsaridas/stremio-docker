@@ -10,6 +10,7 @@ on:
 env:
   REGISTRY_IMAGE: ${{ github.repository }}
   WEBREPO: "https://github.com/Stremio/stremio-web.git"
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   check_release:

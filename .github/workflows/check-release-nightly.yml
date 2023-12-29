@@ -66,6 +66,6 @@ jobs:
     steps:
       - name: NextCommand
         run: |
-          ls -lta;uname -a;cat /proc/cpuinfo ${{ needs.check_release.outputs.v.version }}
+          ls -lta;uname -a;cat /proc/cpuinfo;echo ${{ needs.check_release.outputs.v.version }}
 
 

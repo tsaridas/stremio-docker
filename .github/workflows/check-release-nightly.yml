@@ -73,5 +73,23 @@ jobs:
       - name: NextCommand
         run: |
           echo [${{ needs.check_release.outputs.version }}]; echo [${{ needs.check_release.outputs.continue }}];
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - check_release
+    if: ${{ needs.check_release.outputs.continue }}
+    steps:
+      - name: NextCommand
+        run: |
+          echo [${{ needs.check_release.outputs.version }}]; echo [${{ needs.check_release.outputs.continue }}];
+  release2:
+    runs-on: ubuntu-latest
+    needs:
+      - check_release
+    if: ${{ needs.check_release.outputs.continue.continue }}
+    steps:
+      - name: NextCommand
+        run: |
+          echo [${{ needs.check_release.outputs.version }}]; echo [${{ needs.check_release.outputs.continue }}];
 
 

@@ -1,9 +1,6 @@
 name: Check-Release-Nightly
 
 on:
-  push:
-    branches:
-      - development
   schedule:
     - cron: '0 3 * * *'
 

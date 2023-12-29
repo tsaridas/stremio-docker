@@ -51,7 +51,9 @@ jobs:
           fi
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ needs.your_job.outputs.continue == 'false' }}
+    needs:
+      - check_release
+    if: ${{ needs.your_job.outputs.id == 'false' }}
     steps:
       - name: NextCommand
         run: |

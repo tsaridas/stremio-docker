@@ -1,8 +1,8 @@
 name: ghcr-publish
 
 on:
-  push:
-    branches:
+  #push:
+    #branches:
       #- development
 
 env:

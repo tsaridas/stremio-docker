@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       id: continue
+      v: version
     steps:
       - name: CheckRelease
         if: ${{ always() }}
@@ -40,6 +41,7 @@ jobs:
           if [ "$RELEASE" ]; then
             VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
             NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
+            echo "{version}={$NEWVERSION}" >> $GITHUB_OUTPUT
             echo "We need to release $NEWVERSION"
             echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
             gh release create $NEWVERSION --title "Release ${NEWVERSION}" --notes "Web version ${TAG} - Server url ${URL}" 
@@ -58,5 +60,12 @@ jobs:
       - name: NextCommand
         run: |
           ls -lta;uname -a;cat /proc/cpuinfo
+  push:
+    runs-on: ubuntu-latest
+      #if: ${{ needs.check_release.outputs.id.continue == true }}
+    steps:
+      - name: NextCommand
+        run: |
+          ls -lta;uname -a;cat /proc/cpuinfo ${{ needs.check_release.outputs.v.version }}
 
 

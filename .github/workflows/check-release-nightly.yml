@@ -47,8 +47,8 @@ jobs:
             echo "{continue}={true}" >> $GITHUB_OUTPUT
             #echo "::set-output name=continue::true"
           else
-            echo "{version}={$NEWVERSION}" >> $GITHUB_OUTPUT
-            echo "Variable value: $NEWVERSION" >> $GITHUB_ENV
+            echo "{version}=$NEWVERSION" >> $GITHUB_OUTPUT
+            echo "{NEWVERSION}=$NEWVERSION" >> $GITHUB_ENV
             echo "{continue}={false}" >> $GITHUB_OUTPUT
             #echo "::set-output name=continue::false"
           fi

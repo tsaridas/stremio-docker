@@ -1,9 +1,9 @@
 name: ghcr-publish
 
 on:
-  #push:
-    #branches:
-      #- development
+  push:
+    branches:
+      - development1
 
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}

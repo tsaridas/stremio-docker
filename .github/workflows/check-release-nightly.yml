@@ -17,6 +17,7 @@ jobs:
     outputs:
       id: continue
       v: version
+      d: version
     steps:
       - name: CheckRelease
         if: ${{ always() }}
@@ -48,6 +49,7 @@ jobs:
             #echo "::set-output name=continue::true"
           else
             echo "{version}={$NEWVERSION}" >> $GITHUB_OUTPUT
+            echo "{version}=${NEWVERSION}" >> $GITHUB_OUTPUT
             echo "{continue}={false}" >> $GITHUB_OUTPUT
             #echo "::set-output name=continue::false"
           fi
@@ -68,6 +70,6 @@ jobs:
     steps:
       - name: NextCommand
         run: |
-          echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.v }}
+          echo ${{ needs.check_release.outputs.v.version }}; echo ${{ needs.check_release.outputs.v }};echo ${{ needs.check_release.outputs.d }};echo echo ${{ needs.check_release.outputs.d.version }}
 
 

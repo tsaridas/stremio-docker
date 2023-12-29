@@ -1,23 +1,59 @@
 name: DockerHub-Release
 
 on:
-  release:
-    types: [created]
-  workflow_dispatch:
-    inputs:
-      TAG_NAME:
-        description: 'Tag name that the major tag will point to'
-        required: true
+  schedule:
+    - cron: '9 0 * * *'
+  push:
+    branches:
+      - development
 
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY_IMAGE: ${{ github.repository }}
   TAG_NAME: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
   REGISTRY_TAG: latest
+  WEBREPO: "https://github.com/Stremio/stremio-web.git"
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
+  check_release:
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{steps.check.outputs.continue }}
+      version: ${{steps.check.outputs.version }}
+    steps:
+      - name: CheckRelease
+        id: check
+        run: |
+          TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
+          URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
+          BODY=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest  | grep body | awk -F\" '{print $4}')
+          OLDTAG=$(echo $BODY | awk '{print $3}')
+          OLDURL=$(echo $BODY | awk '{print $7}')
+          if [ "$TAG" == "$OLDTAG" ]; then
+            echo "${TAG} is the same as ${OLDTAG} "
+          else
+            echo "We need to release. Found new tag ${TAG}"
+            RELEASE="true"
+          fi
+          if [ "$URL" == "$OLDURL" ]; then
+            echo "${URL} is the same as ${OLDURL}" 
+          else
+            echo "We need to release. Found new url ${URL}"
+            RELEASE="true"
+          fi
+          if [ "$RELEASE" ]; then
+            VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
+            NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
+            echo "We need to release $NEWVERSION"
+            echo "version=$NEWVERSION" >> $GITHUB_OUTPUT
+            echo "continue=true" >> $GITHUB_OUTPUT
+          fi
   build:
     runs-on: ubuntu-latest
+    needs:
+      - check_release
+    if: ${{ needs.check_release.outputs.id }}
     strategy:
       fail-fast: false
       matrix:
@@ -27,24 +63,23 @@ jobs:
           - linux/arm/v7
           - linux/arm64
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
-      -
-        name: Prepare
+
+      - name: Prepare
         run: |
           mkdir -p /tmp/images
           platform=${{ matrix.platform }}
           echo "TARFILE=${platform//\//-}.tar" >> $GITHUB_ENV
           echo "TAG=${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}" >> $GITHUB_ENV
-      -
-        name: Set up QEMU
+
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      -
-        name: Build
+
+      - name: Build
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -54,8 +89,30 @@ jobs:
               BRANCH=release
               VERSION=${{ env.TAG_NAME }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
-      -
-        name: Upload image
+
+      - name: Load images
+        run: |
+          for image in /tmp/images/*.tar; do
+            docker load -i $image
+          done
+
+      - name: Run Docker Container
+        run: platform=${{ matrix.platform }} && docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Playwright 
+        run: npm install @playwright/test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: cd tests;npx playwright test
+
+      - name: Upload image
         uses: actions/upload-artifact@v3
         with:
           name: images
@@ -65,44 +122,59 @@ jobs:
   
   push:
     runs-on: ubuntu-latest
+    if: ${{ needs.check_release.outputs.id }}
     needs:
       - build
+      - check_release
     services:
       registry:
         image: registry:2
         ports:
           - 5000:5000
     steps:
-      -
-        name: Download images
+      - name: Download images
         uses: actions/download-artifact@v3
         with:
           name: images
           path: /tmp/images
-      -
-        name: Load images
+
+      - name: Load images
         run: |
           for image in /tmp/images/*.tar; do
             docker load -i $image
           done
-      -
-        name: Push images to local registry
+
+      - name: Push images to local registry
         run: |
           docker push -a ${{ env.TMP_LOCAL_IMAGE }}
-      -
-        name: Login to DockerHUB
+
+      - name: Login to DockerHUB
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASS }}
-      -
-        name: Create manifest list and push
+
+      - name: Create manifest list and push
         run: |
-          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }} -t ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }} \
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }} -t ${{ env.REGISTRY_IMAGE }}:${{ needs.check_release.outputs.version }} \
             $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE }}' | tr '\n' ' ')
-      -
-        name: Inspect image
+
+      - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ needs.check_release.outputs.version }}
   
+  release:
+    runs-on: ubuntu-latest
+    if: ${{ needs.check_release.outputs.id }}
+    needs:
+      - build
+      - check_release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Release
+        run: |
+          TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
+          URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
+          gh release create ${{ needs.check_release.outputs.version }} --title "Release ${{ needs.check_release.outputs.version }}" --notes "Web version ${TAG} - Server url ${URL}" 

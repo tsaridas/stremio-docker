@@ -6,6 +6,8 @@ Stremio is a free application which lets you stream your favorite shows and movi
 
 The Docker images in this repository have the Stremio server with ffmpeg and web player set up for you, ready to use in a small Alpine image.
 
+My motivation for doing this is having it running on my RPi5 and couldn't find something that has both player and server but also the official image seemed too big.
+
 ## Features
 Idea here is to have both Stremio web player and server run on the same container and if IPADDRESS env variable is setup generate a certificate and use it for both.
 
@@ -154,14 +156,20 @@ I can add more build archs if you require them and you can ask but I doubt anybo
 
 ### Build tags
 
-* latest -> ones I tested all three options I described and release. Uses latest release for web player and latest server.
-* nightly -> builds daily from development branch of web player and gets latest version of server.
-* release version (example v1.0.0) -> to have old releases available
+* latest -> Builds automatically when new version of server or WebPlayer is released. Builds WebPlayer only from release tags.
+* nightly -> Builds automatically daily from development branch of web player and gets latest version of server.
+* release version (example v1.0.0) -> to have old releases available in case there is something wrong with new release.
 
 Images saved in [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker)
 
-## Common Use Cases - ToDo
+## Common Use Cases
 
 * [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)
 * [Using HTTPS Local IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
 * [Using HTTPS Public IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
+
+## Last words
+
+I don't intend to spend much time on this and tried to automate as much as I had time to.
+PRs and Issues are welcome. 
+You can also fork and do as you like with the code but if you find some issue please do let me know.

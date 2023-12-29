@@ -59,13 +59,13 @@ jobs:
     steps:
       - name: NextCommand
         run: |
-          ls -lta;uname -a;cat /proc/cpuinfo
+          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}; echo echo ${{ needs.check_release.outputs.v }}
   push:
     runs-on: ubuntu-latest
-      #if: ${{ needs.check_release.outputs.id.continue == true }}
+    if: ${{ needs.check_release.outputs.id.continue == false }}
     steps:
       - name: NextCommand
         run: |
-          ls -lta;uname -a;cat /proc/cpuinfo;echo ${{ needs.check_release.outputs.v.version }}
+          ls -lta;uname -a;echo ${{ needs.check_release.outputs.v.version }}
 
 

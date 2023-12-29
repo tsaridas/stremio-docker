@@ -70,17 +70,14 @@ To automatically run stremio web player and server, simply run:
 $ docker run -d \
   --name=stremio-docker \
   -e NO_CORS=1 \
-  -e IPADDRESS=`YOURIPADDRESS` \
   -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   -p 11470:11470/tcp \
-  -p 12470:12470/tcp \
   --restart unless-stopped \
   tsaridas/stremio-docker:latest
 </pre>
 
-> 💡 Replace `YOUR_SERVER_IP` with your WAN IP or LAN IP
-> 
+
 The Web UI will now be available on `https://`YOUR_SERVER_IP`:8080`.
 
 > 💡 Your configuration files and cache will be saved in `~/.stremio-server`
@@ -91,12 +88,13 @@ These options can be configured by setting environment variables using `-e KEY="
 
 | Env | Default | Example | Description |
 | - | - | - | - |
+| `IPADDRESS` | - | `192.168.1.10` | Set this to enable https |
+| `NO_CORS` | - | `1` | Set to disable server's cors |
+| `CASTING_DISABLED` | - | `1` | Set to disable casting |
 | `FFMPEG_BIN` | - | `/usr/bin/` | Set for custom ffmpeg bin path |
 | `FFPROBE_BIN` | - | `/usr/bin/` | Set for custom ffprobe bin path |
 | `APP_PATH` | - | `/srv/stremio-path/` | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files. |
-| `NO_CORS` | - | `1` | Set to disable server's cors |
-| `CASTING_DISABLED` | - | `1` | Set to disable casting |
-| `IPADDRESS` | - | `192.168.1.10` | Set this to enable https |
+
 
 There are multiple other options defined but probably best not settings any.
 

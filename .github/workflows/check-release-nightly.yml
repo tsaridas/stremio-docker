@@ -15,8 +15,8 @@ jobs:
   check_release:
     runs-on: ubuntu-latest
     outputs:
-      continue: ${{steps.check.outputs.continue}}
-      version: version
+      continue: ${{steps.check.outputs.continue }}
+      version: ${{steps.check.outputs.version }}
     steps:
       - name: CheckRelease
         id: check

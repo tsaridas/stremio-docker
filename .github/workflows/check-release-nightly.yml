@@ -16,7 +16,7 @@ jobs:
   check_release:
     runs-on: ubuntu-latest
     outputs:
-      id: ${{ steps.check.outputs.continue }}
+      id: ${{ steps.check.outputs.continue }} 
       version: ${{steps.check.outputs.version }}
     steps:
       - name: Checkout

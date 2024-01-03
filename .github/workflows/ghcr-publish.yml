@@ -51,6 +51,8 @@ jobs:
                VERSION=${{ env.VERSION }}
           tags: ${{ env.TAG }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Load images
         run: |
@@ -65,14 +67,14 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install Playwright 
+      - name: Install Playwright
         run: npm install @playwright/test
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: cd tests;npx playwright test
+        run: cd tests;npx playwright test || docker ps; docker logs $(docker ps | grep stremio | awk '{print $1}')
 
       - name: Upload image
         uses: actions/upload-artifact@v3

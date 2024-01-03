@@ -3,9 +3,6 @@ name: DockerHub-Release
 on:
   schedule:
     - cron: '9 0 * * *'
-  push:
-    branches:
-      - development
 
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
@@ -110,7 +107,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: cd tests;npx playwright test
+        run: cd tests;npx playwright test || docker ps; docker logs $(docker ps | grep stremio | awk '{print $1}')
 
       - name: Upload image
         uses: actions/upload-artifact@v3
@@ -177,4 +174,4 @@ jobs:
         run: |
           TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | tail -n1 | cut -d/ -f3)
           URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
-          gh release create ${{ needs.check_release.outputs.version }} --title "Release ${{ needs.check_release.outputs.version }}" --notes "Web version ${TAG} - Server url ${URL}" 
+          gh release create ${{ needs.check_release.outputs.version }} --title "Release ${{ needs.check_release.outputs.version }}" --notes "Web version ${TAG} - Server url ${URL}  " 

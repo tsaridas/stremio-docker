@@ -37,7 +37,7 @@ LABEL version=${VERSION}
 WORKDIR /srv/stremio-server
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
-RUN yarn global add http-server
+RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 
 COPY ./stremio-web-service-run.sh ./
 COPY ./extract_certificate.js ./
@@ -135,5 +135,7 @@ VOLUME ["/root/.stremio-server"]
 
 # Expose default ports
 EXPOSE 8080 11470 12470
+
+ENTRYPOINT []
 
 CMD ["./stremio-web-service-run.sh"]

@@ -1,6 +1,8 @@
 name: DockerHub-Release
 
 on:
+  release:
+    types: [released]
   schedule:
     - cron: '9 0 * * *'
 

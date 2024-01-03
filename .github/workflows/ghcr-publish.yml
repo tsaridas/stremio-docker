@@ -74,7 +74,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: cd tests;npx playwright test || docker ps; docker logs $(docker ps | grep stremio | awk '{print $1}')
+        run: cd tests;npx playwright test || (docker ps;ip a; docker logs $(docker ps | grep stremio | awk '{print $1}'))
 
       - name: Upload image
         uses: actions/upload-artifact@v3

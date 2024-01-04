@@ -22,24 +22,23 @@ jobs:
           - linux/arm/v7
           - linux/arm64
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
-      -
-        name: Prepare
+
+      - name: Prepare
         run: |
           mkdir -p /tmp/images
           platform=${{ matrix.platform }}
           echo "TARFILE=${platform//\//-}.tar" >> $GITHUB_ENV
           echo "TAG=${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}" >> $GITHUB_ENV
-      -
-        name: Set up QEMU
+
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      -
-        name: Build
+
+      - name: Build
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -57,7 +56,7 @@ jobs:
           done
 
       - name: Run Docker Container
-        run: platform=${{ matrix.platform }} && docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+        run: platform=${{ matrix.platform }} && docker run -d --ip 172.17.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
 
       - uses: actions/setup-node@v3
         with:
@@ -72,8 +71,7 @@ jobs:
       - name: Run Playwright tests
         run: cd tests;npx playwright test || (docker ps; docker logs $(docker ps | grep stremio | awk '{print $1}'))
 
-      -
-        name: Upload image
+      - name: Upload image
         uses: actions/upload-artifact@v3
         with:
           name: images
@@ -91,34 +89,28 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      -
-        name: Download images
+      - name: Download images
         uses: actions/download-artifact@v3
         with:
           name: images
           path: /tmp/images
-      -
-        name: Load images
+      - name: Load images
         run: |
           for image in /tmp/images/*.tar; do
             docker load -i $image
           done
-      -
-        name: Push images to local registry
+      - name: Push images to local registry
         run: |
           docker push -a ${{ env.TMP_LOCAL_IMAGE }}
-      -
-        name: Login to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASS }}
-      -
-        name: Create manifest list and push
+      - name: Create manifest list and push
         run: |
           docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }} \
             $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE }}' | tr '\n' ' ')
-      -
-        name: Inspect image
+      - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}

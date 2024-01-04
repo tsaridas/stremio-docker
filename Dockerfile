@@ -2,7 +2,7 @@
 FROM node:14.18.3-alpine AS base
 
 WORKDIR /srv/
-RUN apk add --no-cache git
+RUN apk add --no-cache git openssh-client
 
 #########################################################################
 

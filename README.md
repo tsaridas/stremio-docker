@@ -80,7 +80,7 @@ $ docker run -d \
 </pre>
 
 
-The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`.
+The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Set streaming server to `http://`YOUR_SERVER_IP`:11470` add your add ons and start watching your favourite movie.
 
 > 💡 Your configuration files and cache will be saved in `~/.stremio-server`
 

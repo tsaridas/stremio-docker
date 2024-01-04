@@ -169,6 +169,7 @@ Images saved in [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker)
 * [Using HTTPS Public IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
 
 ## Last words
+<meta name="google-site-verification" content="J1yPiXZwGTV5d0phBq2VbcYKTA8spUMEOXtjD2YTnJc" />
 
 I don't intend to spend much time on this and tried to automate as much as I had time to.
 PRs and Issues are welcome. 

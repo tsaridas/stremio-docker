@@ -1,5 +1,5 @@
 # Base image
-FROM node:18-alpine3.18 AS base
+FROM node:16-alpine3.18 AS base
 
 WORKDIR /srv/
 RUN apk add --no-cache git
@@ -26,7 +26,7 @@ RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/mast
 ##########################################################################
 
 # Main image
-FROM node:18-alpine3.18
+FROM node:16-alpine3.18
 
 ARG VERSION=master
 LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker

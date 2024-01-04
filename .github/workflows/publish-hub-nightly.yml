@@ -49,6 +49,29 @@ jobs:
                VERSION=${{ env.VERSION }}
           tags: ${{ env.TAG }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
+
+      - name: Load images
+        run: |
+          for image in /tmp/images/*.tar; do
+            docker load -i $image
+          done
+
+      - name: Run Docker Container
+        run: platform=${{ matrix.platform }} && docker run -d -p 8080:8080 -p 11470:11470 -e NO_CORS=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Playwright 
+        run: npm install @playwright/test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: cd tests;npx playwright test || (docker ps; docker logs $(docker ps | grep stremio | awk '{print $1}'))
+
       -
         name: Upload image
         uses: actions/upload-artifact@v3

@@ -13,6 +13,8 @@ Idea here is to have both Stremio web player and server run on the same containe
 
 The Web player runs on port 8080 and server runs on both ports 11470 ( plain http ) and 12470 (https).
 
+-----
+
 1) If you exposed the ports 8080, 11470 for HTTP just point your streaming server (http://{LAN IP}:8080/) in settings to the lan ip address and set the server to be http://{LAN IP}:11470/ and enjoy. Make sure you set NO_CORS=1 with this option.
 
 This is the easy option since there is **no need to setup dns or have an external ip. Do not set the IPADDRESS env variable** if you just want HTTP. You do not need to expose port 12470 with this option but you will only be able to use the webplayer with HTTP.

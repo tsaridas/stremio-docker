@@ -17,8 +17,10 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
-RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
-RUN yarn build
+#RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
+#RUN yarn build
+RUN npm ci
+RUN npm run build
 
 RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt)
 
@@ -37,7 +39,8 @@ LABEL version=${VERSION}
 WORKDIR /srv/stremio-server
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
-RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
+#RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
+RUN npm install -g http-server
 
 COPY ./stremio-web-service-run.sh ./
 COPY ./extract_certificate.js ./

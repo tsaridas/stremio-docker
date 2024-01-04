@@ -173,5 +173,3 @@ Images saved in [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker)
 I don't intend to spend much time on this and tried to automate as much as I had time to.
 PRs and Issues are welcome. 
 You can also fork and do as you like with the code but if you find some issue please do let me know.
-
-google-site-verification: googlebfd78db93d49410d.html

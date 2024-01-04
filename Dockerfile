@@ -1,8 +1,8 @@
 # Base image
-FROM node:14.18.3-alpine AS base
+FROM node:18-alpine3.18 AS base
 
 WORKDIR /srv/
-RUN apk add --no-cache git openssh-client
+RUN apk add --no-cache git
 
 #########################################################################
 
@@ -17,10 +17,8 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
-#RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
-#RUN yarn build
-RUN npm ci
-RUN npm run build
+RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
+RUN yarn build
 
 RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt)
 
@@ -28,7 +26,7 @@ RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/mast
 ##########################################################################
 
 # Main image
-FROM node:14.18.3-alpine
+FROM base
 
 ARG VERSION=master
 LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
@@ -39,8 +37,7 @@ LABEL version=${VERSION}
 WORKDIR /srv/stremio-server
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
-#RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
-RUN npm install -g http-server
+RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 
 COPY ./stremio-web-service-run.sh ./
 COPY ./extract_certificate.js ./

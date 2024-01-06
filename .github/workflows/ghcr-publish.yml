@@ -51,8 +51,8 @@ jobs:
                VERSION=${{ env.VERSION }}
           tags: ${{ env.TAG }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          #cache-from: type=gha
+          #cache-to: type=gha,mode=max
 
       - name: Load images
         run: |

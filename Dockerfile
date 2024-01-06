@@ -1,79 +1,8 @@
 # Base image
 FROM node:18-alpine3.18 AS base
 
-#########################################################################
+FROM base as ffmpeg
 
-# Builder image
-FROM base AS builder-web
-
-
-WORKDIR /srv
-RUN apk add --no-cache git
-
-ARG BRANCH=development
-RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
-
-WORKDIR /srv/stremio-web
-
-RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
-RUN yarn build
-
-RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt)
-
-
-##########################################################################
-
-# Main image
-FROM base
-
-ARG VERSION=master
-LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
-LABEL org.opencontainers.image.description="Stremio Web Player and Server"
-LABEL org.opencontainers.image.licenses=MIT
-LABEL version=${VERSION}
-
-WORKDIR /srv/stremio-server
-COPY --from=builder-web /srv/stremio-web/build ./build
-COPY --from=builder-web /srv/stremio-web/server.js ./
-RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
-
-COPY ./stremio-web-service-run.sh ./
-COPY ./extract_certificate.js ./
-RUN chmod +x stremio-web-service-run.sh
-
-ENV FFMPEG_BIN=
-ENV FFPROBE_BIN=
-# default https://app.strem.io/shell-v4.4/
-ENV WEBUI_LOCATION=
-ENV OPEN=
-ENV HLS_DEBUG=
-ENV DEBUG=
-ENV DEBUG_MIME=
-ENV DEBUG_FD=
-ENV FFMPEG_DEBUG=
-ENV FFSPLIT_DEBUG=
-ENV NODE_DEBUG=
-ENV NODE_ENV=
-ENV HTTPS_CERT_ENDPOINT=
-ENV DISABLE_CACHING=
-# disable or enable
-ENV READABLE_STREAM=
-# remote or local
-ENV HLSV2_REMOTE=
-
-# Custom application path for storing server settings, certificates, etc
-# You can change this but server.js always saves cache to /root/.stremio-server/
-ENV APP_PATH=
-ENV NO_CORS=
-ENV CASTING_DISABLED=
-
-# Do not change the above ENVs. 
-
-# Set this to your lan or public ip.
-ENV IPADDRESS=
-
-
-#--------------------------
 # We build our own ffmpeg since after checking 4.X has way better performance than later versions.
 ENV BIN="/usr/bin"
 RUN cd && \
@@ -123,11 +52,86 @@ RUN cd && \
   make install && \
   make distclean && \
   rm -rf "${DIR}"  && \
-  apk del --purge .build-dependencies && \
-  apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac curl libva && \
-  rm -rf /var/cache/apk/* && rm -rf /tmp/*
+  apk del --purge .build-dependencies
 
-#--------------------------
+#########################################################################
+
+# Builder image
+FROM base AS builder-web
+
+
+WORKDIR /srv
+RUN apk add --no-cache git wget
+
+ARG BRANCH=development
+RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
+
+WORKDIR /srv/stremio-web
+
+RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
+RUN yarn build
+
+RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" -P build/shell/ || true
+
+
+##########################################################################
+
+# Main image
+FROM base as final
+
+ARG VERSION=master
+LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
+LABEL org.opencontainers.image.description="Stremio Web Player and Server"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL version=${VERSION}
+
+WORKDIR /srv/stremio-server
+COPY --from=builder-web /srv/stremio-web/build ./build
+COPY --from=builder-web /srv/stremio-web/server.js ./
+RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
+
+COPY ./stremio-web-service-run.sh ./
+COPY ./extract_certificate.js ./
+RUN chmod +x stremio-web-service-run.sh
+
+ENV FFMPEG_BIN=
+ENV FFPROBE_BIN=
+# default https://app.strem.io/shell-v4.4/
+ENV WEBUI_LOCATION=
+ENV OPEN=
+ENV HLS_DEBUG=
+ENV DEBUG=
+ENV DEBUG_MIME=
+ENV DEBUG_FD=
+ENV FFMPEG_DEBUG=
+ENV FFSPLIT_DEBUG=
+ENV NODE_DEBUG=
+ENV NODE_ENV=
+ENV HTTPS_CERT_ENDPOINT=
+ENV DISABLE_CACHING=
+# disable or enable
+ENV READABLE_STREAM=
+# remote or local
+ENV HLSV2_REMOTE=
+
+# Custom application path for storing server settings, certificates, etc
+# You can change this but server.js always saves cache to /root/.stremio-server/
+ENV APP_PATH=
+ENV NO_CORS=
+ENV CASTING_DISABLED=
+
+# Do not change the above ENVs. 
+
+# Set this to your lan or public ip.
+ENV IPADDRESS=
+
+# Copy ffmpeg
+COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
+COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
+
+# Add libs
+RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl && \
+  rm -rf /var/cache/apk/* && rm -rf /tmp/*
 
 VOLUME ["/root/.stremio-server"]
 

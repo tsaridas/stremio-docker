@@ -162,6 +162,14 @@ I can add more build archs if you require them and you can ask but I doubt anybo
 
 Images saved in [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker)
 
+### Build your own
+
+You can build your own image by running the below command. By default it will build from development branch of web player and latest version of the server. If you want to build from latest release of web please you can add --build-arg BRANCH=release or the branch that you want.
+
+```bash
+docker build -t stremio:myserver .
+```
+
 ## Common Use Cases
 
 * [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)

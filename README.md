@@ -93,7 +93,7 @@ These options can be configured by setting environment variables using `-e KEY="
 | `IPADDRESS` | - | `192.168.1.10` | Set this to enable https |
 | `NO_CORS` | - | `1` | Set to disable server's cors |
 | `CASTING_DISABLED` | - | `1` | Set to disable casting |
-| `WEBUI_LOCATION` | - | `http://192.168.1.10:8080` | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470  |
+| `WEBUI_LOCATION` | - | `http://192.168.1.10:8080` | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470. Default is https://app.strem.io/shell-v4.4/  |
 | `FFMPEG_BIN` | - | `/usr/bin/` | Set for custom ffmpeg bin path |
 | `FFPROBE_BIN` | - | `/usr/bin/` | Set for custom ffprobe bin path |
 | `APP_PATH` | - | `/srv/stremio-path/` | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files. |

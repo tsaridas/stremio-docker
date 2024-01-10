@@ -46,9 +46,11 @@ To find the FQDN that the certificate is pointing to, look at the folder you mou
 
 ## Thoughts
 
-You don't need to have both Stremio Server and Web Player running. One could use the Stremio web player ([https://app.strem.io/#/](https://app.strem.io/#/)). Stremio's web player should also work for options 2 and 3 above because the web player requires that the server's URL is in HTTPS.
+You don't need to have both Stremio Server and Web Player running. One could use the Stremio web player ([https://app.strem.io/#/](https://app.strem.io/#/)). Stremio's web player should also work for options 2 and 3 above because the web player requires that the server's URL is in HTTPS. 
 
 You can also use the native clients for options 2-3 since they use https but those clients also run a server so there is no point doing this.
+
+Another option is to use an External Media player like VLC or any other supported by stremio to avoid transcoding on the docker container. This would help if you don't have GPU transcoding or some other good CPU.
 
 ## Requirements
 

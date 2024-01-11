@@ -50,7 +50,7 @@ Another option is to use an External Media player like VLC or any other supporte
 
 ## Shell
 
-I added stremio shell html files under http(s)://{Your stremio url}:{port}/shell/ . One should be able to get the old online stremio version of the files that are in app.stremio.io. Defaults to the normal webplayer on the root "/".
+I added stremio shell html files under http(s)://{Your stremio url}:{port}/shell/ . One should be able to get the old online stremio version of the files that are in app.stremio.io. Defaults to the normal webplayer on the root "/". I have had issues playing youtube videos with these files though and I assume so will you.
 
 ## Requirements
 

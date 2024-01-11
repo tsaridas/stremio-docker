@@ -19,15 +19,11 @@ The Web player runs on port 8080 and server runs on both ports 11470 ( plain htt
 
 This is the easy option since there is **no need to setup dns or have an external ip. Do not set the IPADDRESS env variable** if you just want HTTP. You do not need to expose port 12470 with this option but you will only be able to use the webplayer with HTTP.
 
-Point your browser to http://{ LAN IP }:8080 and setup Streaming Server to http://{ LAN IP }:11470 .
-
 -----
 
 2) If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. You should then expose ports 8080 and 12470 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 12047.
 
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
-
-Point your browser to https://{ PUBLIC IP like 8-8-8-8 }.519b6502d940.stremio.rocks:8080 and setup Streaming server to https://{ PUBLIC IP like 8-8-8-8 }.519b6502d940.stremio.rocks:12470.
 
 -----
 

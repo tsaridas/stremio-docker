@@ -1,6 +1,8 @@
 # Base image
 FROM node:18-alpine3.18 AS base
 
+RUN apk update && apk upgrade
+
 FROM base as ffmpeg
 
 # We build our own ffmpeg since after checking 4.X has way better performance than later versions.

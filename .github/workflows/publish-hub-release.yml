@@ -40,7 +40,7 @@ jobs:
             RELEASE="true"
           fi
           if [ "$RELEASE" ]; then
-            VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | awk -F\" '{print $4}')
+            VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
             NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
             echo "We need to release $NEWVERSION"
             echo "version=$NEWVERSION" >> $GITHUB_OUTPUT

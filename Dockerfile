@@ -1,6 +1,6 @@
 # Base image
 FROM node:18-alpine3.18 AS base
-
+# Set
 ENV NODE_ENV=production
 RUN apk update && apk upgrade
 

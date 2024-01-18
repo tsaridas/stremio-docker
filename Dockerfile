@@ -73,7 +73,7 @@ WORKDIR /srv/stremio-web
 RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 RUN yarn build
 
-RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" -P build/shell/ || true
+RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" "https://app.strem.io/images/empty.png" -P build/shell/ || true
 
 
 ##########################################################################

@@ -1,7 +1,6 @@
 # Base image
 FROM node:18-alpine3.18 AS base
-# Set
-ENV NODE_ENV=production
+
 RUN apk update && apk upgrade
 
 FROM base as ffmpeg
@@ -109,7 +108,7 @@ ENV DEBUG_FD=
 ENV FFMPEG_DEBUG=
 ENV FFSPLIT_DEBUG=
 ENV NODE_DEBUG=
-
+ENV NODE_ENV=production
 ENV HTTPS_CERT_ENDPOINT=
 ENV DISABLE_CACHING=
 # disable or enable

@@ -3,8 +3,9 @@ name: DockerHub-Release
 on:
   schedule:
     - cron: '0 3 * * *'
-  paths:
-    - 'Dockerfile'
+  push:
+    paths:
+      - 'Dockerfile'
 
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}

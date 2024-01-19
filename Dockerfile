@@ -8,8 +8,6 @@ FROM base as ffmpeg
 # We build our own ffmpeg since after checking 4.X has way better performance than later versions.
 ENV BIN="/usr/bin"
 RUN cd && \
-  apk update && \
-  apk upgrade && \
   apk add --no-cache --virtual \ 
   .build-dependencies \ 
   gnutls \

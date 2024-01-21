@@ -148,7 +148,7 @@ You also add the dev libraries to the above line from configure where you see lo
 apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac curl libva `ADD-NON-DEV-PACKAGE-HERE` && \
 ```
 
-The lines shown above might have changed so just try to use common sense on where to add your package. If you want hardware acceleration you might need to compile it with the driver for your hardware.
+The lines shown above might have changed so just try to use common sense on where to add your package. If you want hardware acceleration you might need to compile it with the driver for your hardware. The version of ffmpeg that we compile comes with (VA-API)[https://en.wikipedia.org/wiki/Video_Acceleration_API]. You will probably need to expose your hardware device inside the container in order to make it work. Server tries to see if it can use any devices on first start. You can see those log messages to see if it worked for you.
 
 ## Builds
 

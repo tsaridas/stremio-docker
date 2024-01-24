@@ -187,6 +187,18 @@ docker build -t stremio:myserver .
 
 [Stremio addons](https://stremio-addons.netlify.app/)
 
+## Suggestions
+
+I recommend setting up dnsmasq or similar to cache your dns queries since Stremio seems to be spamming with requests to trackers.
+
+The config option you need with dnsmasq is :
+
+```bash
+cache-size=10000
+```
+
+then you set your dns server to the ip address of your dns caching server and you are set.
+
 ## Last words
 
 I don't intend to spend much time on this and tried to automate as much as I had time to.

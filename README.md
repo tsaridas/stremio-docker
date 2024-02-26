@@ -2,9 +2,9 @@
 
 ## Introduction
 
-Stremio is a free application which lets you stream your favorite shows and movies. 
+[Stremio](https://www.stremio.com/) is a free application which lets you stream your favorite shows and movies. 
 
-The Docker images in this repository have the Stremio server with ffmpeg and web player set up for you, ready to use in a small Alpine image.
+The Docker images in this repository bundle stremio-server, ffmpeg and web player for you, ready to use in a small Alpine image.
 
 My motivation for doing this is having it running on my RPi5 and couldn't find something that has both player and server but also the official image seemed too big but also lacks the Web Player and doesn't work out of the box if no HTTPS is configured.
 

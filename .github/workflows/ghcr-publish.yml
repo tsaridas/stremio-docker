@@ -61,7 +61,7 @@ jobs:
           done
 
       - name: Run Docker Container
-        run: platform=${{ matrix.platform }} && ip a && docker run -d --ip 172.17.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+        run: platform=${{ matrix.platform }} && ip a && docker run -d --ip 172.17.0.30 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
 
       - uses: actions/setup-node@v3
         with:

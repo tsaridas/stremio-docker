@@ -3,7 +3,7 @@ import { test, expect, request } from '@playwright/test';
 test('api', async ({ page }) => {
   // Create a context that will issue http requests.
   const context = await request.newContext({
-    baseURL: 'http://172.17.0.3:11470',
+    baseURL: 'http://172.18.0.3:11470',
   });
     // Delete a repository.
   const settings = await context.get(`/settings`, {});
@@ -20,12 +20,12 @@ test('api', async ({ page }) => {
 });
 
 test('settings', async ({ page }) => {
-  await page.goto('http://172.17.0.3:8080/#/settings');
+  await page.goto('http://172.18.0.3:8080/#/settings');
   await page.getByTitle('Streaming').click();
   await page.getByTitle('Configure server url').getByRole('img').click();
   await page.getByPlaceholder('Enter a streaming server url').click();
   await page.getByPlaceholder('Enter a streaming server url').press('Meta+a');
-  await page.getByPlaceholder('Enter a streaming server url').fill('http://172.17.0.3:11470/');
+  await page.getByPlaceholder('Enter a streaming server url').fill('http://172.18.0.3:11470/');
   await page.getByText('Submit').click();
   await expect(page.getByText('Online')).toHaveText('Online');
 });

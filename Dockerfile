@@ -3,7 +3,7 @@ FROM node:18-alpine3.18 AS base
 
 RUN apk update && apk upgrade
 
-FROM base as ffmpeg
+FROM base AS ffmpeg
 
 # We build our own ffmpeg since after checking 4.X has way better performance than later versions.
 ENV BIN="/usr/bin"
@@ -77,7 +77,7 @@ RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/mast
 ##########################################################################
 
 # Main image
-FROM base as final
+FROM base AS final
 
 ARG VERSION=master
 LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker

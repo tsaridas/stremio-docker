@@ -5,7 +5,7 @@ RUN apk update && apk upgrade
 
 FROM base AS ffmpeg
 
-# We build our own ffmpeg since after checking 4.X has way better performance than later versions.
+# We build our own ffmpeg since 4.X is the only one supported.
 ENV BIN="/usr/bin"
 RUN cd && \
   apk add --no-cache --virtual \ 

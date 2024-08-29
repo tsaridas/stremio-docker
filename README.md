@@ -175,7 +175,7 @@ devices:
 cli :
 
 ```
- --device /dev/dri/renderD128:/dev/dri/renderD12 --device /dev/dri/card0:/dev/dri/card0
+ --device /dev/dri/renderD128:/dev/dri/renderD128 --device /dev/dri/card0:/dev/dri/card0
 ```
 
 ## Builds

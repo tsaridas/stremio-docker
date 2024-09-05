@@ -5,7 +5,7 @@ else
 	CONFIG_FOLDER=$APP_PATH/
 fi
 # fix for not passed config option
-jq '. + {"proxyStreamsEnabled": false}' "$CONFIG_FOLDER"server-settings.json.bak > tmp.$$.json && mv tmp.$$.json "$CONFIG_FOLDER"server-settings.json
+jq '. + {"proxyStreamsEnabled": false}' "$CONFIG_FOLDER"server-settings.json > tmp.$$.json && mv tmp.$$.json "$CONFIG_FOLDER"server-settings.json
 
 # fix for incomptible df
 alias df="df -P"

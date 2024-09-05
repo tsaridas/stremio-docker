@@ -4,13 +4,16 @@ if [ -z "$APP_PATH" ]; then
 else
 	CONFIG_FOLDER=$APP_PATH/
 fi
+
 # fix for not passed config option
-jq '. + {"proxyStreamsEnabled": false}' "$CONFIG_FOLDER"server-settings.json > tmp.$$.json && mv tmp.$$.json "$CONFIG_FOLDER"server-settings.json
+sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
 
 # fix for incomptible df
 alias df="df -P"
 
 node server.js &
+sleep 1
+
 if [ ! -z "$IPADDRESS" ]; then 
 	curl "http://localhost:11470/get-https??authKey=&ipAddress=$IPADDRESS"
 	CERT=$(node extract_certificate.js "$CONFIG_FOLDER")

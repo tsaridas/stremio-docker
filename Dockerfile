@@ -93,6 +93,8 @@ RUN yarn global add http-server --no-audit --no-optional --mutex network --no-pr
 COPY ./stremio-web-service-run.sh ./
 COPY ./extract_certificate.js ./
 RUN chmod +x stremio-web-service-run.sh
+COPY ./restart_if_idle.sh ./
+RUN chmod +x restart_if_idle.sh
 
 ENV FFMPEG_BIN=
 ENV FFPROBE_BIN=
@@ -130,7 +132,7 @@ COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl && \
+RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl jq && \
   rm -rf /var/cache/apk/* && rm -rf /tmp/*
 
 VOLUME ["/root/.stremio-server"]

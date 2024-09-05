@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# fix for incomptible df
+alias df="df -P"
+
 # URL to check
 URL="http://localhost:11470/stats.json"
 

@@ -75,8 +75,8 @@ jobs:
 
       - name: Run Playwright tests
         run: cd tests;npx playwright test || (
-            docker ps
-            docker logs $(docker ps | grep stremio | awk '{print $1}')
+            docker ps;
+            docker logs $(docker ps | grep stremio | awk '{print $1}');
             exit 0
           )
       - name: Upload image

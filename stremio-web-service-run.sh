@@ -6,7 +6,7 @@ else
 fi
 
 # fix for not passed config option
-grep -q 'self.proxyStreamsEnabled = false,' server.js || sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
+#grep -q 'self.proxyStreamsEnabled = false,' server.js || sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
 
 # fix for incomptible df
 alias df="df -P"

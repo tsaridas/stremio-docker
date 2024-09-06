@@ -1,11 +1,18 @@
 #!/bin/sh -e
-node server.js &
-sleep 1
 if [ -z "$APP_PATH" ]; then
 	CONFIG_FOLDER="$HOME"/.stremio-server/
 else
 	CONFIG_FOLDER=$APP_PATH/
 fi
+
+# fix for not passed config option
+grep -q 'self.proxyStreamsEnabled = false,' server.js || sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
+
+# fix for incomptible df
+alias df="df -P"
+
+node server.js &
+sleep 1
 
 if [ ! -z "$IPADDRESS" ]; then 
 	curl "http://localhost:11470/get-https??authKey=&ipAddress=$IPADDRESS"

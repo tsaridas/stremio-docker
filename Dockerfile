@@ -93,6 +93,8 @@ RUN yarn global add http-server --no-audit --no-optional --mutex network --no-pr
 COPY ./stremio-web-service-run.sh ./
 COPY ./extract_certificate.js ./
 RUN chmod +x stremio-web-service-run.sh
+COPY ./restart_if_idle.sh ./
+RUN chmod +x restart_if_idle.sh
 
 ENV FFMPEG_BIN=
 ENV FFPROBE_BIN=

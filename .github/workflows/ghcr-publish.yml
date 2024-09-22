@@ -47,8 +47,8 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           build-args: |
-               BRANCH=${{ env.BRANCH }}
-               VERSION=${{ env.VERSION }}
+            BRANCH=${{ env.BRANCH }}
+            VERSION=${{ env.VERSION }}
           tags: ${{ env.TAG }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
           #cache-from: type=gha
@@ -60,25 +60,54 @@ jobs:
             docker load -i $image
           done
 
-      - name: Run Docker Container
-        run: platform=${{ matrix.platform }} && ip a && docker network create --subnet=172.18.0.0/24 custom_network && docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+      - name: Run Docker Container and Test (1st run)
+        run: |
+          platform=${{ matrix.platform }}
+          ip a
+          docker network create --subnet=172.18.0.0/24 custom_network
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install Playwright
-        run: npm install @playwright/test
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: cd tests;npx playwright test || (
-            docker ps;
-            docker logs $(docker ps | grep stremio | awk '{print $1}');
-            exit 1;
+          npm install @playwright/test
+          npx playwright install --with-deps
+          cd tests
+          npx playwright test || (
+            docker ps
+            docker logs $(docker ps | grep stremio | awk '{print $1}')
+            exit 1
           )
+          docker stop $(docker ps -q)
+          docker rm $(docker ps -aq)
+
+      - name: Run Docker Container and Test (2nd run with IPADDRESS)
+        run: |
+          platform=${{ matrix.platform }}
+          docker network create --subnet=172.18.0.0/24 custom_network
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+
+          cd tests
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:11470" npx playwright test || (
+            docker ps
+            docker logs $(docker ps | grep stremio | awk '{print $1}')
+            exit 1
+          )
+          docker stop $(docker ps -q)
+          docker rm $(docker ps -aq)
+
+      - name: Run Docker Container and Test (3rd run with CERT_FILE and DOMAIN)
+        run: |
+          platform=${{ matrix.platform }}
+          docker network create --subnet=172.18.0.0/24 custom_network
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e CERT_FILE=192-168-1-5.519b6502d940.stremio.rocks.pem -e DOMAIN=172-18-0-3.519b6502d940.stremio.rocks -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+
+          cd tests
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:11470" npx playwright test || (
+            docker ps
+            docker logs $(docker ps | grep stremio | awk '{print $1}')
+            exit 1
+          )
+          docker stop $(docker ps -q)
+          docker rm $(docker ps -aq)
+
       - name: Upload image
         uses: actions/upload-artifact@v3
         with:
@@ -86,7 +115,6 @@ jobs:
           path: /tmp/images/${{ env.TARFILE }}
           if-no-files-found: error
           retention-days: 1
-  
 
   push:
     runs-on: ubuntu-latest

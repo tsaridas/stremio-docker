@@ -8,8 +8,8 @@ else
 fi
 
 # Ensure server.js has necessary configurations
-if ! grep -q 'self.proxyStreamsEnabled = false;' server.js; then
-    sed -i '/self.allTranscodeProfiles = \[\]/a \    self.proxyStreamsEnabled = false;' server.js
+if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then
+    sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
 fi
 
 # Fix for incompatible df command

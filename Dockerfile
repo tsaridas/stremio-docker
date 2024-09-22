@@ -91,7 +91,7 @@ COPY --from=builder-web /srv/stremio-web/server.js ./
 RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 
 COPY ./stremio-web-service-run.sh ./
-COPY ./extract_certificate.js ./
+COPY ./certificate.js ./
 RUN chmod +x stremio-web-service-run.sh
 COPY ./restart_if_idle.sh ./
 RUN chmod +x restart_if_idle.sh
@@ -126,6 +126,10 @@ ENV CASTING_DISABLED=
 
 # Set this to your lan or public ip.
 ENV IPADDRESS=
+# Set this to your domain name
+ENV DOMAIN=
+# Set this to the path to your certificate file
+ENV CERT_FILE=
 
 # Copy ffmpeg
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
@@ -136,8 +140,8 @@ RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpx
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
-        apk add --no-cache intel-media-driver; \
-    fi
+  apk add --no-cache intel-media-driver; \
+  fi
 
 # Clear cache
 RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*

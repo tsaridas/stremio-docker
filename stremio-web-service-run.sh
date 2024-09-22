@@ -29,16 +29,16 @@ if [ -n "${IPADDRESS}" ]; then
          "http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
 
     # Extract certificate and get domain
-    IMPORTED_DOMAIN=$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}/httpsCert.json")
-    EXTRACT_STATUS=$?
+    IMPORTED_DOMAIN="$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}/httpsCert.json")"
+    EXTRACT_STATUS="$?"
     IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
 
-    if [ ${EXTRACT_STATUS} -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
+    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
         # Update hosts file
         echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
         
         # Start HTTPS server
-        http-server build/ -p 8080 -d false -S -C "${IMPORTED_CERT_FILE}"
+        http-server build/ -p 8080 -d false -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
         http-server build/ -p 8080 -d false
@@ -46,11 +46,11 @@ if [ -n "${IPADDRESS}" ]; then
 elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
     # Load certificate using certificate.js
     node certificate.js --action load --cert-file "${CONFIG_FOLDER}/${CERT_FILE}" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}/httpsCert.json"
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
         # Start the server with the loaded certificate
         node server.js &
         # Start HTTPS server with the loaded certificate
-        http-server build/ -p 8080 -d false -S -C "${CERT_FILE}.pem"
+        http-server build/ -p 8080 -d false -S -C "${CERT_FILE}.pem" -K "${CERT_FILE}"
     else
         echo "Failed to load certificate. Falling back to HTTP."
         node server.js &

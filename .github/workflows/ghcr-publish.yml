@@ -71,8 +71,8 @@ jobs:
           npx playwright install --with-deps
           cd tests
           npx playwright test || (
-            docker ps;
-            docker logs $(docker ps | grep stremio | awk '{print $1}');
+            docker ps -aq;
+            docker logs $(docker ps -aq | grep stremio | awk '{print $1}');
             exit 1;
           )
           docker stop $(docker ps -q)
@@ -86,8 +86,8 @@ jobs:
           cd tests
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/host
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
-            docker ps;
-            docker logs $(docker ps | grep stremio | awk '{print $1}');
+            docker ps -aq;
+            docker logs $(docker ps -aq | grep stremio | awk '{print $1}');
             exit 1;
           )
           docker stop $(docker ps -q)
@@ -101,8 +101,8 @@ jobs:
           cd tests
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/host
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
-            docker ps;
-            docker logs $(docker ps | grep stremio | awk '{print $1}');
+            docker ps -aq;
+            docker logs $(docker ps -aq | grep stremio | awk '{print $1}');
             exit 1;
           )
           docker stop $(docker ps -q)

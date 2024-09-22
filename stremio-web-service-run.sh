@@ -1,10 +1,10 @@
 #!/bin/sh -e
 
 # Set CONFIG_FOLDER based on APP_PATH
-if [ -z "$APP_PATH" ]; then
-    CONFIG_FOLDER="$HOME/.stremio-server/"
+if [ -z "${APP_PATH}" ]; then
+    CONFIG_FOLDER="${HOME}/.stremio-server/"
 else
-    CONFIG_FOLDER="$APP_PATH/"
+    CONFIG_FOLDER="${APP_PATH}/"
 fi
 
 # Ensure server.js has necessary configurations
@@ -15,40 +15,50 @@ fi
 # Fix for incompatible df command
 sed -i 's/df -k/df -Pk/g' server.js
 
-# Start the server
-node server.js &
-sleep 2  # Increased sleep time to ensure server is ready
 
-if [ -n "$IPADDRESS" ]; then 
+if [ -n "${IPADDRESS}" ]; then 
+    # Start the server
+    node server.js &
+
     # Fetch HTTPS certificate
     curl --connect-timeout 5 \
          --retry-all-errors \
          --retry 5 \
          --silent \
          --output /dev/null \
-         "http://localhost:11470/get-https?authKey=&ipAddress=$IPADDRESS"
+         "http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
 
-    # Extract certificate and start server
-    IMPORTED_DOMAIN=$(node certificate.js --action extract --json-path "$CONFIG_FOLDER/httpsCert.json")
-    IMPORTED_CERT_FILE="$CONFIG_FOLDER$IMPORTED_DOMAIN.pem"
+    # Extract certificate and get domain
+    IMPORTED_DOMAIN=$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}/httpsCert.json")
+    EXTRACT_STATUS=$?
+    IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
 
-    if [ $? -eq 0 ] && [ -n "$IMPORTED_DOMAIN" ] && [ -f "$IMPORTED_CERT_FILE" ]; then
+    if [ ${EXTRACT_STATUS} -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
         # Update hosts file
-        echo "$IPADDRESS $IMPORTED_DOMAIN" >> /etc/hosts
+        echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
         
         # Start HTTPS server
-        http-server build/ -p 8080 -d false -S -C "$IMPORTED_CERT_FILE"
+        http-server build/ -p 8080 -d false -S -C "${IMPORTED_CERT_FILE}"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
         http-server build/ -p 8080 -d false
     fi
-elif [ -n "$CERT_FILE" ] && [ -n "$DOMAIN" ]; then
+elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
     # Load certificate using certificate.js
-    node certificate.js --action load --cert-file "$CONFIG_FOLDER/$CERT_FILE" --domain "$DOMAIN" --json-path "$CONFIG_FOLDER/httpsCert.json"
-    
-    # Start HTTPS server with the loaded certificate
-    http-server build/ -p 8080 -d false -S -C "$CERT_FILE.pem"
+    node certificate.js --action load --cert-file "${CONFIG_FOLDER}/${CERT_FILE}" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}/httpsCert.json"
+    if [ $? -eq 0 ]; then
+        # Start the server with the loaded certificate
+        node server.js &
+        # Start HTTPS server with the loaded certificate
+        http-server build/ -p 8080 -d false -S -C "${CERT_FILE}.pem"
+    else
+        echo "Failed to load certificate. Falling back to HTTP."
+        node server.js &
+        http-server build/ -p 8080 -d false
+    fi
 else
+    # Start the server
+    node server.js &
     # Start HTTP server if neither IPADDRESS nor CERT_FILE and DOMAIN are set
     http-server build/ -p 8080 -d false
 fi

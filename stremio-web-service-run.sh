@@ -45,7 +45,7 @@ if [ -n "${IPADDRESS}" ]; then
     fi
 elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
     # Load certificate using certificate.js
-    node certificate.js --action load --cert-file "${CONFIG_FOLDER}/${CERT_FILE}" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}/httpsCert.json"
+    node certificate.js --action load --pem-path "${CONFIG_FOLDER}/${CERT_FILE}" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}/httpsCert.json"
     if [ "$?" -eq 0 ]; then
         # Start the server with the loaded certificate
         node server.js &

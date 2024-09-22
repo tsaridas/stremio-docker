@@ -28,41 +28,58 @@ function parseCommandLineArgs() {
 }
 
 function loadCertificate(pemPath, domain, jsonPath) {
-    const pemContent = fs.readFileSync(pemPath, 'utf8');
-    const [privateKey, certificate] = pemContent.split('-----END PRIVATE KEY-----');
+    try {
+        const pemContent = fs.readFileSync(pemPath, 'utf8');
+        const [privateKey, certificate] = pemContent.split('-----END PRIVATE KEY-----');
 
-    const cert = new crypto.X509Certificate(certificate);
-    const notBefore = cert.validFrom;
-    const notAfter = cert.validTo;
+        const cert = new crypto.X509Certificate(certificate);
+        const notBefore = cert.validFrom;
+        const notAfter = cert.validTo;
 
-    const httpsCertContent = {
-        domain: domain,
-        key: privateKey.trim() + '\n-----END PRIVATE KEY-----\n',
-        cert: certificate.trim(),
-        notBefore: new Date(notBefore).toISOString(),
-        notAfter: new Date(notAfter).toISOString()
-    };
+        const httpsCertContent = {
+            domain: domain,
+            key: privateKey.trim() + '\n-----END PRIVATE KEY-----\n',
+            cert: certificate.trim(),
+            notBefore: new Date(notBefore).toISOString(),
+            notAfter: new Date(notAfter).toISOString()
+        };
 
-    fs.writeFileSync(jsonPath, JSON.stringify(httpsCertContent, null, 2));
+        fs.writeFileSync(jsonPath, JSON.stringify(httpsCertContent, null, 2));
 
-    console.log(`Certificate information saved to ${jsonPath}`);
+        console.log(`Certificate information saved to ${jsonPath}`);
+    } catch (error) {
+        console.error(`Error loading certificate: ${error.message}`);
+        process.exit(1);
+    }
 }
 
 function extractCertificate(jsonPath) {
-    const jsonContent = fs.readFileSync(jsonPath, 'utf8');
-    const certData = JSON.parse(jsonContent);
+    try {
+        const jsonContent = fs.readFileSync(jsonPath, 'utf8');
+        const certData = JSON.parse(jsonContent);
 
-    const pemContent = `${certData.key}\n${certData.cert}`;
-    const outputPath = path.join(path.dirname(jsonPath), `${certData.domain}.pem`);
-    fs.writeFileSync(outputPath, pemContent);
+        const pemContent = `${certData.key}\n${certData.cert}`;
+        const outputPath = path.join(path.dirname(jsonPath), `${certData.domain}.pem`);
+        fs.writeFileSync(outputPath, pemContent);
 
-    console.log(`${certData.domain}`);
+        console.log(`${certData.domain}`);
+    } catch (error) {
+        console.error(`Error extracting certificate: ${error.message}`);
+        process.exit(1);
+    }
 }
 
 const args = parseCommandLineArgs();
 
-if (args.action === 'load') {
-    loadCertificate(args['pem-path'], args.domain, args['json-path']);
-} else if (args.action === 'extract') {
-    extractCertificate(args['json-path']);
+try {
+    if (args.action === 'load') {
+        loadCertificate(args['pem-path'], args.domain, args['json-path']);
+    } else if (args.action === 'extract') {
+        extractCertificate(args['json-path']);
+    } else {
+        throw new Error('Invalid action specified');
+    }
+} catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
 }

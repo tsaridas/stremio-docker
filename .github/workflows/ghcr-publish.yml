@@ -81,7 +81,6 @@ jobs:
       - name: Run Docker Container and Test (2nd run with IPADDRESS)
         run: |
           platform=${{ matrix.platform }}
-          docker network create --subnet=172.18.0.0/24 custom_network
           docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
 
           cd tests
@@ -96,7 +95,6 @@ jobs:
       - name: Run Docker Container and Test (3rd run with CERT_FILE and DOMAIN)
         run: |
           platform=${{ matrix.platform }}
-          docker network create --subnet=172.18.0.0/24 custom_network
           docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e CERT_FILE=192-168-1-5.519b6502d940.stremio.rocks.pem -e DOMAIN=172-18-0-3.519b6502d940.stremio.rocks -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
 
           cd tests

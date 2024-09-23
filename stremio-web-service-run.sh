@@ -40,8 +40,8 @@ if [ -n "${IPADDRESS}" ]; then
     EXTRACT_STATUS="$?"
     IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
 	echo "Extracted domain ${IMPORTED_DOMAIN} with status ${EXTRACT_STATUS} and cert file ${IMPORTED_CERT_FILE}"
-	
-    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f ${IMPORTED_CERT_FILE}" ]; then
+
+    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
         # Update hosts file
         echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
         

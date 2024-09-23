@@ -46,7 +46,7 @@ if [ -n "${IPADDRESS}" ]; then
         echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
         
         # Start HTTPS server
-        http-server build/ -p 8080 -d false -S -C "${CONFIG_FOLDER}${IMPORTED_CERT_FILE}" -K "${CONFIG_FOLDER}${IMPORTED_CERT_FILE}"
+        http-server build/ -p 8080 -d false -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
         http-server build/ -p 8080 -d false

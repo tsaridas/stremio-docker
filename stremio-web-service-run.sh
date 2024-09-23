@@ -39,8 +39,9 @@ if [ -n "${IPADDRESS}" ]; then
     IMPORTED_DOMAIN="$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}httpsCert.json")"
     EXTRACT_STATUS="$?"
     IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
-
-    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${CONFIG_FOLDER}${IMPORTED_CERT_FILE}" ]; then
+	echo "Extracted domain ${IMPORTED_DOMAIN} with status ${EXTRACT_STATUS} and cert file ${IMPORTED_CERT_FILE}"
+	
+    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f ${IMPORTED_CERT_FILE}" ]; then
         # Update hosts file
         echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
         

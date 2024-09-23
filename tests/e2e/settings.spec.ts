@@ -3,7 +3,7 @@ import { test } from './fixtures';
 
 test.describe('Stremio API and Settings', () => {
   test('API endpoints return expected responses', async ({ browser, serverURL }) => {
-    console.log('serverURL:', serverURL);
+    console.log('Testing API endpoints with serverURL:', serverURL);
     const context = await browser.newContext({ baseURL: serverURL });
 
     async function testEndpoint(path: string, expectedStatus = 200) {
@@ -23,8 +23,7 @@ test.describe('Stremio API and Settings', () => {
   });
 
   test('User can configure streaming server URL', async ({ page, serverURL, webURL }) => {
-    console.log('serverURL:', serverURL);
-    console.log('webURL:', webURL);
+    console.log('Testing settings with serverURL:', serverURL, 'webURL:', webURL);
     await page.goto(`${webURL}/#/settings`);
     
     await page.getByTitle('Streaming').click();

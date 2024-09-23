@@ -85,9 +85,7 @@ jobs:
           cd tests
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/host
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
-            docker ps -a;
-            docker logs $(docker ps -aq);
-            exit 1;
+            docker ps -a && docker logs $(docker ps -aq) && exit 1;
           )
           docker stop $(docker ps -q)
           docker rm $(docker ps -aq)

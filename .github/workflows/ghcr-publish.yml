@@ -66,12 +66,13 @@ jobs:
           ip a
           docker network create --subnet=172.18.0.0/24 custom_network
           docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-
+          sleep 5
+          docker logs $(docker ps -aq);
           npm install @playwright/test
           npx playwright install --with-deps
           cd tests
           npx playwright test || (
-            docker ps -aq;
+            docker ps -a;
             docker logs $(docker ps -aq);
             exit 1;
           )
@@ -85,7 +86,7 @@ jobs:
           cd tests
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/host
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
-            echo "We are here" &&docker ps -a && echo "above is ps -a" && docker logs $(docker ps -aq) && echo "above is logs" && exit 1;
+            echo "We are here" && docker ps -a && echo "above is ps -a" && docker logs $(docker ps -aq) && echo "above is logs" && exit 1;
           )
           docker stop $(docker ps -q)
           docker rm $(docker ps -aq)

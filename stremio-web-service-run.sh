@@ -33,12 +33,12 @@ if [ -n "${IPADDRESS}" ]; then
     EXTRACT_STATUS="$?"
     IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
 
-    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
+    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${CONFIG_FOLDER}${IMPORTED_CERT_FILE}" ]; then
         # Update hosts file
         echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
         
         # Start HTTPS server
-        http-server build/ -p 8080 -d false -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
+        http-server build/ -p 8080 -d false -S -C "${CONFIG_FOLDER}${IMPORTED_CERT_FILE}" -K "${CONFIG_FOLDER}${IMPORTED_CERT_FILE}"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
         http-server build/ -p 8080 -d false

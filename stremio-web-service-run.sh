@@ -21,12 +21,19 @@ if [ -n "${IPADDRESS}" ]; then
     node server.js &
 	sleep 2
     # Fetch HTTPS certificate
+    echo "Attempting to fetch HTTPS certificate for IP address: ${IPADDRESS}"
     curl --connect-timeout 5 \
          --retry-all-errors \
          --retry 5 \
-         --silent \
+         --verbose \
          --output /dev/null \
          "http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
+    CURL_STATUS="$?"
+    if [ "${CURL_STATUS}" -ne 0 ]; then
+        echo "Failed to fetch HTTPS certificate. Curl exited with status: ${CURL_STATUS}"
+    else
+        echo "Successfully fetched HTTPS certificate."
+    fi
 
     # Extract certificate and get domain
     IMPORTED_DOMAIN="$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}httpsCert.json")"

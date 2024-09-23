@@ -19,7 +19,6 @@ sed -i 's/df -k/df -Pk/g' server.js
 if [ -n "${IPADDRESS}" ]; then 
     # Start the server
     node server.js &
-	sleep 2
     # Fetch HTTPS certificate
     echo "Attempting to fetch HTTPS certificate for IP address: ${IPADDRESS}"
     curl --connect-timeout 5 \

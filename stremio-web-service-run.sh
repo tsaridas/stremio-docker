@@ -50,7 +50,7 @@ elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
         # Start the server with the loaded certificate
         node server.js &
         # Start HTTPS server with the loaded certificate
-        http-server build/ -p 8080 -d false -S -C "${CERT_FILE}" -K "${CERT_FILE}"
+        http-server build/ -p 8080 -d false -S -C "${CONFIG_FOLDER}${CERT_FILE}" -K ${CONFIG_FOLDER}${CERT_FILE}"
     else
         echo "Failed to load certificate. Falling back to HTTP."
         node server.js &

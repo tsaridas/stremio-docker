@@ -2,7 +2,7 @@ name: DockerHub-Nightly
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY_IMAGE: ${{ github.repository }}
@@ -44,8 +44,8 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           build-args: |
-               BRANCH=${{ env.BRANCH }}
-               VERSION=${{ env.VERSION }}
+            BRANCH=${{ env.BRANCH }}
+            VERSION=${{ env.VERSION }}
           tags: ${{ env.TAG }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
 
@@ -55,14 +55,88 @@ jobs:
             docker load -i $image
           done
 
-      - name: Run Docker Container
-        run: platform=${{ matrix.platform }} && ip a && docker network create --subnet=172.18.0.0/24 custom_network && docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+      - name: Run Docker Container and Test (1st run)
+        run: |
+          platform=${{ matrix.platform }}
+          docker network create --subnet=172.18.0.0/24 custom_network
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+
+          npm install @playwright/test
+          npx playwright install --with-deps
+          docker ps -a
+          CONTAINER_IDS=$(docker ps -aq)
+          if [ -z "$CONTAINER_IDS" ]; then
+            echo "No containers found."
+          else
+            for container in $CONTAINER_IDS; do
+              echo "Logs for container $container:"
+              docker logs $container
+            done
+          fi
+          cd tests
+          npx playwright test || (
+            docker ps -a;
+            docker logs $(docker ps -a | grep stremio | awk '{print $1}');
+            exit 1;
+          )
+          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
+          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
+
+      - name: Run Docker Container and Test (2nd run with IPADDRESS)
+        run: |
+          platform=${{ matrix.platform }}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          sleep 5
+          docker ps -a
+          CONTAINER_IDS=$(docker ps -qa)
+          if [ -z "$CONTAINER_IDS" ]; then
+            echo "No containers found."
+          else
+            for container in $CONTAINER_IDS; do
+              echo "Logs for container $container:"
+              docker logs $container
+            done
+          fi
+          cd tests
+          echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
+            docker ps -a;
+            docker logs $(docker ps -a | grep stremio | awk '{print $1}');
+            exit 1;
+          )
+          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
+          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
+
+      - name: Run Docker Container and Test (3rd run with CERT_FILE and DOMAIN)
+        run: |
+          platform=${{ matrix.platform }}
+          sudo rm -f ~/.stremio-server/httpsCert.json
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e CERT_FILE=172-18-0-3.519b6502d940.stremio.rocks.pem -e DOMAIN=172-18-0-3.519b6502d940.stremio.rocks -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          sleep 5
+          docker ps -a
+          CONTAINER_IDS=$(docker ps -aq)
+          if [ -z "$CONTAINER_IDS" ]; then
+            echo "No containers found."
+          else
+            for container in $CONTAINER_IDS; do
+              echo "Logs for container $container:"
+              docker logs $container
+            done
+          fi
+          cd tests
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
+            docker ps -a;
+            docker logs $(docker ps -aq);
+            exit 1;
+          )
+          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
+          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
 
       - uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install Playwright 
+      - name: Install Playwright
         run: npm install @playwright/test
 
       - name: Install Playwright Browsers
@@ -70,9 +144,9 @@ jobs:
 
       - name: Run Playwright tests
         run: cd tests;npx playwright test || (
-            docker ps;
-            docker logs $(docker ps | grep stremio | awk '{print $1}');
-            exit 1;
+          docker ps;
+          docker logs $(docker ps | grep stremio | awk '{print $1}');
+          exit 1;
           )
 
       - name: Upload image
@@ -82,7 +156,7 @@ jobs:
           path: /tmp/images/${{ env.TARFILE }}
           if-no-files-found: error
           retention-days: 1
-  
+
   push:
     runs-on: ubuntu-latest
     needs:

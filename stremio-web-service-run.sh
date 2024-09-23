@@ -1,11 +1,7 @@
 #!/bin/sh -e
 
 # Set CONFIG_FOLDER based on APP_PATH
-if [ -z "${APP_PATH}" ]; then
-    CONFIG_FOLDER="${HOME}/.stremio-server/"
-else
-    CONFIG_FOLDER="${APP_PATH}/"
-fi
+CONFIG_FOLDER="${APP_PATH:-${HOME}/.stremio-server/}"
 
 # Ensure server.js has necessary configurations
 if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then
@@ -15,10 +11,14 @@ fi
 # Fix for incompatible df command
 sed -i 's/df -k/df -Pk/g' server.js
 
+start_http_server() {
+    http-server build/ -p 8080 -d false "$@"
+}
 
 if [ -n "${IPADDRESS}" ]; then 
     # Start the server
     node server.js &
+	sleep 2
     # Fetch HTTPS certificate
     echo "Attempting to fetch HTTPS certificate for IP address: ${IPADDRESS}"
     curl --connect-timeout 5 \
@@ -38,17 +38,17 @@ if [ -n "${IPADDRESS}" ]; then
     IMPORTED_DOMAIN="$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}httpsCert.json")"
     EXTRACT_STATUS="$?"
     IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
-	echo "Extracted domain ${IMPORTED_DOMAIN} with status ${EXTRACT_STATUS} and cert file ${IMPORTED_CERT_FILE}"
+    echo "Extracted domain ${IMPORTED_DOMAIN} with status ${EXTRACT_STATUS} and cert file ${IMPORTED_CERT_FILE}"
 
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
         # Update hosts file
         echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
         
         # Start HTTPS server
-        http-server build/ -p 8080 -d false -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
+        start_http_server -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
-        http-server build/ -p 8080 -d false
+        start_http_server
     fi
 elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
     # Load certificate using certificate.js
@@ -57,15 +57,15 @@ elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
         # Start the server with the loaded certificate
         node server.js &
         # Start HTTPS server with the loaded certificate
-        http-server build/ -p 8080 -d false -S -C "${CONFIG_FOLDER}${CERT_FILE}" -K "${CONFIG_FOLDER}${CERT_FILE}"
+        start_http_server -S -C "${CONFIG_FOLDER}${CERT_FILE}" -K "${CONFIG_FOLDER}${CERT_FILE}"
     else
         echo "Failed to load certificate. Falling back to HTTP."
         node server.js &
-        http-server build/ -p 8080 -d false
+        start_http_server
     fi
 else
     # Start the server
     node server.js &
     # Start HTTP server if neither IPADDRESS nor CERT_FILE and DOMAIN are set
-    http-server build/ -p 8080 -d false
+    start_http_server
 fi

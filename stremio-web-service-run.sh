@@ -19,7 +19,7 @@ sed -i 's/df -k/df -Pk/g' server.js
 if [ -n "${IPADDRESS}" ]; then 
     # Start the server
     node server.js &
-
+	sleep 2
     # Fetch HTTPS certificate
     curl --connect-timeout 5 \
          --retry-all-errors \

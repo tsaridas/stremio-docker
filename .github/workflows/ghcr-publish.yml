@@ -82,11 +82,11 @@ jobs:
           cd tests
           npx playwright test || (
             docker ps -a;
-            docker logs $(docker ps -aq);
+            docker logs $(docker ps -a| grep stremio | awk '{print $1}');
             exit 1;
           )
-          docker stop $(docker ps -q)
-          docker rm $(docker ps -aq)
+          docker stop $(docker ps -a| grep stremio | awk '{print $1}')
+          docker rm $(docker ps -a| grep stremio | awk '{print $1}')
 
       - name: Run Docker Container and Test (2nd run with IPADDRESS)
         run: |
@@ -94,7 +94,7 @@ jobs:
           docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           sleep 5
           docker ps -a
-          CONTAINER_IDS=$(docker ps -aq)
+          CONTAINER_IDS=$(docker ps -qa)
           if [ -z "$CONTAINER_IDS" ]; then
             echo "No containers found."
           else
@@ -106,10 +106,10 @@ jobs:
           cd tests
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/host
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
-            echo "We are here" && docker ps -a && echo "above is ps -a" && docker logs $(docker ps -aq) && echo "above is logs" && exit 1;
+            echo "We are here" && docker ps -a && echo "above is ps -a" && docker logs $(docker ps -a| grep stremio | awk '{print $1}'); && echo "above is logs" && exit 1;
           )
-          docker stop $(docker ps -q)
-          docker rm $(docker ps -aq)
+          docker stop $(docker ps -a| grep stremio | awk '{print $1}')
+          docker rm $(docker ps -a| grep stremio | awk '{print $1}')
 
       - name: Run Docker Container and Test (3rd run with CERT_FILE and DOMAIN)
         run: |

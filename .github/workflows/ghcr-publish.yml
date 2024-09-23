@@ -66,16 +66,6 @@ jobs:
 
           npm install @playwright/test
           npx playwright install --with-deps
-          docker ps -a
-          CONTAINER_IDS=$(docker ps -aq)
-          if [ -z "$CONTAINER_IDS" ]; then
-            echo "No containers found."
-          else
-            for container in $CONTAINER_IDS; do
-              echo "Logs for container $container:"
-              docker logs $container
-            done
-          fi
           cd tests
           npx playwright test || (
             docker ps -a;
@@ -88,20 +78,9 @@ jobs:
       - name: Run Docker Container and Test (2nd run with IPADDRESS)
         run: |
           platform=${{ matrix.platform }}
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-          sleep 5
-          docker ps -a
-          CONTAINER_IDS=$(docker ps -qa)
-          if [ -z "$CONTAINER_IDS" ]; then
-            echo "No containers found."
-          else
-            for container in $CONTAINER_IDS; do
-              echo "Logs for container $container:"
-              docker logs $container
-            done
-          fi
-          cd tests
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          cd tests
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
             docker ps -a;
             docker logs $(docker ps -a | grep stremio | awk '{print $1}');
@@ -115,17 +94,6 @@ jobs:
           platform=${{ matrix.platform }}
           sudo rm -f ~/.stremio-server/httpsCert.json
           docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e CERT_FILE=172-18-0-3.519b6502d940.stremio.rocks.pem -e DOMAIN=172-18-0-3.519b6502d940.stremio.rocks -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-          sleep 5
-          docker ps -a
-          CONTAINER_IDS=$(docker ps -aq)
-          if [ -z "$CONTAINER_IDS" ]; then
-            echo "No containers found."
-          else
-            for container in $CONTAINER_IDS; do
-              echo "Logs for container $container:"
-              docker logs $container
-            done
-          fi
           cd tests
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
             docker ps -a;

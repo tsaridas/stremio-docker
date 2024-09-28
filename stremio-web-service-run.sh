@@ -24,6 +24,7 @@ if [ -n "${IPADDRESS}" ]; then
     curl --connect-timeout 5 \
          --retry-all-errors \
          --retry 5 \
+         --retry-delay 1 \
          --verbose \
          "http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
     CURL_STATUS="$?"

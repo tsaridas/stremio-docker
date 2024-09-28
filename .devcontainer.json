@@ -1,0 +1,15 @@
+{
+    "name": "Development with Node.js 18",
+    "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "dbaeumer.vscode-eslint",
+          "esbenp.prettier-vscode",
+          "github.vscode-github-actions"
+        ]
+      }
+    },
+    "postCreateCommand": "sudo apt update && sudo apt install vim -y"
+  }
+  

@@ -113,6 +113,7 @@ jobs:
             docker logs $(docker ps -a | grep stremio | awk '{print $1}');
             exit 1;
           )
+          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
           docker stop $(docker ps -a | grep stremio | awk '{print $1}')
           docker rm $(docker ps -a | grep stremio | awk '{print $1}')
 
@@ -128,6 +129,7 @@ jobs:
             docker logs $(docker ps -a | grep stremio | awk '{print $1}');
             exit 1;
           )
+          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
           docker stop $(docker ps -a | grep stremio | awk '{print $1}')
           docker rm $(docker ps -a | grep stremio | awk '{print $1}')
 
@@ -143,6 +145,7 @@ jobs:
             docker logs $(docker ps -aq);
             exit 1;
           )
+          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
           docker stop $(docker ps -a | grep stremio | awk '{print $1}')
           docker rm $(docker ps -a | grep stremio | awk '{print $1}')
 

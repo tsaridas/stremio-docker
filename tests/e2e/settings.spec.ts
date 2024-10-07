@@ -1,31 +1,43 @@
-import { test, expect, request } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './fixtures';
 
-test('api', async ({ page }) => {
-  // Create a context that will issue http requests.
-  const context = await request.newContext({
-    baseURL: 'http://172.18.0.3:11470',
+test.describe('Stremio API and Settings', () => {
+  test('API endpoints return expected responses', async ({ browser, serverURL }) => {
+    console.log('Testing API endpoints with serverURL:', serverURL);
+    const context = await browser.newContext({ baseURL: serverURL });
+
+    async function testEndpoint(path: string, expectedStatus = 200) {
+      const response = await context.request.get(path);
+      expect(response.status()).toBe(expectedStatus);
+      expect(response.headers()['content-type']).toContain('application/json');
+      const data = await response.json();
+      expect(data).toBeTruthy();
+      return data;
+    }
+
+    const settings = await testEndpoint('/settings');
+    console.log('Settings:', JSON.stringify(settings, null, 2));
+
+    const networkInfo = await testEndpoint('/network-info');
+    console.log('Network Info:', JSON.stringify(networkInfo, null, 2));
   });
-    // Delete a repository.
-  const settings = await context.get(`/settings`, {});
-  expect(settings.ok()).toBeTruthy();
-  expect(settings.json());
-  const settingsText = await settings.text();
-  console.log(`Settings Request Result: ${settingsText}`);
 
-  const network = await context.get(`/network-info`, {});
-  expect(network.ok()).toBeTruthy();
-  expect(network.json());
-  const networkText = await network.text();
-  console.log(`Network Request Result: ${networkText}`);
-});
-
-test('settings', async ({ page }) => {
-  await page.goto('http://172.18.0.3:8080/#/settings');
-  await page.getByTitle('Streaming').click();
-  await page.getByTitle('Configure server url').getByRole('img').click();
-  await page.getByPlaceholder('Enter a streaming server url').click();
-  await page.getByPlaceholder('Enter a streaming server url').press('Meta+a');
-  await page.getByPlaceholder('Enter a streaming server url').fill('http://172.18.0.3:11470/');
-  await page.getByText('Submit').click();
-  await expect(page.getByText('Online')).toHaveText('Online');
+  test('User can configure streaming server URL', async ({ page, serverURL, webURL }) => {
+    console.log('Testing settings with serverURL:', serverURL, 'webURL:', webURL);
+    await page.goto(`${webURL}/#/settings`);
+    
+    await page.getByTitle('Streaming').click();
+    
+    await page.getByTitle('Configure server url').getByRole('img').click();
+    await page.getByPlaceholder('Enter a streaming server url').fill(serverURL);
+    await page.getByText('Submit').click();
+    
+    await expect(page.getByText('Online')).toBeVisible({ timeout: 10000 });
+    
+    const serverUrlElement = page.getByText(serverURL);
+    await expect(serverUrlElement).toBeVisible();
+    
+    await page.reload();
+    await expect(serverUrlElement).toBeVisible();
+  });
 });

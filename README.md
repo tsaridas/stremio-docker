@@ -40,12 +40,12 @@ To find the FQDN that the certificate is pointing to, look at the folder you mou
 
 ---
 
-4. If you want to use your own custom certificate and domain, you can specify them using the `CERT_PATH` and `DOMAIN` environment variables. The server and web player will load the specified certificate.
+4. If you want to use your own custom certificate and domain, you can specify them using the `CERT_FILE` and `DOMAIN` environment variables. The server and web player will load the specified certificate.
 
 ```bash
 $ docker run -d \
   --name=stremio-docker \
-  -e CERT_PATH=certificate.pem \
+  -e CERT_FILE=certificate.pem \
   -e DOMAIN=your.custom.domain \
   -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
@@ -122,8 +122,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | `FFMPEG_BIN`       | -       | `/usr/bin/`                | Set for custom ffmpeg bin path                                                                                                                                                               |
 | `FFPROBE_BIN`      | -       | `/usr/bin/`                | Set for custom ffprobe bin path                                                                                                                                                              |
 | `APP_PATH`         | -       | `/srv/stremio-path/`       | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                      |
-| `DOMAIN`           | -       | `your.custom.domain`      | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_PATH                                                    |
-| `CERT_PATH`        | -       | `certificate.pem`         | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                           |
+| `DOMAIN`           | -       | `your.custom.domain`      | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE                                                    |
+| `CERT_FILE`        | -       | `certificate.pem`         | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                           |
 
 There are multiple other options defined but probably best not settings any.
 

@@ -206,6 +206,7 @@ jobs:
     if: ${{ needs.check_release.outputs.id }}
     needs:
       - build
+      - push
       - check_release
     steps:
       - name: Checkout

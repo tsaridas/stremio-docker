@@ -28,10 +28,12 @@ test.describe('Stremio API and Settings', () => {
     
     await page.getByTitle('Streaming').click();
     
-    await page.getByTitle('Configure server url').getByRole('img').click();
-    await page.getByPlaceholder('Enter a streaming server url').fill(serverURL);
-    await page.getByText('Submit').click();
-    
+    await page.getByText('Add URL').click();
+    await page.getByPlaceholder('Enter URL').click();
+    await page.getByPlaceholder('Enter URL').fill('http://stremio:11470');
+    await page.locator('div').filter({ hasText: /^URLStatushttp:\/\/127\.0\.0\.1:11470\/Add URLReload$/ }).getByRole('img').first().click();
+    await page.getByRole('radio').nth(2).click(); 
+
     await expect(page.getByText('Online')).toBeVisible({ timeout: 10000 });
     
     const serverUrlElement = page.getByText(serverURL);

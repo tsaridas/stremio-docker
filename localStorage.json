@@ -1,0 +1,1366 @@
+{
+    "schema_version": 15,
+    "installation_id": "3dd61281a4a594b1f6eb",
+    "streaming_server_urls": {
+        "uid": null,
+        "items": {
+            "http://stremio:11470/": "2024-12-07T14:54:23.016Z"
+        }
+    },
+    "profile": {
+        "auth": null,
+        "addons": [
+            {
+                "manifest": {
+                    "id": "com.linvo.cinemeta",
+                    "version": "3.0.12",
+                    "name": "Cinemeta",
+                    "contactEmail": null,
+                    "description": "The official addon for movie and series catalogs",
+                    "logo": null,
+                    "background": null,
+                    "types": [
+                        "movie", "series"
+                    ],
+                    "resources": [
+                        "catalog", "meta", "addon_catalog"
+                    ],
+                    "idPrefixes": ["tt"],
+                    "catalogs": [
+                        {
+                            "id": "top",
+                            "type": "movie",
+                            "name": "Popular",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action",
+                                        "Adventure",
+                                        "Animation",
+                                        "Biography",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Family",
+                                        "Fantasy",
+                                        "History",
+                                        "Horror",
+                                        "Mystery",
+                                        "Romance",
+                                        "Sci-Fi",
+                                        "Sport",
+                                        "Thriller",
+                                        "War",
+                                        "Western"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "search",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        },
+                        {
+                            "id": "top",
+                            "type": "series",
+                            "name": "Popular",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action",
+                                        "Adventure",
+                                        "Animation",
+                                        "Biography",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Family",
+                                        "Fantasy",
+                                        "History",
+                                        "Horror",
+                                        "Mystery",
+                                        "Romance",
+                                        "Sci-Fi",
+                                        "Sport",
+                                        "Thriller",
+                                        "War",
+                                        "Western",
+                                        "Reality-TV",
+                                        "Talk-Show",
+                                        "Game-Show"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "search",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        },
+                        {
+                            "id": "year",
+                            "type": "movie",
+                            "name": "New",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "2024",
+                                        "2023",
+                                        "2022",
+                                        "2021",
+                                        "2020",
+                                        "2019",
+                                        "2018",
+                                        "2017",
+                                        "2016",
+                                        "2015",
+                                        "2014",
+                                        "2013",
+                                        "2012",
+                                        "2011",
+                                        "2010",
+                                        "2009",
+                                        "2008",
+                                        "2007",
+                                        "2006",
+                                        "2005",
+                                        "2004",
+                                        "2003",
+                                        "2002",
+                                        "2001",
+                                        "2000",
+                                        "1999",
+                                        "1998",
+                                        "1997",
+                                        "1996",
+                                        "1995",
+                                        "1994",
+                                        "1993",
+                                        "1992",
+                                        "1991",
+                                        "1990",
+                                        "1989",
+                                        "1988",
+                                        "1987",
+                                        "1986",
+                                        "1985",
+                                        "1984",
+                                        "1983",
+                                        "1982",
+                                        "1981",
+                                        "1980",
+                                        "1979",
+                                        "1978",
+                                        "1977",
+                                        "1976",
+                                        "1975",
+                                        "1974",
+                                        "1973",
+                                        "1972",
+                                        "1971",
+                                        "1970",
+                                        "1969",
+                                        "1968",
+                                        "1967",
+                                        "1966",
+                                        "1965",
+                                        "1964",
+                                        "1963",
+                                        "1962",
+                                        "1961",
+                                        "1960",
+                                        "1959",
+                                        "1958",
+                                        "1957",
+                                        "1956",
+                                        "1955",
+                                        "1954",
+                                        "1953",
+                                        "1952",
+                                        "1951",
+                                        "1950",
+                                        "1949",
+                                        "1948",
+                                        "1947",
+                                        "1946",
+                                        "1945",
+                                        "1944",
+                                        "1943",
+                                        "1942",
+                                        "1941",
+                                        "1940",
+                                        "1939",
+                                        "1938",
+                                        "1937",
+                                        "1936",
+                                        "1935",
+                                        "1934",
+                                        "1933",
+                                        "1932",
+                                        "1931",
+                                        "1930",
+                                        "1929",
+                                        "1928",
+                                        "1927",
+                                        "1926",
+                                        "1925",
+                                        "1924",
+                                        "1923",
+                                        "1922",
+                                        "1921",
+                                        "1920"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        },
+                        {
+                            "id": "year",
+                            "type": "series",
+                            "name": "New",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "2024",
+                                        "2023",
+                                        "2022",
+                                        "2021",
+                                        "2020",
+                                        "2019",
+                                        "2018",
+                                        "2017",
+                                        "2016",
+                                        "2015",
+                                        "2014",
+                                        "2013",
+                                        "2012",
+                                        "2011",
+                                        "2010",
+                                        "2009",
+                                        "2008",
+                                        "2007",
+                                        "2006",
+                                        "2005",
+                                        "2004",
+                                        "2003",
+                                        "2002",
+                                        "2001",
+                                        "2000",
+                                        "1999",
+                                        "1998",
+                                        "1997",
+                                        "1996",
+                                        "1995",
+                                        "1994",
+                                        "1993",
+                                        "1992",
+                                        "1991",
+                                        "1990",
+                                        "1989",
+                                        "1988",
+                                        "1987",
+                                        "1986",
+                                        "1985",
+                                        "1984",
+                                        "1983",
+                                        "1982",
+                                        "1981",
+                                        "1980",
+                                        "1979",
+                                        "1978",
+                                        "1977",
+                                        "1976",
+                                        "1975",
+                                        "1974",
+                                        "1973",
+                                        "1972",
+                                        "1971",
+                                        "1970",
+                                        "1969",
+                                        "1968",
+                                        "1967",
+                                        "1966",
+                                        "1965",
+                                        "1964",
+                                        "1963",
+                                        "1962",
+                                        "1961",
+                                        "1960"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "imdbRating",
+                            "type": "movie",
+                            "name": "Featured",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action",
+                                        "Adventure",
+                                        "Animation",
+                                        "Biography",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Family",
+                                        "Fantasy",
+                                        "History",
+                                        "Horror",
+                                        "Mystery",
+                                        "Romance",
+                                        "Sci-Fi",
+                                        "Sport",
+                                        "Thriller",
+                                        "War",
+                                        "Western"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "imdbRating",
+                            "type": "series",
+                            "name": "Featured",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action",
+                                        "Adventure",
+                                        "Animation",
+                                        "Biography",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Family",
+                                        "Fantasy",
+                                        "History",
+                                        "Horror",
+                                        "Mystery",
+                                        "Romance",
+                                        "Sci-Fi",
+                                        "Sport",
+                                        "Thriller",
+                                        "War",
+                                        "Western",
+                                        "Reality-TV",
+                                        "Talk-Show",
+                                        "Game-Show"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "last-videos",
+                            "type": "series",
+                            "name": "Last videos",
+                            "extra": [
+                                {
+                                    "name": "lastVideosIds",
+                                    "isRequired": true,
+                                    "options": [],
+                                    "optionsLimit": 100
+                                }
+                            ]
+                        }, {
+                            "id": "calendar-videos",
+                            "type": "series",
+                            "name": "Calendar videos",
+                            "extra": [
+                                {
+                                    "name": "calendarVideosIds",
+                                    "isRequired": true,
+                                    "options": [],
+                                    "optionsLimit": 100
+                                }
+                            ]
+                        }
+                    ],
+                    "addonCatalogs": [
+                        {
+                            "id": "official",
+                            "type": "all",
+                            "name": "Official",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        },
+                        {
+                            "id": "official",
+                            "type": "movie",
+                            "name": "Official",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        },
+                        {
+                            "id": "official",
+                            "type": "series",
+                            "name": "Official",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        },
+                        {
+                            "id": "official",
+                            "type": "channel",
+                            "name": "Official",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }, {
+                            "id": "community",
+                            "type": "all",
+                            "name": "Community",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }, {
+                            "id": "community",
+                            "type": "movie",
+                            "name": "Community",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }, {
+                            "id": "community",
+                            "type": "series",
+                            "name": "Community",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }, {
+                            "id": "community",
+                            "type": "channel",
+                            "name": "Community",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }, {
+                            "id": "community",
+                            "type": "tv",
+                            "name": "Community",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }, {
+                            "id": "community",
+                            "type": "Podcasts",
+                            "name": "Community",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }, {
+                            "id": "community",
+                            "type": "other",
+                            "name": "Community",
+                            "extraRequired": [],
+                            "extraSupported": []
+                        }
+                    ],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": false,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://v3-cinemeta.strem.io/manifest.json",
+                "flags": {
+                    "official": true,
+                    "protected": true
+                }
+            },
+            {
+                "manifest": {
+                    "id": "org.stremio.opensubtitlesv3",
+                    "version": "1.0.0",
+                    "name": "OpenSubtitles v3",
+                    "contactEmail": null,
+                    "description": null,
+                    "logo": null,
+                    "background": null,
+                    "types": [
+                        "movie", "series"
+                    ],
+                    "resources": ["subtitles"],
+                    "idPrefixes": ["tt"],
+                    "catalogs": [],
+                    "addonCatalogs": [],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": false,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://opensubtitles-v3.strem.io/manifest.json",
+                "flags": {
+                    "official": true,
+                    "protected": false
+                }
+            },
+            {
+                "manifest": {
+                    "id": "org.stremio.opensubtitles",
+                    "version": "0.24.0",
+                    "name": "OpenSubtitles",
+                    "contactEmail": null,
+                    "description": "The official add-on for subtitles from OpenSubtitles",
+                    "logo": "http://www.strem.io/images/addons/opensubtitles-logo.png",
+                    "background": null,
+                    "types": [
+                        "series", "movie", "other"
+                    ],
+                    "resources": ["subtitles"],
+                    "idPrefixes": null,
+                    "catalogs": [],
+                    "addonCatalogs": [],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": false,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://opensubtitles.strem.io/stremio/v1",
+                "flags": {
+                    "official": true,
+                    "protected": false
+                }
+            },
+            {
+                "manifest": {
+                    "id": "org.imdbcatalogs",
+                    "version": "0.0.5",
+                    "name": "IMDB Catalogs",
+                    "contactEmail": null,
+                    "description": "IMDB Movie and Series lists. Supports optional settings to use Rating Posters from RPDB.",
+                    "logo": "https://londonfeministfilmfestival.files.wordpress.com/2017/05/imdb-logo.png",
+                    "background": null,
+                    "types": [
+                        "movie", "series"
+                    ],
+                    "resources": ["catalog"],
+                    "idPrefixes": ["tt"],
+                    "catalogs": [
+                        {
+                            "id": "imdb-movie-catalog",
+                            "type": "movie",
+                            "name": "IMDB",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Anime",
+                                        "Anti Hero",
+                                        "Based on Book",
+                                        "Based on Comic",
+                                        "Based on Novel",
+                                        "Black Comedy",
+                                        "Business",
+                                        "Chick Flick",
+                                        "Conspiracy",
+                                        "Corruption",
+                                        "Criminal Mastermind",
+                                        "Cult",
+                                        "Cult Film",
+                                        "Espionage",
+                                        "Fairy Tale",
+                                        "Femme Fatale",
+                                        "Futuristic",
+                                        "Heist",
+                                        "High School",
+                                        "Knight",
+                                        "Kung Fu",
+                                        "Medieval Times",
+                                        "Murder",
+                                        "Ninja",
+                                        "One Man Army",
+                                        "Organised Crime",
+                                        "Parody",
+                                        "Police Detective",
+                                        "Psychopath",
+                                        "Road Movie",
+                                        "Robot",
+                                        "Spirituality",
+                                        "Superhero",
+                                        "Time Travel",
+                                        "Vampire",
+                                        "Zombie"
+                                    ],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "imdb-series-catalog",
+                            "type": "series",
+                            "name": "IMDB",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Anime",
+                                        "Anti Hero",
+                                        "Based on Book",
+                                        "Based on Comic",
+                                        "Based on Novel",
+                                        "Black Comedy",
+                                        "Business",
+                                        "Chick Flick",
+                                        "Conspiracy",
+                                        "Corruption",
+                                        "Criminal Mastermind",
+                                        "Cult",
+                                        "Cult Film",
+                                        "Espionage",
+                                        "Fairy Tale",
+                                        "Femme Fatale",
+                                        "Futuristic",
+                                        "Heist",
+                                        "High School",
+                                        "Knight",
+                                        "Kung Fu",
+                                        "Medieval Times",
+                                        "Murder",
+                                        "Ninja",
+                                        "One Man Army",
+                                        "Organised Crime",
+                                        "Parody",
+                                        "Police Detective",
+                                        "Psychopath",
+                                        "Road Movie",
+                                        "Robot",
+                                        "Spirituality",
+                                        "Superhero",
+                                        "Time Travel",
+                                        "Vampire",
+                                        "Zombie"
+                                    ],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "addonCatalogs": [],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": true,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://1fe84bc728af-imdb-catalogs.baby-beamup.club/manifest.json",
+                "flags": {
+                    "official": false,
+                    "protected": false
+                }
+            }, {
+                "manifest": {
+                    "id": "pw.ers.rottentomatoes",
+                    "version": "1.0.6",
+                    "name": "Rotten Tomatoes",
+                    "contactEmail": null,
+                    "description": "Certified Fresh Movies to Stream at Home and Best TV Shows (2024).",
+                    "logo": "https://i.ibb.co/hyPLjwC/tomato.png",
+                    "background": "https://www.rottentomatoes.com/assets/pizza-pie/head-assets/images/RT_TwitterCard_2018.jpg",
+                    "types": [
+                        "movie", "series"
+                    ],
+                    "resources": ["catalog"],
+                    "idPrefixes": ["tt"],
+                    "catalogs": [
+                        {
+                            "id": "rtfresh_movie",
+                            "type": "movie",
+                            "name": "RT: Certified Fresh",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action",
+                                        "Adventure",
+                                        "Animation",
+                                        "Anime",
+                                        "Biography",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Fantasy",
+                                        "LGBTQ+",
+                                        "History",
+                                        "Horror",
+                                        "Kids & Family",
+                                        "Mystery & Thriller",
+                                        "Romance",
+                                        "Sci-Fi",
+                                        "War",
+                                        "Western"
+                                    ],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "rtfresh_series",
+                            "type": "series",
+                            "name": "RT: Best TV Shows",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action",
+                                        "Adventure",
+                                        "Animation",
+                                        "Anime",
+                                        "Biography",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Fantasy",
+                                        "LGBTQ+",
+                                        "History",
+                                        "Horror",
+                                        "Kids & Family",
+                                        "Mystery & Thriller",
+                                        "Romance",
+                                        "Sci-Fi",
+                                        "War",
+                                        "Western"
+                                    ],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "addonCatalogs": [],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": true,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://7a82163c306e-rottentomatoes.baby-beamup.club/manifest.json",
+                "flags": {
+                    "official": false,
+                    "protected": false
+                }
+            }, {
+                "manifest": {
+                    "id": "tmdb-addon",
+                    "version": "3.0.13",
+                    "name": "The Movie Database Addon",
+                    "contactEmail": null,
+                    "description": "Metadata provided by TMDB.",
+                    "logo": "https://github.com/mrcanelas/tmdb-addon/raw/main/images/logo.png",
+                    "background": "https://github.com/mrcanelas/tmdb-addon/raw/main/images/background.png",
+                    "types": [
+                        "movie", "series"
+                    ],
+                    "resources": [
+                        "catalog", "meta"
+                    ],
+                    "idPrefixes": ["tmdb:"],
+                    "catalogs": [
+                        {
+                            "id": "tmdb.top",
+                            "type": "movie",
+                            "name": "TMDB - Popular",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action",
+                                        "Adventure",
+                                        "Animation",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Family",
+                                        "Fantasy",
+                                        "History",
+                                        "Horror",
+                                        "Music",
+                                        "Mystery",
+                                        "Romance",
+                                        "Science Fiction",
+                                        "TV Movie",
+                                        "Thriller",
+                                        "War",
+                                        "Western"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "search",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        },
+                        {
+                            "id": "tmdb.year",
+                            "type": "movie",
+                            "name": "TMDB - By Year",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "2024",
+                                        "2023",
+                                        "2022",
+                                        "2021",
+                                        "2020",
+                                        "2019",
+                                        "2018",
+                                        "2017",
+                                        "2016",
+                                        "2015",
+                                        "2014",
+                                        "2013",
+                                        "2012",
+                                        "2011",
+                                        "2010",
+                                        "2009",
+                                        "2008",
+                                        "2007",
+                                        "2006",
+                                        "2005",
+                                        "2004"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        },
+                        {
+                            "id": "tmdb.language",
+                            "type": "movie",
+                            "name": "TMDB - By Language",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "English",
+                                        "Afrikaans",
+                                        "Albanian",
+                                        "Arabic",
+                                        "Basque",
+                                        "Belarusian",
+                                        "Bengali",
+                                        "Bulgarian",
+                                        "Cantonese",
+                                        "Catalan",
+                                        "Chamorro",
+                                        "Croatian",
+                                        "Czech",
+                                        "Danish",
+                                        "Dutch",
+                                        "Esperanto",
+                                        "Estonian",
+                                        "Finnish",
+                                        "French",
+                                        "Gaelic",
+                                        "Galician",
+                                        "Georgian",
+                                        "German",
+                                        "Greek",
+                                        "Hebrew",
+                                        "Hindi",
+                                        "Hungarian",
+                                        "Indonesian",
+                                        "Irish",
+                                        "Italian",
+                                        "Japanese",
+                                        "Kannada",
+                                        "Kazakh",
+                                        "Kirghiz",
+                                        "Korean",
+                                        "Latvian",
+                                        "Lithuanian",
+                                        "Malay",
+                                        "Malayalam",
+                                        "Mandarin",
+                                        "Marathi",
+                                        "Norwegian",
+                                        "Norwegian Bokmål",
+                                        "Persian",
+                                        "Polish",
+                                        "Portuguese",
+                                        "Punjabi",
+                                        "Romanian",
+                                        "Russian",
+                                        "Serbian",
+                                        "Sinhalese",
+                                        "Slovak",
+                                        "Slovenian",
+                                        "Spanish",
+                                        "Swahili",
+                                        "Swedish",
+                                        "Tagalog",
+                                        "Tamil",
+                                        "Telugu",
+                                        "Thai",
+                                        "Turkish",
+                                        "Ukrainian",
+                                        "Urdu",
+                                        "Vietnamese",
+                                        "Welsh",
+                                        "Zulu"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        },
+                        {
+                            "id": "tmdb.trending",
+                            "type": "movie",
+                            "name": "TMDB - Trending",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "Day", "Week"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "tmdb.top",
+                            "type": "series",
+                            "name": "TMDB - Popular",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Action & Adventure",
+                                        "Animation",
+                                        "Comedy",
+                                        "Crime",
+                                        "Documentary",
+                                        "Drama",
+                                        "Family",
+                                        "Kids",
+                                        "Mystery",
+                                        "News",
+                                        "Reality",
+                                        "Sci-Fi & Fantasy",
+                                        "Soap",
+                                        "Talk",
+                                        "War & Politics",
+                                        "Western"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "search",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "tmdb.year",
+                            "type": "series",
+                            "name": "TMDB - By Year",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "2024",
+                                        "2023",
+                                        "2022",
+                                        "2021",
+                                        "2020",
+                                        "2019",
+                                        "2018",
+                                        "2017",
+                                        "2016",
+                                        "2015",
+                                        "2014",
+                                        "2013",
+                                        "2012",
+                                        "2011",
+                                        "2010",
+                                        "2009",
+                                        "2008",
+                                        "2007",
+                                        "2006",
+                                        "2005",
+                                        "2004"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "tmdb.language",
+                            "type": "series",
+                            "name": "TMDB - By Language",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "English",
+                                        "Afrikaans",
+                                        "Albanian",
+                                        "Arabic",
+                                        "Basque",
+                                        "Belarusian",
+                                        "Bengali",
+                                        "Bulgarian",
+                                        "Cantonese",
+                                        "Catalan",
+                                        "Chamorro",
+                                        "Croatian",
+                                        "Czech",
+                                        "Danish",
+                                        "Dutch",
+                                        "Esperanto",
+                                        "Estonian",
+                                        "Finnish",
+                                        "French",
+                                        "Gaelic",
+                                        "Galician",
+                                        "Georgian",
+                                        "German",
+                                        "Greek",
+                                        "Hebrew",
+                                        "Hindi",
+                                        "Hungarian",
+                                        "Indonesian",
+                                        "Irish",
+                                        "Italian",
+                                        "Japanese",
+                                        "Kannada",
+                                        "Kazakh",
+                                        "Kirghiz",
+                                        "Korean",
+                                        "Latvian",
+                                        "Lithuanian",
+                                        "Malay",
+                                        "Malayalam",
+                                        "Mandarin",
+                                        "Marathi",
+                                        "Norwegian",
+                                        "Norwegian Bokmål",
+                                        "Persian",
+                                        "Polish",
+                                        "Portuguese",
+                                        "Punjabi",
+                                        "Romanian",
+                                        "Russian",
+                                        "Serbian",
+                                        "Sinhalese",
+                                        "Slovak",
+                                        "Slovenian",
+                                        "Spanish",
+                                        "Swahili",
+                                        "Swedish",
+                                        "Tagalog",
+                                        "Tamil",
+                                        "Telugu",
+                                        "Thai",
+                                        "Turkish",
+                                        "Ukrainian",
+                                        "Urdu",
+                                        "Vietnamese",
+                                        "Welsh",
+                                        "Zulu"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "tmdb.trending",
+                            "type": "series",
+                            "name": "TMDB - Trending",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": true,
+                                    "options": [
+                                        "Day", "Week"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "addonCatalogs": [],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": true,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://94c8cb9f702d-tmdb-addon.baby-beamup.club/%7B%22language%22%3A%22en-US%22%7D/manifest.json",
+                "flags": {
+                    "official": false,
+                    "protected": false
+                }
+            }, 
+            {
+                "manifest": {
+                    "id": "com.stremio.torrentio.catalog.addon",
+                    "version": "1.0.2",
+                    "name": "Torrent Catalogs",
+                    "contactEmail": null,
+                    "description": "Provides catalogs for movies/series/anime based on top seeded torrents. Requires Kitsu addon for anime.",
+                    "logo": "https://i.ibb.co/w4BnkC9/GwxAcDV.png",
+                    "background": "https://i.ibb.co/VtSfFP9/t8wVwcg.jpg",
+                    "types": [
+                        "movie", "series", "anime"
+                    ],
+                    "resources": ["catalog"],
+                    "idPrefixes": null,
+                    "catalogs": [
+                        {
+                            "id": "top-movies",
+                            "type": "movie",
+                            "name": "Top seeded",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Yesterday",
+                                        "This Week",
+                                        "Last Week",
+                                        "This Month",
+                                        "Last Month",
+                                        "All Time"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "top-series",
+                            "type": "series",
+                            "name": "Top seeded",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Yesterday",
+                                        "This Week",
+                                        "Last Week",
+                                        "This Month",
+                                        "Last Month",
+                                        "All Time"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }, {
+                            "id": "top-anime",
+                            "type": "anime",
+                            "name": "Top seeded",
+                            "extra": [
+                                {
+                                    "name": "genre",
+                                    "isRequired": false,
+                                    "options": [
+                                        "Yesterday",
+                                        "This Week",
+                                        "Last Week",
+                                        "This Month",
+                                        "Last Month",
+                                        "All Time"
+                                    ],
+                                    "optionsLimit": 1
+                                }, {
+                                    "name": "skip",
+                                    "isRequired": false,
+                                    "options": [],
+                                    "optionsLimit": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "addonCatalogs": [],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": false,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://torrent-catalogs.strem.fun/manifest.json",
+                "flags": {
+                    "official": false,
+                    "protected": false
+                }
+            }, {
+                "manifest": {
+                    "id": "com.stremio.torrentio.addon",
+                    "version": "0.0.14",
+                    "name": "Torrentio",
+                    "contactEmail": null,
+                    "description": "Provides torrent streams from scraped torrent providers. Currently supports YTS(+), EZTV(+), RARBG(+), 1337x(+), ThePirateBay(+), KickassTorrents(+), TorrentGalaxy(+), MagnetDL(+), HorribleSubs(+), NyaaSi(+), TokyoTosho(+), AniDex(+), Rutor(+), Rutracker(+), Comando(+), BluDV(+), Torrent9(+), MejorTorrent(+), Wolfmax4k(+), Cinecalidad(+). To configure providers, RealDebrid/Premiumize/AllDebrid/DebridLink/Offcloud/Put.io support and other settings visit https://torrentio.strem.fun",
+                    "logo": "https://i.ibb.co/w4BnkC9/GwxAcDV.png",
+                    "background": "https://i.ibb.co/VtSfFP9/t8wVwcg.jpg",
+                    "types": [
+                        "movie", "series", "anime", "other"
+                    ],
+                    "resources": [
+                        {
+                            "name": "stream",
+                            "types": [
+                                "movie", "series"
+                            ],
+                            "idPrefixes": ["tt", "kitsu"]
+                        }
+                    ],
+                    "idPrefixes": null,
+                    "catalogs": [],
+                    "addonCatalogs": [],
+                    "behaviorHints": {
+                        "adult": false,
+                        "p2p": false,
+                        "configurable": true,
+                        "configurationRequired": false
+                    }
+                },
+                "transportUrl": "https://torrentio.strem.fun/sort=seeders|qualityfilter=scr,cam|sizefilter=20GB/manifest.json",
+                "flags": {
+                    "official": false,
+                    "protected": false
+                }
+            }
+        ],
+        "addonsLocked": false,
+        "settings": {
+            "interfaceLanguage": "eng",
+            "streamingServerUrl": "http://stremio:11470/",
+            "playerType": null,
+            "bingeWatching": true,
+            "playInBackground": true,
+            "hardwareDecoding": true,
+            "frameRateMatchingStrategy": "FrameRateOnly",
+            "nextVideoNotificationDuration": 35000,
+            "audioPassthrough": false,
+            "audioLanguage": "eng",
+            "secondaryAudioLanguage": null,
+            "subtitlesLanguage": "eng",
+            "secondarySubtitlesLanguage": null,
+            "subtitlesSize": 100,
+            "subtitlesFont": "Roboto",
+            "subtitlesBold": false,
+            "subtitlesOffset": 5,
+            "subtitlesTextColor": "#FFFFFFFF",
+            "subtitlesBackgroundColor": "#00000000",
+            "subtitlesOutlineColor": "#000000",
+            "subtitlesOpacity": 100,
+            "escExitFullscreen": true,
+            "seekTimeDuration": 10000,
+            "seekShortTimeDuration": 3000,
+            "pauseOnMinimize": false,
+            "surroundSound": false,
+            "streamingServerWarningDismissed": null
+        }
+    }
+}

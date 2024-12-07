@@ -1,8 +1,10 @@
 name: DockerHub-Nightly
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
+
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY_IMAGE: ${{ github.repository }}

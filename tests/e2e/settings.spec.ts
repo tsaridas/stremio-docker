@@ -31,7 +31,7 @@ test.describe('Stremio API and Settings', () => {
     await page.getByText('Add URL').click();
     await page.getByPlaceholder('Enter URL').click();
     await page.getByPlaceholder('Enter URL').fill(serverURL);
-    await page.locator(/\.add-\w+/).click();
+    await page.getByPlaceholder('Enter URL').press('Enter');
     await page.getByRole('radio').nth(2).click(); 
 
     await expect(page.getByText('Online')).toBeVisible({ timeout: 10000 });

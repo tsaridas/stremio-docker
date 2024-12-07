@@ -68,6 +68,9 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
+COPY ./load_localStorage.js ./src/load_localStorage.js
+RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
+
 RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 RUN yarn build
 

@@ -30,7 +30,7 @@ test.describe('Stremio API and Settings', () => {
     
     await page.getByText('Add URL').click();
     await page.getByPlaceholder('Enter URL').click();
-    await page.getByPlaceholder('Enter URL').fill('http://stremio:11470');
+    await page.getByPlaceholder('Enter URL').fill(serverURL);
     await page.locator('div').filter({ hasText: /^URLStatushttp:\/\/127\.0\.0\.1:11470\/Add URLReload$/ }).getByRole('img').first().click();
     await page.getByRole('radio').nth(2).click(); 
 

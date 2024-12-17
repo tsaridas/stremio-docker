@@ -30,7 +30,17 @@ function parseCommandLineArgs() {
 function loadCertificate(pemPath, domain, jsonPath) {
     try {
         const pemContent = fs.readFileSync(pemPath, 'utf8');
-        const [privateKey, certificate] = pemContent.split('-----END PRIVATE KEY-----');
+
+        const privateKeyTokens = [
+            '-----END PRIVATE KEY-----',
+            '-----END RSA PRIVATE KEY-----'
+        ];
+        const privateKeyToken = privateKeyTokens.find(token => pemContent.includes(token));
+        if (!privateKeyToken) {
+            throw new Error(`No private key token found in ${pemPath}`);
+        }
+
+        const [privateKey, certificate] = pemContent.split(privateKeyToken);
 
         const cert = new crypto.X509Certificate(certificate);
         const notBefore = cert.validFrom;
@@ -38,7 +48,7 @@ function loadCertificate(pemPath, domain, jsonPath) {
 
         const httpsCertContent = {
             domain: domain,
-            key: privateKey.trim() + '\n-----END PRIVATE KEY-----\n',
+            key: privateKey.trim() + `\n${privateKeyToken}\n`,
             cert: certificate.trim(),
             notBefore: new Date(notBefore).toISOString(),
             notAfter: new Date(notAfter).toISOString()

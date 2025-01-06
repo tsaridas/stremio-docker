@@ -1,4 +1,3 @@
-version: "3"
 services:
   stremio:
     image: tsaridas/stremio-docker:latest

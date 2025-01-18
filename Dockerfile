@@ -140,7 +140,7 @@ RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpx
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
-  apk add --no-cache intel-media-driver; \
+  apk add --no-cache intel-media-driver mesa-va-gallium; \
   fi
 
 # Clear cache

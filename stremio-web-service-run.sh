@@ -10,6 +10,11 @@ fi
 
 sed -i 's/df -k/df -Pk/g' server.js
 
+if [ -n "${SERVER_URL}" ]; then
+    cp localStorage.json build/localStorage.json
+    sed -i "s|http://stremio:11470/|${SERVER_URL}|g" build/localStorage.json
+fi
+
 start_http_server() {
     http-server build/ -p 8080 -d false "$@"
 }

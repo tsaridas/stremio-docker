@@ -4,7 +4,7 @@
   "streaming_server_urls": {
     "uid": null,
     "items": {
-      "http://stremio:11470/": "2024-12-07T14:54:23.016Z"
+      "http://127.0.0.1:11470/": "2024-12-07T14:54:23.016Z"
     }
   },
   "profile": {
@@ -780,14 +780,14 @@
         "transportUrl": "http://127.0.0.1:11470/local-addon/manifest.json",
         "flags": {
           "official": true,
-          "protected": true
+          "protected": false
         }
       }
     ],
     "addonsLocked": false,
     "settings": {
       "interfaceLanguage": "eng",
-      "streamingServerUrl": "http://stremio:11470/",
+      "streamingServerUrl": "http://127.0.0.1:11470/",
       "playerType": null,
       "bingeWatching": true,
       "playInBackground": true,
@@ -814,7 +814,7 @@
       "surroundSound": false,
       "streamingServerWarningDismissed": null,
       "serverInForeground": false,
-      "sendCrashReports": true
+      "sendCrashReports": false
     }
   }
 }

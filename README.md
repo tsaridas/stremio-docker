@@ -228,7 +228,8 @@ docker build -t stremio:myserver .
 - [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)
 - [Using HTTPS Local IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
 - [Using HTTPS Public IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
-
+- [Using HTTPS with custom certificate](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Custom-Certificate)
+  
 ## Useful links
 
 [Stremio addons](https://stremio-addons.netlify.app/)
@@ -248,5 +249,4 @@ then you set your dns server to the ip address of your dns caching server and yo
 ## Last words
 
 I don't intend to spend much time on this and tried to automate as much as I had time to.
-PRs and Issues are welcome.
-You can also fork and do as you like with the code but if you find some issue please do let me know.
+PRs and Issues are welcome. If you find some issue please do let me know.

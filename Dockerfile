@@ -1,5 +1,5 @@
 # Base image
-FROM node:18-alpine3.21 AS base
+FROM node:18-alpine3.18 AS base
 
 RUN apk update && apk upgrade
 

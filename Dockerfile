@@ -68,6 +68,9 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
+COPY ./load_localStorage.js ./src/load_localStorage.js
+RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
+
 RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 RUN yarn build
 
@@ -95,6 +98,7 @@ COPY ./certificate.js ./
 RUN chmod +x stremio-web-service-run.sh
 COPY ./restart_if_idle.sh ./
 RUN chmod +x restart_if_idle.sh
+COPY localStorage.json ./
 
 ENV FFMPEG_BIN=
 ENV FFPROBE_BIN=
@@ -130,6 +134,9 @@ ENV IPADDRESS=
 ENV DOMAIN=
 # Set this to the path to your certificate file
 ENV CERT_FILE=
+
+# Server url
+ENV SERVER_URL=
 
 # Copy ffmpeg
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/

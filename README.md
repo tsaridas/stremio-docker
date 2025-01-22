@@ -125,6 +125,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | `APP_PATH`         | -       | `/srv/stremio-path/`       | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                                      |
 | `DOMAIN`           | -       | `your.custom.domain`       | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE |
 | `CERT_FILE`        | -       | `certificate.pem`          | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
+| `DISABLE_CACHING`  | -       | `1`                        | Disable caching for server if set to 1.                                                                                                              
+                                           |
 
 There are multiple other options defined but probably best not settings any.
 

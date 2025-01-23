@@ -26,7 +26,6 @@ jobs:
           - linux/arm64
           - linux/ppc64le
           - linux/s390x
-          - linux/riscv64
     steps:
       - name: Checkout
         uses: actions/checkout@v3

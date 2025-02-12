@@ -173,7 +173,7 @@ jobs:
       - name: Download images
         uses: actions/download-artifact@v4
         with:
-          name: images-*
+          pattern: images-*
           merge-multiple: true
           path: /tmp/images
 

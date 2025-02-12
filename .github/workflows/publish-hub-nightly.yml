@@ -23,6 +23,8 @@ jobs:
           - linux/arm/v6
           - linux/arm/v7
           - linux/arm64
+          - linux/ppc64le
+          - linux/s390x
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -109,7 +111,7 @@ jobs:
           docker rm $(docker ps -a | grep stremio | awk '{print $1}')
 
       - name: Upload image
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: images
           path: /tmp/images/${{ env.TARFILE }}

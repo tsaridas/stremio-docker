@@ -111,7 +111,7 @@ jobs:
       - name: Upload image
         uses: actions/upload-artifact@v4
         with:
-          name: images
+          name: images-${{ strategy.job-index }}
           path: /tmp/images/${{ env.TARFILE }}
           if-no-files-found: error
           retention-days: 1
@@ -127,9 +127,10 @@ jobs:
           - 5000:5000
     steps:
       - name: Download images
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: images
+          name: images-*
+          merge-multiple: true
           path: /tmp/images
       - name: Load images
         run: |

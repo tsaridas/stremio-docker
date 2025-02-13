@@ -46,14 +46,12 @@ function processLocalStorageData(data) {
                     items: mergedItems
                 };
                 localStorage.setItem(key, JSON.stringify(mergedData));
-                console.log("Setting new values for streaming server", JSON.stringify(mergedData));
                 reload = true;
             }
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key) || '{}');
             if (existingProfile.settings?.streamingServerUrl !== value.settings?.streamingServerUrl) {
                 existingProfile.settings.streamingServerUrl = value.settings.streamingServerUrl;
-                console.log("Setting new values for profile", existingProfile);
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                 reload = true;
             }
@@ -61,7 +59,7 @@ function processLocalStorageData(data) {
     });
     
     if (reload) {
-        console.log("Changes detected, reloading page in 5 seconds...");
+        console.log("Changes detected for streamingServerUrl, reloading page ...");
         location.reload();
     }
 }

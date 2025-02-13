@@ -65,7 +65,7 @@ jobs:
 
           npm install @playwright/test
           npx playwright install --with-deps
-          sleep 10 # wait for server to startup
+          sleep 15 # wait for server to startup
           cd tests
           npx playwright test || (
             docker ps -a;

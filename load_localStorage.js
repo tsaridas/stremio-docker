@@ -17,7 +17,7 @@ async function loadJsonAndStoreInLocalStorage() {
                     const existingData = JSON.parse(localStorage.getItem(key) || '{"uid": null, "items": {}}');
                     const newData = value;
 
-                    if (!Object.is(existingData.items, newData.items)) { // Changed from != to Object.is for correct comparison
+                    if (!Object.is(existingData.items, newData.items)) {
                         const mergedItems = {
                             ...existingData.items,
                             ...newData.items
@@ -33,7 +33,7 @@ async function loadJsonAndStoreInLocalStorage() {
 
                 } else if (key === 'profile') {
                     const existingProfile = JSON.parse(localStorage.getItem(key) || '{}');
-                    if (existingProfile.settings.streamingServerUrl !== value.settings.streamingServerUrl) { // Changed from != to !== for correct comparison
+                    if (existingProfile.settings.streamingServerUrl !== value.settings.streamingServerUrl) {
                         existingProfile.settings.streamingServerUrl = value.settings.streamingServerUrl;
                         localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                         reload = true;
@@ -41,18 +41,16 @@ async function loadJsonAndStoreInLocalStorage() {
                 }
             });
             if (reload) {
+                console.log("Reloading page")
                 location.reload();
             }
         }
 
-        processLocalStorageData(data);
-
-        setInterval(() => {
+        while (true) {
             processLocalStorageData(data);
-        }, 5000);
-        
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
 
-        console.log('Data successfully stored in localStorage from localStorage.json');
     } catch (error) {
         console.error('Error loading JSON data from localStorage.json:', error);
     }

@@ -44,7 +44,6 @@ RUN cd && \
   cd "${DIR}" && \
   git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
   cd jellyfin-ffmpeg* && \
-  CFLAGS="-flto=thin" \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
   CFLAGS="-flto=thin -O3" LDFLAGS="-flto=thin" ./configure --bindir="$BIN" --disable-debug \

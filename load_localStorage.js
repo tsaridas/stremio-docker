@@ -17,7 +17,7 @@ async function loadJsonAndStoreInLocalStorage() {
                     const existingData = JSON.parse(localStorage.getItem(key) || '{"uid": null, "items": {}}');
                     const newData = value;
 
-                    if (existingData.items != newData.items) {
+                    if (!Object.is(existingData.items, newData.items)) { // Changed from != to Object.is for correct comparison
                         const mergedItems = {
                             ...existingData.items,
                             ...newData.items
@@ -33,7 +33,7 @@ async function loadJsonAndStoreInLocalStorage() {
 
                 } else if (key === 'profile') {
                     const existingProfile = JSON.parse(localStorage.getItem(key) || '{}');
-                    if (existingProfile.settings.streamingServerUrl !=  value.settings.streamingServerUrl) {
+                    if (existingProfile.settings.streamingServerUrl !== value.settings.streamingServerUrl) { // Changed from != to !== for correct comparison
                         existingProfile.settings.streamingServerUrl = value.settings.streamingServerUrl;
                         localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                         reload = true;
@@ -45,10 +45,10 @@ async function loadJsonAndStoreInLocalStorage() {
             }
         }
 
-        processLocalStorageData(data); // Process the data immediately
+        processLocalStorageData(data);
 
         setInterval(() => {
-            processLocalStorageData(data); // Reuse the data to set interval
+            processLocalStorageData(data);
         }, 5000);
         
 

@@ -44,10 +44,10 @@ RUN cd && \
   cd "${DIR}" && \
   git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
   cd jellyfin-ffmpeg* && \
-  CFLAGS="-flto=auto" \
+  CFLAGS="-flto=thin" \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
-  ./configure --bindir="$BIN" --disable-debug \
+  CFLAGS="-flto=thin -O3" LDFLAGS="-flto=thin" ./configure --bindir="$BIN" --disable-debug \
   --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened && \
   make -j4 && \
   make install && \

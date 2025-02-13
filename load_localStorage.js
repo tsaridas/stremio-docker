@@ -17,23 +17,27 @@ async function loadJsonAndStoreInLocalStorage() {
                     const existingData = JSON.parse(localStorage.getItem(key) || '{"uid": null, "items": {}}');
                     const newData = value;
 
-                    const mergedItems = {
-                        ...existingData.items,
-                        ...newData.items
-                    };
+                    if (existingData.items != newData.items) {
+                        const mergedItems = {
+                            ...existingData.items,
+                            ...newData.items
+                        };
+    
+                        const mergedData = {
+                            uid: existingData.uid,
+                            items: mergedItems
+                        };
+                        localStorage.setItem(key, JSON.stringify(mergedData));
+                        reload = true;
+                    }
 
-                    const mergedData = {
-                        uid: existingData.uid,
-                        items: mergedItems
-                    };
-
-                    localStorage.setItem(key, JSON.stringify(mergedData));
-                    reload = true;
                 } else if (key === 'profile') {
                     const existingProfile = JSON.parse(localStorage.getItem(key) || '{}');
-                    existingProfile.settings.streamingServerUrl = value.settings.streamingServerUrl;
-                    localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
-                    reload = true;
+                    if (existingProfile.settings.streamingServerUrl !=  value.settings.streamingServerUrl) {
+                        existingProfile.settings.streamingServerUrl = value.settings.streamingServerUrl;
+                        localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
+                        reload = true;
+                    }
                 }
             });
             if (reload) {

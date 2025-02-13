@@ -812,7 +812,7 @@
       "seekShortTimeDuration": 3000,
       "pauseOnMinimize": false,
       "surroundSound": false,
-      "streamingServerWarningDismissed": null,
+      "streamingServerWarningDismissed": true,
       "serverInForeground": false,
       "sendCrashReports": false
     }

@@ -8,8 +8,7 @@ FROM base AS ffmpeg
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
 RUN cd && \
-  apk add --no-cache --virtual \ 
-  .build-dependencies \ 
+  apk add --no-cache --virtual .build-dependencies \
   gnutls \
   freetype-dev \
   gnutls-dev \
@@ -46,8 +45,6 @@ RUN cd && \
   cd jellyfin-ffmpeg* && \
   PATH="$BIN:$PATH" && \
   export CFLAGS="-flto=auto" \
-  export CXXFLAGS="-flto=auto" \
-  export LDFLAGS="-flto=auto" \
   ./configure --help && \
   ./configure --bindir="$BIN" --disable-debug \
   --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened && \

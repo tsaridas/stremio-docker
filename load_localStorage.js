@@ -1,5 +1,5 @@
-let isRunning = false;  // Flag to prevent concurrent executions
-let cachedData = null;  // Store the fetched data
+let isRunning = false; 
+let cachedData = null;
 
 async function loadJsonAndStoreInLocalStorage() {
     if (isRunning) return;
@@ -32,7 +32,7 @@ function processLocalStorageData(data) {
         if (!localStorage.getItem(key)) {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
-            const existingData = JSON.parse(localStorage.getItem(key) || '{"uid": null, "items": {}}');
+            const existingData = JSON.parse(localStorage.getItem(key));
             const newData = value;
 
             if (Object.keys(newData.items).some(key => !Object.keys(existingData.items).includes(key))) {
@@ -66,8 +66,6 @@ function processLocalStorageData(data) {
     }
 }
 
-// Initial load
 loadJsonAndStoreInLocalStorage();
 
-// Increase the interval to a more reasonable time (e.g., 10 seconds)
-setInterval(loadJsonAndStoreInLocalStorage, 10000);
+setInterval(loadJsonAndStoreInLocalStorage, 5000);

@@ -15,9 +15,7 @@ async function loadJsonAndStoreInLocalStorage() {
             cachedData = await response.json();
         }
 
-        await processLocalStorageData(cachedData);
-        
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        processLocalStorageData(cachedData);
 
     } catch (error) {
         console.error('Error loading JSON data from localStorage.json:', error);
@@ -49,7 +47,7 @@ function processLocalStorageData(data) {
                 reload = true;
             }
         } else if (key === 'profile') {
-            const existingProfile = JSON.parse(localStorage.getItem(key) || '{}');
+            const existingProfile = JSON.parse(localStorage.getItem(key));
             if (existingProfile.settings?.streamingServerUrl !== value.settings?.streamingServerUrl) {
                 existingProfile.settings.streamingServerUrl = value.settings.streamingServerUrl;
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));

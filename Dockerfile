@@ -8,8 +8,7 @@ FROM base AS ffmpeg
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
 RUN cd && \
-  apk add --no-cache --virtual \ 
-  .build-dependencies \ 
+  apk add --no-cache --virtual .build-dependencies \
   gnutls \
   freetype-dev \
   gnutls-dev \

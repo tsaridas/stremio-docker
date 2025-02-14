@@ -812,7 +812,7 @@
       "seekShortTimeDuration": 3000,
       "pauseOnMinimize": false,
       "surroundSound": false,
-      "streamingServerWarningDismissed": null,
+      "streamingServerWarningDismissed": "2075-02-13T17:43:53.678Z",
       "serverInForeground": false,
       "sendCrashReports": false
     }

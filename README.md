@@ -207,6 +207,7 @@ Builds are setup to make images for the below archs :
 - linux/amd64
 - linux/arm64/v8
 - linux/arm/v7
+- linux/ppc64le
 
 I can add more build archs if you require them and you can ask but I doubt anybody ever will need to install these containers in anything else.
 

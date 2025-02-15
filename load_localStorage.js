@@ -7,13 +7,11 @@ async function loadJsonAndStoreInLocalStorage() {
     try {
         isRunning = true;
 
-        if (!cachedData) {
-            const response = await fetch('localStorage.json');
-            if (!response.ok) {
-                throw new Error('Failed to load localStorage.json');
-            }
-            cachedData = await response.json();
+        const response = await fetch('localStorage.json');
+        if (!response.ok) {
+            throw new Error('Failed to load localStorage.json');
         }
+        cachedData = await response.json();
 
         processLocalStorageData(cachedData);
 
@@ -64,4 +62,6 @@ function processLocalStorageData(data) {
 
 loadJsonAndStoreInLocalStorage();
 
-setInterval(loadJsonAndStoreInLocalStorage, 5000);
+if (cachedData) {
+    setInterval(function() {processLocalStorageData(cachedData)}, 5000);
+}

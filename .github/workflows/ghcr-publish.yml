@@ -109,9 +109,7 @@ jobs:
       - name: Run Docker Container and Test (3rd run SERVER_URL)
         run: |
             platform=${{ matrix.platform }}
-            docker network create --subnet=172.18.0.0/24 custom_network
             docker run -d --network custom_network --ip 172.18.0.3 -p 80:80 -e NO_CORS=1 -e CASTING_DISABLED=1 -e SERVER_URL="http://172.18.0.3/" --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-            
             cd tests
   
             CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')

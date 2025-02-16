@@ -93,7 +93,7 @@ COPY --from=builder-web /srv/stremio-web/server.js ./
 
 RUN apk add --no-cache nginx
 
-COPY ./nginx /etc/
+COPY ./nginx/ /etc/nginx/
 COPY ./stremio-web-service-run.sh ./
 COPY ./certificate.js ./
 RUN chmod +x stremio-web-service-run.sh

@@ -29,7 +29,7 @@ if [ -n "${IPADDRESS}" ]; then
 
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
         IP_DOMAIN=$(echo $IPADDRESS | sed 's/./-/g')
-        echo "${IPADDRESS} ${IP_DOMAIN}" >> /etc/hosts
+        echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
         cp /etc/nginx/https.conf /etc/nginx/http.d/
         start_http_server
     else
@@ -41,4 +41,5 @@ elif [ -n "${CERT_FILE}" ]; then
         cp /etc/nginx/https.conf /etc/nginx/http.d/
     fi
 fi
+
 start_http_server

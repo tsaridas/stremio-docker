@@ -90,8 +90,10 @@ LABEL version=${VERSION}
 WORKDIR /srv/stremio-server
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
-RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 
+RUN apk add --no-cache nginx
+
+COPY ./nginx /etc/
 COPY ./stremio-web-service-run.sh ./
 COPY ./certificate.js ./
 RUN chmod +x stremio-web-service-run.sh

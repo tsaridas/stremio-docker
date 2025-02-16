@@ -111,7 +111,8 @@ jobs:
             platform=${{ matrix.platform }}
             docker run -d --network custom_network --ip 172.18.0.3 -p 80:80 -e NO_CORS=1 -e CASTING_DISABLED=1 -e SERVER_URL="http://172.18.0.3/" --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
             cd tests
-  
+            sleep 15 # wait for server to startup
+            
             CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
             docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
             docker exec "$CONTAINER_ID" ps aux

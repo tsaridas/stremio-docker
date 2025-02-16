@@ -74,7 +74,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          npx playwright test --timeout=60000 || (
+          npx playwright test settings.spec --timeout=60000 || (
             docker ps -a;
             docker logs $(docker ps -a | grep stremio | awk '{print $1}');
             exit 1;
@@ -93,18 +93,41 @@ jobs:
 
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/https.conf
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks" npx playwright test --timeout=60000 || (
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks" npx playwright test settings.spec --timeout=60000 || (
             docker ps -a;
-            docker logs $(docker ps -a | grep stremio | awk '{print $1}');
+            docker logs "$CONTAINER_ID";
             exit 1;
           )
-          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
-          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
-          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
+          docker logs "$CONTAINER_ID"
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
 
+      - name: Run Docker Container and Test (3rd run SERVER_URL)
+        run: |
+            platform=${{ matrix.platform }}
+            docker network create --subnet=172.18.0.0/24 custom_network
+            docker run -d --network custom_network --ip 172.18.0.3 -p 80:80 -e NO_CORS=1 -e CASTING_DISABLED=1 -e SERVER_URL="http://172.18.0.3/" --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+            
+            cd tests
+  
+            CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+            docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+            docker exec "$CONTAINER_ID" ps aux
+            docker logs "$CONTAINER_ID"
+  
+            npx playwright test settings_server_url.spec --timeout=60000 || (
+              docker ps -a;
+              docker logs $(docker ps -a | grep stremio | awk '{print $1}');
+              exit 1;
+            )
+            docker logs "$CONTAINER_ID";
+            docker stop "$CONTAINER_ID"
+            docker rm "$CONTAINER_ID"
+    
       - name: Upload image
         uses: actions/upload-artifact@v4
         with:

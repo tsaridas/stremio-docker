@@ -68,6 +68,7 @@ jobs:
           npm install @playwright/test
           npx playwright install --with-deps
           cd tests
+
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
           docker exec "$CONTAINER_ID" ps aux
@@ -86,10 +87,16 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:443 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 443:443 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 15 # wait for server to startup
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" npx playwright test --timeout=60000 || (
+
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks" npx playwright test --timeout=60000 || (
             docker ps -a;
             docker logs $(docker ps -a | grep stremio | awk '{print $1}');
             exit 1;
@@ -102,10 +109,16 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           sudo rm -f ~/.stremio-server/httpsCert.json
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:443 -e CASTING_DISABLED=1 -e CERT_FILE=172-18-0-3.519b6502d940.stremio.rocks.pem -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 443:443 -e CASTING_DISABLED=1 -e CERT_FILE=172-18-0-3.519b6502d940.stremio.rocks.pem -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 15 # wait for server to startup
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" npx playwright test --timeout=60000 || (
+
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks" npx playwright test --timeout=60000 || (
             docker ps -a;
             docker logs $(docker ps -aq);
             exit 1;

@@ -22,9 +22,9 @@ async function loadJsonAndStoreInLocalStorage() {
     }
 }
 
-function processLocalStorageData(data) {
+function processLocalStorageData() {
     let reload = false;
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(cachedData).forEach(([key, value]) => {
         if (!localStorage.getItem(key)) {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
@@ -63,5 +63,5 @@ function processLocalStorageData(data) {
 loadJsonAndStoreInLocalStorage();
 
 if (cachedData) {
-    setInterval(function() {processLocalStorageData(cachedData)}, 5000);
+    setInterval(processLocalStorageData, 5000);
 }

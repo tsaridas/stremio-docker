@@ -10,6 +10,10 @@ fi
 sed -i 's/df -k/df -Pk/g' server.js
 
 if [ -n "${SERVER_URL}" ]; then
+    # Check if the last character is a slash
+    if [[ "${SERVER_URL: -1}" != "/" ]]; then
+        SERVER_URL="$SERVER_URL/"
+    fi
     cp localStorage.json build/localStorage.json
     sed -i "s|http://127.0.0.1:11470/|${SERVER_URL}|g" build/localStorage.json
 fi

@@ -7,13 +7,11 @@ async function loadJsonAndStoreInLocalStorage() {
     try {
         isRunning = true;
 
-        if (!cachedData) {
-            const response = await fetch('localStorage.json');
-            if (!response.ok) {
-                throw new Error('Failed to load localStorage.json');
-            }
-            cachedData = await response.json();
+        const response = await fetch('localStorage.json');
+        if (!response.ok) {
+            throw new Error(`Failed to load localStorage.json: ${response.status} ${response.statusText}`);
         }
+        cachedData = await response.json();
 
         processLocalStorageData(cachedData);
 
@@ -24,9 +22,9 @@ async function loadJsonAndStoreInLocalStorage() {
     }
 }
 
-function processLocalStorageData(data) {
+function processLocalStorageData() {
     let reload = false;
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(cachedData).forEach(([key, value]) => {
         if (!localStorage.getItem(key)) {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
@@ -62,6 +60,11 @@ function processLocalStorageData(data) {
     }
 }
 
-loadJsonAndStoreInLocalStorage();
+async function initialize() {
+    await loadJsonAndStoreInLocalStorage();
+    if (cachedData) {
+        setInterval(processLocalStorageData, 5000);
+    }
+}
 
-setInterval(loadJsonAndStoreInLocalStorage, 5000);
+initialize();

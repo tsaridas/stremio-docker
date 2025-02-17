@@ -2,14 +2,13 @@ name: ghcr-publish
 
 on:
   push:
-    branches:
-      - development
+    branches: '*'
 
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY: ghcr.io
   REGISTRY_IMAGE: ${{ github.repository }}
-  REGISTRY_TAG: testing
+  REGISTRY_TAG: ${{ github.event.pull_request.head.ref }}
   VERSION: testing
   BRANCH: development
 

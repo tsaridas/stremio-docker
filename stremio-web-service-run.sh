@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 CONFIG_FOLDER="${APP_PATH:-${HOME}/.stremio-server/}"
+AUTH_CONF_FILE="/etc/nginx/auth.conf"
 
 # check if proxyStreamsEnabled is set to false in server.js and add it if not.
 if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then
@@ -18,6 +19,16 @@ if [ -n "${SERVER_URL}" ]; then
     sed -i "s|http://127.0.0.1:11470/|${SERVER_URL}|g" build/localStorage.json
 fi
 
+# Setup authentication if environment variables are set
+if [[ -n "${USERNAME-}" && -n "${PASSWORD-}" ]]; then
+    log "Setting up HTTP basic authentication..."
+    htpasswd -bc "$HTPASSWD_FILE" "$USERNAME" "$PASSWORD"
+    echo 'auth_basic "Restricted Content";' >$AUTH_CONF_FILE
+    echo 'auth_basic_user_file '"$HTPASSWD_FILE"';' >>$AUTH_CONF_FILE
+else
+    log "No HTTP basic authentication will be used."
+fi
+
 node server.js &
 
 start_http_server() {
@@ -32,6 +43,9 @@ if [ -n "${IPADDRESS}" ]; then
         IP_DOMAIN=$(echo $IPADDRESS | sed 's/./-/g')
         echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
         cp /etc/nginx/https.conf /etc/nginx/http.d/
+        echo "##############################################################################################"
+        echo "### PLEASE SETUP YOUR DNS ${IPADDRESS} TO POINT TO ${IP_DOMAIN}.519b6502d940.stremio.rocks ###"
+        echo "##############################################################################################"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
     fi

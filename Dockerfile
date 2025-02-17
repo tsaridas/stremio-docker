@@ -16,19 +16,19 @@ RUN cd && \
   libass-dev \
   libogg-dev \
   libtheora-dev \
-  libvorbis-dev \ 
+  libvorbis-dev \
   libvpx-dev \
-  libwebp-dev \ 
+  libwebp-dev \
   libssh2 \
   opus-dev \
   rtmpdump-dev \
   x264-dev \
   x265-dev \
   yasm-dev \
-  build-base \ 
-  coreutils \ 
-  gnutls \ 
-  nasm \ 
+  build-base \
+  coreutils \
+  gnutls \
+  nasm \
   dav1d-dev \
   libbluray-dev \
   libdrm-dev \
@@ -148,7 +148,7 @@ COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva apache2-utils
+RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl apache2-utils
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
@@ -161,7 +161,7 @@ RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
 VOLUME ["/root/.stremio-server"]
 
 # Expose default ports
-EXPOSE 80 443 8080
+EXPOSE 80 443 8080 11470 12470
 
 ENTRYPOINT []
 

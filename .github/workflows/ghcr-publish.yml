@@ -92,7 +92,6 @@ jobs:
 
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
-          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/https.conf
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 

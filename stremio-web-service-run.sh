@@ -11,7 +11,6 @@ fi
 sed -i 's/df -k/df -Pk/g' server.js
 
 if [ -n "${SERVER_URL}" ]; then
-    # Check if the last character is a slash
     if [[ "${SERVER_URL: -1}" != "/" ]]; then
         SERVER_URL="$SERVER_URL/"
     fi
@@ -42,7 +41,7 @@ if [ -n "${IPADDRESS}" ]; then
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -f "/srv/stremio-server/certificates.pem" ]; then
         IP_DOMAIN=$(echo $IPADDRESS | sed 's/./-/g')
         echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
-        cp /etc/nginx/https.conf /etc/nginx/http.d/
+        cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
         echo "##############################################################################################"
         echo "### PLEASE SETUP YOUR DNS ${IPADDRESS} TO POINT TO ${IP_DOMAIN}.519b6502d940.stremio.rocks ###"
         echo "##############################################################################################"
@@ -52,7 +51,7 @@ if [ -n "${IPADDRESS}" ]; then
 elif [ -n "${CERT_FILE}" ]; then
     if [ -f ${CONFIG_FOLDER}${CERT_FILE} ]; then
         cp ${CONFIG_FOLDER}${CERT_FILE} /srv/stremio-server/certificates.pem
-        cp /etc/nginx/https.conf /etc/nginx/http.d/
+        cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
     fi
 fi
 

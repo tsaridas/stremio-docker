@@ -20,7 +20,7 @@ fi
 
 # Setup authentication if environment variables are set
 if [[ -n "${USERNAME-}" && -n "${PASSWORD-}" ]]; then
-    log "Setting up HTTP basic authentication..."
+    echo "Setting up HTTP basic authentication..."
     htpasswd -bc "$HTPASSWD_FILE" "$USERNAME" "$PASSWORD"
     echo 'auth_basic "Restricted Content";' >$AUTH_CONF_FILE
     echo 'auth_basic_user_file '"$HTPASSWD_FILE"';' >>$AUTH_CONF_FILE

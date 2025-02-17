@@ -25,7 +25,7 @@ if [[ -n "${USERNAME-}" && -n "${PASSWORD-}" ]]; then
     echo 'auth_basic "Restricted Content";' >$AUTH_CONF_FILE
     echo 'auth_basic_user_file '"$HTPASSWD_FILE"';' >>$AUTH_CONF_FILE
 else
-    log "No HTTP basic authentication will be used."
+    echo "No HTTP basic authentication will be used."
 fi
 
 node server.js &

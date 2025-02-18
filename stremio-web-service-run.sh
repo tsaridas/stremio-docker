@@ -2,6 +2,7 @@
 
 CONFIG_FOLDER="${APP_PATH:-${HOME}/.stremio-server/}"
 AUTH_CONF_FILE="/etc/nginx/auth.conf"
+HTPASSWD_FILE="/etc/nginx/.htpasswd"
 
 # check if proxyStreamsEnabled is set to false in server.js and add it if not.
 if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then

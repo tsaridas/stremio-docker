@@ -11,6 +11,8 @@ env:
   REGISTRY_TAG: ${{ github.head_ref || github.ref_name }} 
   VERSION: testing
   BRANCH: development
+  TAG: 
+  TARFILE: 
 
 jobs:
   build:

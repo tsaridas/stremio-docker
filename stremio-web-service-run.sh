@@ -39,7 +39,7 @@ if [ -n "${IPADDRESS}" ]; then
     EXTRACT_STATUS="$?"
 
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -f "/srv/stremio-server/certificates.pem" ]; then
-        IP_DOMAIN=$(echo $IPADDRESS | sed 's/./-/g')
+        IP_DOMAIN=$(echo $IPADDRESS | sed 's/\./-/g')
         echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
         cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
         echo "##############################################################################################"

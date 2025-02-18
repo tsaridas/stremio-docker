@@ -31,17 +31,17 @@ function processLocalStorageData() {
             const existingData = JSON.parse(localStorage.getItem(key));
             const currentUrl = getCurrentUrl().toString();
             const timestamp = new Date().toISOString();
-            
-            // Ensure items exists and is an object
-            existingData.items = existingData.items || {};
-            existingData.items[currentUrl] = [timestamp];
+            if (!existingData.items[currentUrl]) {
+                // Ensure items exists and is an object
+                existingData.items = existingData.items || {};
+                existingData.items[currentUrl] = timestamp;
 
-            localStorage.setItem(key, JSON.stringify(existingData));
-            reload = true;
+                localStorage.setItem(key, JSON.stringify(existingData));
+                reload = true;
+        }
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
-            if (existingProfile.settings?.streamingServerUrl !== value.settings?.streamingServerUrl) {
-                // Store the URL directly instead of as an object
+            if (existingProfile.settings?.streamingServerUrl !== getCurrentUrl().toString()) {
                 existingProfile.settings.streamingServerUrl = getCurrentUrl().toString();
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                 reload = true;

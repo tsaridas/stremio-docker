@@ -29,30 +29,20 @@ function processLocalStorageData() {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
             const existingData = JSON.parse(localStorage.getItem(key));
-            const urlTimestamp = { [getCurrentUrl().toString()]: [new Date().toISOString()] };
-            const mergedItems = {...value.items, ...urlTimestamp };
-            const mergedData = {
-                uid: existingData.uid,
-                items: mergedItems
-            };
+            const currentUrl = getCurrentUrl().toString();
+            const timestamp = new Date().toISOString();
+            
+            // Ensure items exists and is an object
+            existingData.items = existingData.items || {};
+            existingData.items[currentUrl] = [timestamp];
 
-            if (Object.keys(mergedData.items).some(key => !Object.keys(existingData.items).includes(key))) {
-                const mergedItems = {
-                    ...existingData.items,
-                    ...value.items
-                };
-
-                const mergedData = {
-                    uid: existingData.uid,
-                    items: mergedItems
-                };
-                localStorage.setItem(key, JSON.stringify(mergedData));
-                reload = true;
-            }
+            localStorage.setItem(key, JSON.stringify(existingData));
+            reload = true;
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
             if (existingProfile.settings?.streamingServerUrl !== value.settings?.streamingServerUrl) {
-                existingProfile.settings.streamingServerUrl = { [getCurrentUrl().toString()]: [new Date().toISOString()] };
+                // Store the URL directly instead of as an object
+                existingProfile.settings.streamingServerUrl = getCurrentUrl().toString();
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                 reload = true;
             }

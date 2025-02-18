@@ -8,7 +8,7 @@ env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY: ghcr.io
   REGISTRY_IMAGE: ${{ github.repository }}
-  REGISTRY_TAG: ${{ github.head_ref }}
+  REGISTRY_TAG: ${{ github.head_ref || github.ref_name }} 
   VERSION: testing
   BRANCH: development
 

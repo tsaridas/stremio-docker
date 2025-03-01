@@ -16,19 +16,19 @@ RUN cd && \
   libass-dev \
   libogg-dev \
   libtheora-dev \
-  libvorbis-dev \ 
+  libvorbis-dev \
   libvpx-dev \
-  libwebp-dev \ 
+  libwebp-dev \
   libssh2 \
   opus-dev \
   rtmpdump-dev \
   x264-dev \
   x265-dev \
   yasm-dev \
-  build-base \ 
-  coreutils \ 
-  gnutls \ 
-  nasm \ 
+  build-base \
+  coreutils \
+  gnutls \
+  nasm \
   dav1d-dev \
   libbluray-dev \
   libdrm-dev \
@@ -90,8 +90,10 @@ LABEL version=${VERSION}
 WORKDIR /srv/stremio-server
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
-RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 
+RUN apk add --no-cache nginx
+
+COPY ./nginx/ /etc/nginx/
 COPY ./stremio-web-service-run.sh ./
 COPY ./certificate.js ./
 RUN chmod +x stremio-web-service-run.sh
@@ -137,12 +139,16 @@ ENV CERT_FILE=
 # Server url
 ENV SERVER_URL=
 
+# Basic Auth username/password
+ENV USERNAME=
+ENV PASSWORD=
+
 # Copy ffmpeg
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
+RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl apache2-utils
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
@@ -155,7 +161,7 @@ RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
 VOLUME ["/root/.stremio-server"]
 
 # Expose default ports
-EXPOSE 8080 11470 12470
+EXPOSE 80 443 8080 11470 12470
 
 ENTRYPOINT []
 

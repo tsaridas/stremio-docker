@@ -29,25 +29,20 @@ function processLocalStorageData() {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
             const existingData = JSON.parse(localStorage.getItem(key));
-            const newData = value;
+            const currentUrl = getCurrentUrl().toString();
+            const timestamp = new Date().toISOString();
+            if (!existingData.items[currentUrl]) {
+                // Ensure items exists and is an object
+                existingData.items = existingData.items || {};
+                existingData.items[currentUrl] = timestamp;
 
-            if (Object.keys(newData.items).some(key => !Object.keys(existingData.items).includes(key))) {
-                const mergedItems = {
-                    ...existingData.items,
-                    ...newData.items
-                };
-
-                const mergedData = {
-                    uid: existingData.uid,
-                    items: mergedItems
-                };
-                localStorage.setItem(key, JSON.stringify(mergedData));
+                localStorage.setItem(key, JSON.stringify(existingData));
                 reload = true;
-            }
+        }
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
-            if (existingProfile.settings?.streamingServerUrl !== value.settings?.streamingServerUrl) {
-                existingProfile.settings.streamingServerUrl = value.settings.streamingServerUrl;
+            if (existingProfile.settings?.streamingServerUrl !== getCurrentUrl().toString()) {
+                existingProfile.settings.streamingServerUrl = getCurrentUrl().toString();
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                 reload = true;
             }
@@ -66,5 +61,17 @@ async function initialize() {
         setInterval(processLocalStorageData, 5000);
     }
 }
+
+// Function to get the current URL the user is browsing
+function getCurrentUrl() {
+    const url = window.location.href;
+    const protocolIndex = url.indexOf('://') + 3;
+    const index = url.indexOf('/', protocolIndex);
+    const baseUrl = index === -1 ? url : url.substring(0, index);
+    return baseUrl + '/';
+}
+
+// Log the current URL to the console
+console.log("Current URL:", getCurrentUrl());
 
 initialize();

@@ -81,7 +81,7 @@ RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/mast
 # Main image
 FROM base AS final
 
-ARG VERSION=master
+ARG VERSION=main
 LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
 LABEL org.opencontainers.image.description="Stremio Web Player and Server"
 LABEL org.opencontainers.image.licenses=MIT

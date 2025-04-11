@@ -1,9 +1,9 @@
 #!/bin/sh -e
 
-# set the configuration folder path.
-CONFIG_FOLDER="${APP_PATH:-${HOME}/.stremio-server/}"
+# Set the configuration folder path.
+CONFIG_FOLDER="${APP_PATH:-/srv/.stremio-server/}"
 
-# check if proxyStreamsEnabled is set to false in server.js and add it if not.
+# Check if proxyStreamsEnabled is set to false in server.js and add it if not.
 if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then
     sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
 fi
@@ -19,16 +19,19 @@ start_http_server() {
     http-server build/ -p 8080 -d false "$@"
 }
 
-if [ -n "${IPADDRESS}" ]; then 
+# Echo startup message
+echo "Starting Stremio server at $(date)"
+echo "Config folder: ${CONFIG_FOLDER}"
+
+if [ -n "${IPADDRESS}" ]; then
     node server.js &
 
     echo "Attempting to fetch HTTPS certificate for IP address: ${IPADDRESS}"
     curl --connect-timeout 5 \
-         --retry-all-errors \
-         --retry 10 \
-         --retry-delay 1 \
-         --verbose \
-         "http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
+        --retry 10 \
+        --retry-delay 1 \
+        --verbose \
+        "http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
     CURL_STATUS="$?"
     if [ "${CURL_STATUS}" -ne 0 ]; then
         echo "Failed to fetch HTTPS certificate. Curl exited with status: ${CURL_STATUS}"
@@ -42,8 +45,8 @@ if [ -n "${IPADDRESS}" ]; then
     echo "Extracted domain ${IMPORTED_DOMAIN} with status ${EXTRACT_STATUS} and cert file ${IMPORTED_CERT_FILE}"
 
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
-        echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
-        
+        echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >>/etc/hosts
+
         start_http_server -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."

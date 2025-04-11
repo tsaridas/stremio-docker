@@ -9,8 +9,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8082:8080
-      - 21470:11470  # Just one of the two should be enough
-      - 22470:12470
+      - 11470:11470  # Just one of the two should be enough
+      - 12470:12470
     volumes:
       # Mount host ffmpeg if available, otherwise use container's
       #- /bin/ffmpeg:/bin/ffmpeg:ro
@@ -29,7 +29,7 @@ services:
       #FFMPEG_EXTRA_OPTS: --enable-libx265
       #JELLYFIN_VERSION: 4.4.1
       #NODE_VERSION: 20
-      VERSION: main
+      VERSION: main  # The branch/tag to pull stremio-web from.
       FFMPEG_BIN: /bin/ffmpeg
       FFPROBE_BIN: /bin/ffprobe
       ######################################
@@ -39,13 +39,12 @@ services:
       NO_CORS: 1
       #IPADDRESS: 127.0.0.1 # Uncomment to use https (not needed when reverse proxy is used)
       # Server and Web UI configuration
-      #SERVER_URL: http://127.0.0.1:11470
+      SERVER_URL: http://127.0.0.1:11470
       ######################################
       # Sets the redirect page for web player and automatically sets up streaming server for you
       # when one tries to access server at port 11470 or 12470.
       # Default is https://app.strem.io/shell-v4.4/
-      #WEBUI_LOCATION: http://127.0.0.1:8080/shell-v4.4/
-      #WEBUI_LOCATION: http://your-stremio-web-ui-url
+      WEBUI_LOCATION: http://your-public-facing-stremio-frontend-url
     restart: unless-stopped
 
 networks:

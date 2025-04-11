@@ -1,14 +1,15 @@
 
 services:
   stremio:
+    # Uncomment to build the image yourself.
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    image: tsaridas/stremio-server:latest
     container_name: stremio
     hostname: stremio
-    #image: th3w1zard1/stremio-aio-server:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
     ports:
-      - 8082:8080
+      - 8080:8080
       - 11470:11470  # Just one of the two should be enough
       - 12470:12470
     volumes:

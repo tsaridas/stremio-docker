@@ -1,0 +1,58 @@
+
+services:
+  stremio:
+    container_name: stremio
+    hostname: stremio
+    #image: th3w1zard1/stremio-aio-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8082:8080
+      - 21470:11470  # Just one of the two should be enough
+      - 22470:12470
+    volumes:
+      # Mount host ffmpeg if available, otherwise use container's
+      #- /bin/ffmpeg:/bin/ffmpeg:ro
+      #- /bin/ffprobe:/bin/ffprobe:ro
+      # Mount configuration directory as a volume
+      - stremio_data:/srv/.stremio-server
+    networks:
+      - proxy
+    environment:
+      # Uncomment and set values as needed
+      #APP_PATH: /srv/.stremio-server/
+      #BUILD: linux/arm64
+      #CERT_FILE: certificate.pem
+      #DISABLE_CACHING: 1
+      #DOMAIN: your.custom.domain
+      #FFMPEG_EXTRA_OPTS: --enable-libx265
+      #JELLYFIN_VERSION: 4.4.1
+      #NODE_VERSION: 20
+      VERSION: main
+      FFMPEG_BIN: /bin/ffmpeg
+      FFPROBE_BIN: /bin/ffprobe
+      ######################################
+      # stremio-web related
+      # Defaults are configured for running stremio-web in this container.
+      CASTING_DISABLED: 1
+      NO_CORS: 1
+      #IPADDRESS: 127.0.0.1 # Uncomment to use https (not needed when reverse proxy is used)
+      # Server and Web UI configuration
+      #SERVER_URL: http://127.0.0.1:11470
+      ######################################
+      # Sets the redirect page for web player and automatically sets up streaming server for you
+      # when one tries to access server at port 11470 or 12470.
+      # Default is https://app.strem.io/shell-v4.4/
+      #WEBUI_LOCATION: http://127.0.0.1:8080/shell-v4.4/
+      #WEBUI_LOCATION: http://your-stremio-web-ui-url
+    restart: unless-stopped
+
+networks:
+  proxy:
+    name: proxy
+    driver: bridge
+
+volumes:
+  stremio_data:
+    name: stremio_data

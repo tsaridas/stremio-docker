@@ -34,7 +34,7 @@ To find the FQDN that the certificate is pointing to, look at the folder you mou
 192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks # this is an example. set your own ip and fqnd here.
 ```
 
-Then you can point your browser to https://192-168-1-10.519b6502d940.stremio.rocks:8080 and setup Streaming server to https://192-168-1-10.519b6502d940.stremio.rocks:12470 .
+Then you can point your browser to <https://192-168-1-10.519b6502d940.stremio.rocks:8080> and setup Streaming server to <https://192-168-1-10.519b6502d940.stremio.rocks:12470> .
 
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
 
@@ -83,9 +83,9 @@ I added stremio shell html files under http(s)://{Your stremio url}:{port}/shell
 If you haven't installed Docker yet, install it by running:
 
 ```bash
-$ curl -sSL https://get.docker.com | sh
-$ sudo usermod -aG docker $(whoami)
-$ exit
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker $(whoami)
+exit
 ```
 
 And log in again.
@@ -113,20 +113,24 @@ The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Set streamin
 
 These options can be configured by setting environment variables using `-e KEY="VALUE"` in the `docker run` command.
 
-| Env                | Default | Example                    | Description                                                                                                                                                                                                  |
-|--------------------|---------|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IPADDRESS`        | -       | `192.168.1.10`             | Set this to enable https                                                                                                                                                                                     |
-| `SERVER_URL`       | -       | `http://192.168.1.10:11470/`| Set this to set server url automatically. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                                                                                                                                                                      |
-| `NO_CORS`          | -       | `1`                        | Set to disable server's cors                                                                                                                                                                                 |
-| `CASTING_DISABLED` | -       | `1`                        | Set to disable casting. You should set this to `1` if you're getting SSDP errors in the logs                                                                                                                 |
-| `WEBUI_LOCATION`   | -       | `http://192.168.1.10:8080` | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470. Default is https://app.strem.io/shell-v4.4/                 |
-| `FFMPEG_BIN`       | -       | `/usr/bin/`                | Set for custom ffmpeg bin path                                                                                                                                                                               |
-| `FFPROBE_BIN`      | -       | `/usr/bin/`                | Set for custom ffprobe bin path                                                                                                                                                                              |
-| `APP_PATH`         | -       | `/srv/stremio-path/`       | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                                      |
-| `DOMAIN`           | -       | `your.custom.domain`       | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE |
-| `CERT_FILE`        | -       | `certificate.pem`          | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
-| `DISABLE_CACHING`  | -       | `1`                        | Disable caching for server if set to 1.      |                                                                                                        
-                                           
+| Env                 | Default | Example                      | Description                                                                                                                                                                                                  |
+| ------------------- | ------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `IPADDRESS`         | -       | `192.168.1.10`               | Set this to enable https                                                                                                                                                                                     |
+| `SERVER_URL`        | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
+| `NO_CORS`           | -       | `1`                          | Set to disable server's cors                                                                                                                                                                                 |
+| `CASTING_DISABLED`  | -       | `1`                          | Set to disable casting. You should set this to `1` if you're getting SSDP errors in the logs                                                                                                                 |
+| `WEBUI_LOCATION`    | -       | `http://192.168.1.10:8080`   | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470. Default is <https://app.strem.io/shell-v4.4/>               |
+| `FFMPEG_BIN`        | -       | `/usr/bin/`                  | Set for custom ffmpeg bin path                                                                                                                                                                               |
+| `FFPROBE_BIN`       | -       | `/usr/bin/`                  | Set for custom ffprobe bin path                                                                                                                                                                              |
+| `APP_PATH`          | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                                      |
+| `DOMAIN`            | -       | `your.custom.domain`         | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE |
+| `CERT_FILE`         | -       | `certificate.pem`            | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
+| `DISABLE_CACHING`   | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |
+| `FFMPEG_EXTRA_OPTS` | -       | `--enable-libx265`           | Set extra configure options for ffmpeg compilation. Useful for adding additional libraries or hardware support.                                                                                              |
+| `VERSION`           | -       | `v4.20.1`                    | Specify which version of the `server.js` you'd like to be downloaded for the docker image.                                                                                                                   |
+| `BUILD`             | -       | `linux/arm64`                | For which platform you'd like to download the `server.js`.                                                                                                                                                   |
+| `NODE_VERSION`      | -       | `18`                         | The version which will be included in the image and `server.js` will be ran with.                                                                                                                            |
+| `JELLYFIN_VERSION`  | -       | `4.4.1`                      | `jellyfin-ffmpeg` version, currently requires version **<= 4.4.1**.                                                                                                                                          |
 
 There are multiple other options defined but probably best not settings any.
 
@@ -172,7 +176,7 @@ You also add the dev libraries to the above line from configure where you see lo
 apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac curl libva `ADD-NON-DEV-PACKAGE-HERE` && \
 ```
 
-The lines shown above might have changed so just try to use common sense on where to add your package. If you want hardware acceleration you might need to compile it with the driver for your hardware. The version of ffmpeg that we compile comes with (VA-API)[https://en.wikipedia.org/wiki/Video_Acceleration_API]. You will probably need to expose your hardware device inside the container in order to make it work. Server tries to see if it can use any devices on first start. You can see those log messages to see if it worked for you.
+The lines shown above might have changed so just try to use common sense on where to add your package. If you want hardware acceleration you might need to compile it with the driver for your hardware. The version of ffmpeg that we compile comes with [VA-API](https://en.wikipedia.org/wiki/Video_Acceleration_API). You will probably need to expose your hardware device inside the container in order to make it work. Server tries to see if it can use any devices on first start. You can see those log messages to see if it worked for you.
 
 ### Support for Intel/AMD CPU/GPU Transcoding
 

@@ -41,7 +41,6 @@ services:
       #IPADDRESS: 127.0.0.1 # Uncomment to use https (not needed when reverse proxy is used)
       # Server and Web UI configuration
       SERVER_URL: http://127.0.0.1:11470
-      ######################################
       # Sets the redirect page for web player and automatically sets up streaming server for you
       # when one tries to access server at port 11470 or 12470.
       # Default is https://app.strem.io/shell-v4.4/

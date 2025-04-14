@@ -1,0 +1,11 @@
+# Treat these file types as text and force LF line endings
+*.sh text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Git should detect other text files automatically
+* text=auto

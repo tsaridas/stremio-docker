@@ -1,169 +1,228 @@
-# Copyright (C) 2017-2023 Smart code 203358507
+# Base image
+ARG NODE_VERSION=${NODE_VERSION:-18}
+FROM node:${NODE_VERSION}-alpine3.18 AS base
 
-# the node version for running the server
-ARG NODE_VERSION=20
+# Update base packages
+RUN apk update && apk upgrade
 
-FROM node:$NODE_VERSION-buster AS base
+# --- FFMpeg Build Stage ---
+# Builds a custom version of ffmpeg required by Stremio Server
+FROM base AS ffmpeg
 
-#ARG VERSION=main
-# Which build to download for the image,
-# possible values are: desktop, android, androidtv, webos and tizen
-# webos and tizen require older versions of node:
-# - Node.js `v0.12.2` for WebOS 3.0 (2016 LG TV)
-# - Node.js `v4.4.3` for Tizen 3.0 (2017 Samsung TV)
-# But, as of writing this, we only support desktop!
-ARG BUILD=desktop
-
-LABEL com.stremio.vendor="Smart Code Ltd."
-LABEL version=${VERSION}
-LABEL description="Stremio's streaming Server"
-LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
-LABEL org.opencontainers.image.description="Stremio Web Player and Server"
-LABEL org.opencontainers.image.licenses=MIT
-
-SHELL ["/bin/sh", "-c"]
-
-WORKDIR /stremio
-
-# We require version <= 4.4.1
-# https://github.com/jellyfin/jellyfin-ffmpeg/releases/tag/v4.4.1-4
-ARG JELLYFIN_VERSION=4.4.1-4
-
-# Install dependencies
-RUN apt-get -y update && \
-    apt-get -y install wget git apt-transport-https && \
-    echo "deb http://deb.debian.org/debian buster main" > /etc/apt/sources.list.d/buster.list && \
-    apt-get -y update && \
-    apt-get -y install libvpx5 libwebp6 libx264-155 libx265-165
-
-# Install Jellyfin FFMPEG
-RUN wget https://repo.jellyfin.org/archive/ffmpeg/debian/4.4.1-4/jellyfin-ffmpeg_4.4.1-4-buster_$(dpkg --print-architecture).deb -O jellyfin-ffmpeg.deb && \
-    apt-get -y install ./jellyfin-ffmpeg.deb && \
-    rm jellyfin-ffmpeg.deb
-
-# RUN apt-get install -y bash
-COPY download_server.sh ./
-RUN chmod +x download_server.sh && ./download_server.sh
-
-# This copy could will override the server.js that was downloaded with the one provided in this folder
-# for custom or manual builds if $VERSION argument is not empty.
-COPY . .
+# Install build dependencies for ffmpeg
+# We build our own ffmpeg since 4.X is the only one supported
+ENV BIN="/usr/bin"
+RUN cd && \
+  apk add --no-cache --virtual .build-dependencies \
+  gnutls \
+  freetype-dev \
+  gnutls-dev \
+  lame-dev \
+  libass-dev \
+  libogg-dev \
+  libtheora-dev \
+  libvorbis-dev \
+  libvpx-dev \
+  libwebp-dev \
+  libssh2 \
+  opus-dev \
+  rtmpdump-dev \
+  x264-dev \
+  x265-dev \
+  yasm-dev \
+  build-base \
+  coreutils \
+  gnutls \
+  nasm \
+  dav1d-dev \
+  libbluray-dev \
+  libdrm-dev \
+  zimg-dev \
+  aom-dev \
+  xvidcore-dev \
+  fdk-aac-dev \
+  libva-dev \
+  git \
+  x264 && \
+  DIR=$(mktemp -d) && \
+  cd "${DIR}" && \
+  # Clone Jellyfin's ffmpeg fork (version 4.4.1-4)
+  git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
+  cd jellyfin-ffmpeg* && \
+  PATH="$BIN:$PATH" && \
+  # Configure ffmpeg build
+  ./configure --help && \
+  ./configure --bindir="$BIN" --disable-debug \
+  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened && \
+  # Build and install ffmpeg
+  make -j$(nproc) && \
+  make install && \
+  make distclean && \
+  # Clean up build dependencies and temp files
+  rm -rf "${DIR}"  && \
+  apk del --purge .build-dependencies
 
 #########################################################################
 
-# Builder image for stremio-web
+# --- Web UI Build Stage ---
+# Builds the Stremio Web UI static files
 FROM base AS builder-web
 
-WORKDIR /build
+WORKDIR /srv
+# Install dependencies needed for building the web UI
+RUN apk add --no-cache git wget
+
+# Clone the Stremio Web UI repository
+# Fetches the latest release tag if BRANCH=release, otherwise fetches the specified branch (default: development)
 ARG BRANCH=development
-RUN REPO="https://github.com/Stremio/stremio-web.git"; \
-    if [ "$BRANCH" == "release" ]; then \
-        git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | awk '{print $2}' | sort -V | tail -n1 | cut -d/ -f3) stremio-web; \
-    else \
-        git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; \
-    fi
+RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | awk '{print $2}' | sort -V | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
 
-WORKDIR /build/stremio-web
+WORKDIR /srv/stremio-web
+
 COPY ./load_localStorage.js ./src/load_localStorage.js
-#RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
+#RUN sed -i "/entry: {/a \        loader: './src/load_localStorage.js'," webpack.config.js
 
-RUN npm install && npm run build
+# Install Node.js dependencies and build the web UI
+RUN yarn install --no-audit --no-optional --mutex network --no-progress --ignore-scripts
+RUN yarn build
 
-RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && \
-    wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" \
-    "https://app.strem.io/images/stremio.png" "https://app.strem.io/images/empty.png" -P build/shell/ || true
+# Download additional shell files (worker, images)
+RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" "https://app.strem.io/images/empty.png" -P build/shell/ || true
 
-RUN ls -la
+##########################################################################
 
-#########################################################################
+# --- Final Stage ---
+# Assembles the final image with the Stremio server and web UI
+FROM base AS final
 
-# Main image
-FROM node:$NODE_VERSION-buster-slim
+# --- Metadata ---
+ARG VERSION=master
+LABEL org.opencontainers.image.source=https://github.com/th3w1zard1/stremio-docker
+LABEL org.opencontainers.image.description="Stremio Web Player and Server in Docker"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL version=${VERSION}
 
-# Install required runtime dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget ca-certificates && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# --- Application Setup ---
+WORKDIR /srv/stremio-server
 
-# Create and set the correct directory structure
-WORKDIR /srv/.stremio-server
+# Copy built web UI and server files from previous stages
+COPY --from=builder-web /srv/stremio-web/build ./build
+COPY --from=builder-web /srv/stremio-web/server.js ./
 
-# Copy stremio-web files from builder
-COPY --from=builder-web /build/stremio-web/build ./build
-COPY --from=builder-web /build/stremio-web/server.js ./server.js
+# Install http-server globally to serve the web UI
+RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 
-# Install http-server
-RUN npm install -g http-server --no-audit && \
-    npm cache clean --force
-
-# Copy configuration files
+# Copy custom scripts and configuration files
 COPY ./stremio-web-service-run.sh ./
-RUN chmod +x stremio-web-service-run.sh
+# Ensure the script uses Unix-style line endings (LF instead of CRLF)
+RUN sed -i 's/\r$//' ./stremio-web-service-run.sh
 COPY ./certificate.js ./
+RUN chmod +x stremio-web-service-run.sh
 COPY ./restart_if_idle.sh ./
 RUN chmod +x restart_if_idle.sh
-COPY ./localStorage.json ./
-COPY ./localStorage.json ./server-settings.json
+COPY localStorage.json ./
 
-# Set permissions
-RUN chmod +x stremio-web-service-run.sh restart_if_idle.sh
+# --- Environment Variables ---
+# Define arguments for configurable ports (can be set during build)
+ARG WEBUI_PORT=8080
+ARG SERVER_PORT=11470
+ARG CASTING_PORT=12470
 
-# HTTP
-EXPOSE 11470
+# Set default environment variables (can be overridden at runtime)
+# Ports
+# Port for the Stremio Web UI (served by http-server)
+ENV WEBUI_PORT=${WEBUI_PORT}
+# Port for the Stremio Server backend (HTTP)
+ENV SERVER_PORT=${SERVER_PORT}
+# Port likely used for casting/discovery
+ENV CASTING_PORT=${CASTING_PORT}
 
-# HTTPS
-EXPOSE 12470
+# Paths and Binaries (usually automatically detected)
+# Path to ffmpeg binary (leave empty for auto-detection)
+ENV FFMPEG_BIN=
+# Path to ffprobe binary (leave empty for auto-detection)
+ENV FFPROBE_BIN=
 
-# Webserver
-EXPOSE 8080
-
-# full path to the ffmpeg binary
-ENV FFMPEG_BIN=/bin/ffmpeg
-
-# full path to the ffprobe binary
-ENV FFPROBE_BIN=/bin/ffprobe
-
-# default https://app.strem.io/shell-v4.4/
+# Web UI Configuration
+# default https://app.strem.io/shell-v4.4/ - Keep empty unless you know what you're doing
 ENV WEBUI_LOCATION=
+
+# Server Behavior Configuration
+# Unknown purpose (Stremio specific)
 ENV OPEN=
+# Enable HLS debugging (set to 'true')
 ENV HLS_DEBUG=
+# Generic debug flag (e.g., 'stremio-server')
 ENV DEBUG=
+# Enable MIME type debugging
 ENV DEBUG_MIME=
+# Enable file descriptor debugging
 ENV DEBUG_FD=
+# Enable ffmpeg process debugging
 ENV FFMPEG_DEBUG=
+# Enable ffsplit debugging
 ENV FFSPLIT_DEBUG=
+# Enable Node.js internal debugging
 ENV NODE_DEBUG=
+# Set Node.js environment (use 'development' for more logs)
 ENV NODE_ENV=production
+# Custom endpoint for fetching HTTPS certificates
 ENV HTTPS_CERT_ENDPOINT=
+# Disable server-side caching (set to 'true')
 ENV DISABLE_CACHING=
-# disable or enable
+# 'disable' or 'enable' readable stream handling
 ENV READABLE_STREAM=
-# remote or local
+# 'remote' or 'local' HLSv2 handling
 ENV HLSV2_REMOTE=
 
-# Custom application path for storing server settings, certificates, etc
-# You can change this if you like but the default path is where the current dir is in the image.
+# Application Paths and Security
+# Path for storing server settings, cache, certificates. Default is /srv/.stremio-server/
 ENV APP_PATH=/srv/.stremio-server/
+# Disable CORS protection (set to 'true', use with caution)
+ENV NO_CORS=
+# Disable casting functionality (set to 'true')
+ENV CASTING_DISABLED=
 
-# Disable CORS in order to serve stremio-web from the same container.
-ENV NO_CORS=1
-
-# "Docker image shouldn't attempt to find network devices or local video players."
-# See: https://github.com/Stremio/server-docker/issues/7
-ENV CASTING_DISABLED=1
-
-# Set this to your lan or public ip to use https.
+# --- User Configuration (Override these as needed) ---
+# Network Configuration
+# Your LAN or public IP address (required for HTTPS certificate fetching)
 ENV IPADDRESS=
-# Set this to your domain name
+# Your domain name (used with custom certificates)
 ENV DOMAIN=
-# Set this to the path to your certificate file
+# Custom Certificate Files (place in APP_PATH volume)
+# Filename of your custom PEM certificate file (e.g., mycert.pem)
 ENV CERT_FILE=
 
-# Server url
+# Server URL (if running behind a reverse proxy)
+# The public URL of your Stremio server (e.g., https://stremio.mydomain.com)
 ENV SERVER_URL=
 
-# Volume configuration
+# --- FFMpeg & Runtime Dependencies ---
+# Copy ffmpeg binaries and libraries from the ffmpeg build stage
+COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
+COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
+
+# Install runtime libraries required by ffmpeg and Stremio server
+RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
+
+# Install architecture-specific hardware acceleration drivers (e.g., Intel VAAPI)
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+  apk add --no-cache intel-media-driver mesa-va-gallium; \
+  fi
+
+# Clean up package cache
+RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
+
+# --- Volume Mapping ---
+# Persist server configuration, cache, and certificates outside the container
+# Maps to APP_PATH by default unless overridden
 VOLUME ["/srv/.stremio-server"]
 
+# --- Ports ---
+# Expose the configurable ports
+EXPOSE ${WEBUI_PORT} ${SERVER_PORT} ${CASTING_PORT}
+
+# --- Entrypoint & Command ---
+# Use the custom run script as the main command
+ENTRYPOINT []
 CMD ["./stremio-web-service-run.sh"]

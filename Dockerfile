@@ -103,7 +103,7 @@ LABEL org.opencontainers.image.licenses=MIT
 LABEL version=${VERSION}
 
 # --- Application Setup ---
-WORKDIR /srv/.stremio-server
+WORKDIR /srv/stremio-server
 
 # Copy built web UI and server files from previous stages
 COPY --from=builder-web /srv/stremio-web/build ./build
@@ -121,21 +121,6 @@ RUN chmod +x stremio-web-service-run.sh
 COPY ./restart_if_idle.sh ./
 RUN chmod +x restart_if_idle.sh
 COPY localStorage.json ./
-
-# --- Environment Variables ---
-# Define arguments for configurable ports (can be set during build)
-ARG WEBUI_PORT=8080
-ARG SERVER_PORT=11470
-ARG CASTING_PORT=12470
-
-# Set default environment variables (can be overridden at runtime)
-# Ports
-# Port for the Stremio Web UI (served by http-server)
-ENV WEBUI_PORT=${WEBUI_PORT}
-# Port for the Stremio Server backend (HTTP)
-ENV SERVER_PORT=${SERVER_PORT}
-# Port likely used for casting/discovery
-ENV CASTING_PORT=${CASTING_PORT}
 
 # Paths and Binaries (usually automatically detected)
 # Path to ffmpeg binary (leave empty for auto-detection)
@@ -219,11 +204,11 @@ RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
 # --- Volume Mapping ---
 # Persist server configuration, cache, and certificates outside the container
 # Maps to APP_PATH by default unless overridden
-VOLUME ["/srv/.stremio-server"]
+#VOLUME ["/srv/.stremio-server"]
 
 # --- Ports ---
 # Expose the configurable ports
-EXPOSE ${WEBUI_PORT} ${SERVER_PORT} ${CASTING_PORT}
+EXPOSE 8080 11470 12470
 
 # --- Entrypoint & Command ---
 # Use the custom run script as the main command

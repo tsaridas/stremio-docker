@@ -47,8 +47,7 @@ services:
       # When set, the container will download the Web UI from this URL during startup
       # Examples:
       #WEBUI_LOCATION: https://app.strem.io/shell-v4.4/    # Use official release UI
-      #WEBUI_LOCATION: https://staging.strem.io/shell-v4.4/ # Use staging UI
-      #WEBUI_LOCATION: http://127.0.0.1:8080/shell-v4.4/   # Use locally hosted UI
+      #WEBUI_LOCATION: http://127.0.0.1:8080/shell/   # Use locally hosted UI
     restart: unless-stopped
 
 networks:

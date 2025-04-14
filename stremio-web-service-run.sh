@@ -3,6 +3,16 @@
 # Set the configuration folder path.
 CONFIG_FOLDER="${APP_PATH:-/srv/.stremio-server/}"
 
+# Update paths in server-settings.json if it exists
+if [ -f "${CONFIG_FOLDER}server-settings.json" ]; then
+    echo "Updating paths in server-settings.json to match CONFIG_FOLDER: ${CONFIG_FOLDER}"
+    # Use sed to replace any path with the new CONFIG_FOLDER path
+    # Remove trailing slash from CONFIG_FOLDER for consistency in the JSON file
+    CONFIG_PATH=$(echo "${CONFIG_FOLDER}" | sed 's:/$::')
+    sed -i "s|\"appPath\": \"[^\"]*\"|\"appPath\": \"${CONFIG_PATH}\"|g" "${CONFIG_FOLDER}server-settings.json"
+    sed -i "s|\"cacheRoot\": \"[^\"]*\"|\"cacheRoot\": \"${CONFIG_PATH}\"|g" "${CONFIG_FOLDER}server-settings.json"
+fi
+
 # Check if proxyStreamsEnabled is set to false in server.js and add it if not.
 if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then
     sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
@@ -10,58 +20,69 @@ fi
 
 sed -i 's/df -k/df -Pk/g' server.js
 
-# Handle WEBUI_LOCATION if set
+# If WEBUI_LOCATION is set, modify server.js to use it as the redirect target
 if [ -n "${WEBUI_LOCATION}" ]; then
-    # Ensure WEBUI_LOCATION ends with a trailing slash
+    # Ensure WEBUI_LOCATION ends with a trailing slash for consistency
     WEBUI_LOCATION=$(echo "${WEBUI_LOCATION}" | sed 's:/*$:/:')
     
-    echo "Custom Web UI location specified: ${WEBUI_LOCATION}"
+    echo "Configuring server redirect to custom Web UI location: ${WEBUI_LOCATION}"
     
-    # Clear existing web UI files
-    echo "Clearing existing web UI files..."
-    rm -rf build/shell/* || true
+    # Escape forward slashes in the URL for sed
+    ESCAPED_URL=$(echo "${WEBUI_LOCATION}" | sed 's/\//\\\//g')
     
-    # Download web UI from the specified location
-    echo "Downloading Web UI from ${WEBUI_LOCATION}"
-    mkdir -p build/shell
+    # Replace all variations of the default redirect URL patterns in server.js
+    # Look for exact matches with and without trailing slashes, and with version numbers
+    REPLACEMENTS_MADE=0
     
-    # Try to download index.html first to validate the URL
-    if wget -q "${WEBUI_LOCATION}index.html" -O build/shell/index.html; then
-        echo "Successfully validated Web UI location, downloading remaining files..."
-        
-        # Download additional required files
-        wget -mkEpnp -nH "${WEBUI_LOCATION}" \
-             "${WEBUI_LOCATION}worker.js" \
-             "${WEBUI_LOCATION}images/stremio.png" \
-             "${WEBUI_LOCATION}images/empty.png" -P build/shell/ || true
-        
-        echo "Custom Web UI downloaded to build/shell/"
+    # Pattern 1: https://app.strem.io/shell-v4.4/
+    sed -i "s/https:\/\/app\.strem\.io\/shell-v4\.4\//${ESCAPED_URL}/g" server.js
+    REPLACEMENTS_MADE=$((REPLACEMENTS_MADE + $(grep -c "${ESCAPED_URL}" server.js || echo 0)))
+    
+    # Pattern 2: https://app.strem.io/shell-v4.4 (no trailing slash)
+    sed -i "s/https:\/\/app\.strem\.io\/shell-v4\.4([^\/])/${ESCAPED_URL}\1/g" server.js
+    
+    # Pattern 3: https://app.strem.io/shell-v (with any version number)
+    sed -i "s/https:\/\/app\.strem\.io\/shell-v[0-9]\+\.[0-9]\+\//${ESCAPED_URL}/g" server.js
+    
+    # Pattern 4: Generic app.strem.io with shell-v pattern
+    sed -i "s/app\.strem\.io\/shell-v[0-9.]\+/$(echo ${WEBUI_LOCATION} | sed 's/^https\?:\/\///' | sed 's/\//\\\//g')/g" server.js
+    
+    if [ $REPLACEMENTS_MADE -gt 0 ]; then
+        echo "server.js successfully updated with custom redirect. Made $REPLACEMENTS_MADE replacements."
     else
-        echo "ERROR: Could not download Web UI from ${WEBUI_LOCATION}"
-        echo "The URL may be incorrect or unreachable. Using default pre-built UI."
-        rm -f build/shell/index.html
+        echo "WARNING: No replacements found in server.js. The default URL pattern may be different than expected."
+        echo "Searching for app.strem.io in server.js to help with debugging:"
+        grep -n "app.strem.io" server.js || echo "No instances of app.strem.io found in server.js"
+    fi
+    
+    # Also check and update the streamingServer parameter if found
+    if grep -q "streamingServer=" server.js; then
+        echo "Found streamingServer parameter in server.js, updating..."
+        # Replace the URL in streamingServer parameter
+        sed -i "s/\(streamingServer=\)[^&]*&/\1${ESCAPED_URL}&/g" server.js
     fi
 fi
 
 if [ -n "${SERVER_URL}" ]; then
-    cp localStorage.json build/localStorage.json
     TARGET_URL="${SERVER_URL}"
     if [ -z "${TARGET_URL}" ]; then
-      TARGET_URL="http://127.0.0.1:${SERVER_PORT}/"
+      TARGET_URL="http://127.0.0.1:11470/"
     fi
     TARGET_URL=$(echo "${TARGET_URL}" | sed 's:/*$:/:' )
-    sed -i "s|http://127.0.0.1:11470/|${TARGET_URL}|g" build/localStorage.json
+    echo "Target URL: ${TARGET_URL}"
+    sed -i "s|http://127.0.0.1:11470/|${TARGET_URL}|g" localStorage.json
+    cp localStorage.json build/localStorage.json
 fi
 
 start_http_server() {
-    http-server build/ -p "${WEBUI_PORT}" -d false "$@"
+    http-server build/ -p 8080 -d false "$@"
 }
 
 # Echo startup message
 echo "Starting Stremio server at $(date)"
 echo "Config folder: ${CONFIG_FOLDER}"
-echo "Web UI Port: ${WEBUI_PORT}"
-echo "Server Port: ${SERVER_PORT}"
+echo "IP Address: ${IPADDRESS}"
+echo "Server URL: ${SERVER_URL}"
 
 node server.js &
 SERVER_PID=$!

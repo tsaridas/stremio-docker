@@ -51,7 +51,7 @@ $ docker run -d \
   -p 8080:8080/tcp \
   -p 12470:12470/tcp \
   --restart unless-stopped \
-  th3w1zard1/stremio-docker:latest
+  tsaridas/stremio-docker:latest
 ```
 
 Make sure the certificate file is placed in the same folder that you expose in `/root/.stremio-server`. For example, if your certificate is located at `~/.stremio-server/certificate.pem` on your host machine, it will be accessible inside the container at `/root/.stremio-server/certificate.pem`.
@@ -102,7 +102,7 @@ $ docker run -d \
   -p 8080:8080/tcp \
   -p 11470:11470/tcp \
   --restart unless-stopped \
-  th3w1zard1/stremio-docker:latest
+  tsaridas/stremio-docker:latest
 </pre>
 
 The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Set streaming server to `http://`YOUR_SERVER_IP`:11470` add your add ons and start watching your favourite movie.
@@ -141,7 +141,7 @@ To update to the latest version, simply run:
 ```bash
 docker stop stremio-docker
 docker rm stremio-docker
-docker pull th3w1zard1/stremio-docker:latest
+docker pull tsaridas/stremio-docker:latest
 ```
 
 And then run the `docker run -d \ ...` command above again.
@@ -221,7 +221,7 @@ I can add more build archs if you require them and you can ask but I doubt anybo
 - nightly -> Builds automatically daily from development branch of web player and gets latest version of server.
 - release version (example v1.0.0) -> to have old releases available in case there is something wrong with new release.
 
-Images saved in [Docker Hub](https://hub.docker.com/r/th3w1zard1/stremio-docker)
+Images saved in [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker)
 
 ### Build your own
 
@@ -233,10 +233,10 @@ docker build -t stremio:myserver .
 
 ## Common Use Cases
 
-- [Using HTTP](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-HTTP)
-- [Using HTTPS Local IP](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
-- [Using HTTPS Public IP](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
-- [Using HTTPS with custom certificate](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-with-Custom-Certificate)
+- [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)
+- [Using HTTPS Local IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
+- [Using HTTPS Public IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
+- [Using HTTPS with custom certificate](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Custom-Certificate)
 
 ## Useful links
 

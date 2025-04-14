@@ -44,7 +44,11 @@ services:
       # Sets the redirect page for web player and automatically sets up streaming server for you
       # when one tries to access server at port 11470 or 12470.
       # Default is https://app.strem.io/shell-v4.4/
-      #WEBUI_LOCATION: http://your-public-facing-stremio-frontend-url
+      # When set, the container will download the Web UI from this URL during startup
+      # Examples:
+      #WEBUI_LOCATION: https://app.strem.io/shell-v4.4/    # Use official release UI
+      #WEBUI_LOCATION: https://staging.strem.io/shell-v4.4/ # Use staging UI
+      #WEBUI_LOCATION: http://127.0.0.1:8080/shell-v4.4/   # Use locally hosted UI
     restart: unless-stopped
 
 networks:

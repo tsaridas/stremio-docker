@@ -103,7 +103,7 @@ LABEL org.opencontainers.image.licenses=MIT
 LABEL version=${VERSION}
 
 # --- Application Setup ---
-WORKDIR /srv/stremio-server
+WORKDIR /srv/.stremio-server
 
 # Copy built web UI and server files from previous stages
 COPY --from=builder-web /srv/stremio-web/build ./build
@@ -144,7 +144,10 @@ ENV FFMPEG_BIN=
 ENV FFPROBE_BIN=
 
 # Web UI Configuration
-# default https://app.strem.io/shell-v4.4/ - Keep empty unless you know what you're doing
+# Set custom Web UI source (e.g., https://app.strem.io/shell-v4.4/, https://staging.strem.io/shell-v4.4/)
+# When set, the container will download the Web UI from this URL during startup
+# If left empty (default), the pre-built UI from the container image will be used
+# Keep empty unless you know what you're doing
 ENV WEBUI_LOCATION=
 
 # Server Behavior Configuration

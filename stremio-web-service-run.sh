@@ -10,6 +10,39 @@ fi
 
 sed -i 's/df -k/df -Pk/g' server.js
 
+# Handle WEBUI_LOCATION if set
+if [ -n "${WEBUI_LOCATION}" ]; then
+    # Ensure WEBUI_LOCATION ends with a trailing slash
+    WEBUI_LOCATION=$(echo "${WEBUI_LOCATION}" | sed 's:/*$:/:')
+    
+    echo "Custom Web UI location specified: ${WEBUI_LOCATION}"
+    
+    # Clear existing web UI files
+    echo "Clearing existing web UI files..."
+    rm -rf build/shell/* || true
+    
+    # Download web UI from the specified location
+    echo "Downloading Web UI from ${WEBUI_LOCATION}"
+    mkdir -p build/shell
+    
+    # Try to download index.html first to validate the URL
+    if wget -q "${WEBUI_LOCATION}index.html" -O build/shell/index.html; then
+        echo "Successfully validated Web UI location, downloading remaining files..."
+        
+        # Download additional required files
+        wget -mkEpnp -nH "${WEBUI_LOCATION}" \
+             "${WEBUI_LOCATION}worker.js" \
+             "${WEBUI_LOCATION}images/stremio.png" \
+             "${WEBUI_LOCATION}images/empty.png" -P build/shell/ || true
+        
+        echo "Custom Web UI downloaded to build/shell/"
+    else
+        echo "ERROR: Could not download Web UI from ${WEBUI_LOCATION}"
+        echo "The URL may be incorrect or unreachable. Using default pre-built UI."
+        rm -f build/shell/index.html
+    fi
+fi
+
 if [ -n "${SERVER_URL}" ]; then
     cp localStorage.json build/localStorage.json
     TARGET_URL="${SERVER_URL}"

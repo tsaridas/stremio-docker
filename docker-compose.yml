@@ -19,10 +19,10 @@ services:
       #- /bin/ffmpeg:/bin/ffmpeg:ro
       #- /bin/ffprobe:/bin/ffprobe:ro
       # Mount configuration directory as a volume
-      - stremio_data:/srv/.stremio-server
+      - stremio_data:/root/.stremio-server
     environment:
       # Uncomment and set values as needed
-      #APP_PATH: /srv/.stremio-server/
+      #APP_PATH: /root/.stremio-server/
       #BUILD: linux/arm64
       #CERT_FILE: certificate.pem
       #DISABLE_CACHING: 1

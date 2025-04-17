@@ -164,8 +164,8 @@ ENV READABLE_STREAM=
 ENV HLSV2_REMOTE=
 
 # Application Paths and Security
-# Path for storing server settings, cache, certificates. Default is /srv/.stremio-server/
-ENV APP_PATH=/srv/.stremio-server/
+# Path for storing server settings, cache, certificates. Default is /root/.stremio-server/
+ENV APP_PATH=/root/.stremio-server/
 # Disable CORS protection (set to 'true', use with caution)
 ENV NO_CORS=
 # Disable casting functionality (set to 'true')
@@ -204,7 +204,7 @@ RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
 # --- Volume Mapping ---
 # Persist server configuration, cache, and certificates outside the container
 # Maps to APP_PATH by default unless overridden
-#VOLUME ["/srv/.stremio-server"]
+#VOLUME ["/root/.stremio-server"]
 
 # --- Ports ---
 # Expose the configurable ports

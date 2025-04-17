@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 # Set the configuration folder path.
-CONFIG_FOLDER="${APP_PATH:-/srv/.stremio-server/}"
+CONFIG_FOLDER="${APP_PATH:-/root/.stremio-server/}"
 
 # Update paths in server-settings.json if it exists
 if [ -f "${CONFIG_FOLDER}server-settings.json" ]; then

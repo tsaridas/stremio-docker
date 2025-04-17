@@ -47,14 +47,14 @@ $ docker run -d \
   --name=stremio-docker \
   -e CERT_FILE=certificate.pem \
   -e DOMAIN=your.custom.domain \
-  -v ~/.stremio-server:/srv/.stremio-server \
+  -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   -p 12470:12470/tcp \
   --restart unless-stopped \
   tsaridas/stremio-docker:latest
 ```
 
-Make sure the certificate file is placed in the same folder that you expose in `/srv/.stremio-server`. For example, if your certificate is located at `~/.stremio-server/certificate.pem` on your host machine, it will be accessible inside the container at `/srv/.stremio-server/certificate.pem`.
+Make sure the certificate file is placed in the same folder that you expose in `/root/.stremio-server`. For example, if your certificate is located at `~/.stremio-server/certificate.pem` on your host machine, it will be accessible inside the container at `/root/.stremio-server/certificate.pem`.
 
 The WebPlayer will be available at `https://your.custom.domain:8080` and the streaming server at `https://your.custom.domain:12470`.
 
@@ -98,7 +98,7 @@ To automatically run stremio web player and server in http, simply run:
 $ docker run -d \
   --name=stremio-docker \
   -e NO_CORS=1 \
-  -v ~/.stremio-server:/srv/.stremio-server \
+  -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   -p 11470:11470/tcp \
   --restart unless-stopped \
@@ -122,7 +122,7 @@ These options can be configured by setting environment variables using `-e KEY="
 | `WEBUI_LOCATION`    | -       | `http://192.168.1.10:8080`   | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470. Default is <https://app.strem.io/shell-v4.4/>               |
 | `FFMPEG_BIN`        | -       | `/usr/bin/`                  | Set for custom ffmpeg bin path                                                                                                                                                                               |
 | `FFPROBE_BIN`       | -       | `/usr/bin/`                  | Set for custom ffprobe bin path                                                                                                                                                                              |
-| `APP_PATH`          | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /srv/.stremio-server though so its only for its config files.                                                                      |
+| `APP_PATH`          | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                                      |
 | `DOMAIN`            | -       | `your.custom.domain`         | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE |
 | `CERT_FILE`         | -       | `certificate.pem`            | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
 | `DISABLE_CACHING`   | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |

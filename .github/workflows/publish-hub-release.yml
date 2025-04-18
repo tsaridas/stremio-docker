@@ -29,39 +29,28 @@ jobs:
         id: check
         run: |
           TAG=$(git ls-remote --tags --refs ${{ env.WEBREPO }} | awk '{print $2}' | sort -V | tail -n1 | cut -d/ -f3)
-          URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt && cat server-url.txt)
-
-          # Debugging: Print TAG and URL
-          echo "Latest TAG from WEBREPO: $TAG"
-          echo "Latest URL from server-url.txt: $URL"
-
-          BODY=$(curl -s https://api.github.com/repos/${{ github.repository }}/stremio-docker/releases/latest | grep body | awk -F\" '{print $4}')
+          URL=$(wget https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt -O server-url.txt; cat server-url.txt)
+          BODY=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest  | grep body | awk -F\" '{print $4}')
           OLDTAG=$(echo $BODY | awk '{print $3}')
           OLDURL=$(echo $BODY | awk '{print $7}')
-
-          # Debugging: Print OLDTAG and OLDURL
-          echo "Previous TAG: $OLDTAG"
-          echo "Previous URL: $OLDURL"
-
-          RELEASE=false
-          if [ "$TAG" != "$OLDTAG" ]; then
-            echo "New TAG found: $TAG"
-            RELEASE=true
+          if [ "$TAG" == "$OLDTAG" ]; then
+            echo "${TAG} is the same as ${OLDTAG} "
+          else
+            echo "We need to release. Found new tag ${TAG}"
+            RELEASE="true"
           fi
-          if [ "$URL" != "$OLDURL" ]; then
-            echo "New URL found: $URL"
-            RELEASE=true
+          if [ "$URL" == "$OLDURL" ]; then
+            echo "${URL} is the same as ${OLDURL}" 
+          else
+            echo "We need to release. Found new url ${URL}"
+            RELEASE="true"
           fi
-
-          if [ "$RELEASE" = true ]; then
-            VERSION=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | grep \"name\" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+          if [ "$RELEASE" ]; then
+            VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
             NEWVERSION=${VERSION:0:-1}$((${VERSION: -1}+1))
-            echo "We need to release version $NEWVERSION"
+            echo "We need to release $NEWVERSION"
             echo "version=$NEWVERSION" >> $GITHUB_OUTPUT
             echo "continue=true" >> $GITHUB_OUTPUT
-          else
-            echo "No new release needed."
-            echo "continue=false" >> $GITHUB_OUTPUT
           fi
   build:
     runs-on: ubuntu-latest
@@ -134,7 +123,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/srv/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 15 # wait for server to startup
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
@@ -150,7 +139,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           sudo rm -f ~/.stremio-server/httpsCert.json
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e CASTING_DISABLED=1 -e CERT_FILE=172-18-0-3.519b6502d940.stremio.rocks.pem -e DOMAIN=172-18-0-3.519b6502d940.stremio.rocks -v ~/.stremio-server:/srv/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e CASTING_DISABLED=1 -e CERT_FILE=172-18-0-3.519b6502d940.stremio.rocks.pem -e DOMAIN=172-18-0-3.519b6502d940.stremio.rocks -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 10 # wait for server to startup
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (

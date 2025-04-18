@@ -47,14 +47,14 @@ $ docker run -d \
   --name=stremio-docker \
   -e CERT_FILE=certificate.pem \
   -e DOMAIN=your.custom.domain \
-  -v ~/.stremio-server:/srv/.stremio-server \
+  -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   -p 12470:12470/tcp \
   --restart unless-stopped \
   tsaridas/stremio-docker:latest
 ```
 
-Make sure the certificate file is placed in the same folder that you expose in `/srv/.stremio-server`. For example, if your certificate is located at `~/.stremio-server/certificate.pem` on your host machine, it will be accessible inside the container at `/srv/.stremio-server/certificate.pem`.
+Make sure the certificate file is placed in the same folder that you expose in `/root/.stremio-server`. For example, if your certificate is located at `~/.stremio-server/certificate.pem` on your host machine, it will be accessible inside the container at `/root/.stremio-server/certificate.pem`.
 
 The WebPlayer will be available at `https://your.custom.domain:8080` and the streaming server at `https://your.custom.domain:12470`.
 
@@ -98,7 +98,7 @@ To automatically run stremio web player and server in http, simply run:
 $ docker run -d \
   --name=stremio-docker \
   -e NO_CORS=1 \
-  -v ~/.stremio-server:/srv/.stremio-server \
+  -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   -p 11470:11470/tcp \
   --restart unless-stopped \
@@ -115,14 +115,14 @@ These options can be configured by setting environment variables using `-e KEY="
 
 | Env                 | Default | Example                      | Description                                                                                                                                                                                                  |
 | ------------------- | ------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `IPADDRESS`         | -       | `192.168.1.10`               | Set this to enable https                                                                                                                                                                                     |
-| `SERVER_URL`        | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
+| `IPADDRESS`         | -       | `192.168.1.10` or `0.0.0.0`  | Set this to enable https. If you set it to `0.0.0.0` then the container will automatically detect your public IP address and use it for the certificate. If you set it to a specific IP address then it will use that IP for the certificate. |
+| `SERVER_URL`        | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically. If set to contain `0.0.0.0` (e.g., `http://0.0.0.0:11470/`), it will automatically replace it with your public IP. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded** |
 | `NO_CORS`           | -       | `1`                          | Set to disable server's cors                                                                                                                                                                                 |
 | `CASTING_DISABLED`  | -       | `1`                          | Set to disable casting. You should set this to `1` if you're getting SSDP errors in the logs                                                                                                                 |
 | `WEBUI_LOCATION`    | -       | `http://192.168.1.10:8080`   | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470. Default is <https://app.strem.io/shell-v4.4/>               |
 | `FFMPEG_BIN`        | -       | `/usr/bin/`                  | Set for custom ffmpeg bin path                                                                                                                                                                               |
 | `FFPROBE_BIN`       | -       | `/usr/bin/`                  | Set for custom ffprobe bin path                                                                                                                                                                              |
-| `APP_PATH`          | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /srv/.stremio-server though so its only for its config files.                                                                      |
+| `APP_PATH`          | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                                      |
 | `DOMAIN`            | -       | `your.custom.domain`         | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE |
 | `CERT_FILE`         | -       | `certificate.pem`            | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
 | `DISABLE_CACHING`   | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |
@@ -233,10 +233,10 @@ docker build -t stremio:myserver .
 
 ## Common Use Cases
 
-- [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)
-- [Using HTTPS Local IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
-- [Using HTTPS Public IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
-- [Using HTTPS with custom certificate](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Custom-Certificate)
+- [Using HTTP](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-HTTP)
+- [Using HTTPS Local IP](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
+- [Using HTTPS Public IP](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
+- [Using HTTPS with custom certificate](https://github.com/th3w1zard1/stremio-docker/wiki/Using-Stremio-Server-with-Custom-Certificate)
 
 ## Useful links
 

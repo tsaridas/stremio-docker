@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 # Set the configuration folder path.
-CONFIG_FOLDER="${APP_PATH:-/srv/.stremio-server/}"
+CONFIG_FOLDER="${APP_PATH:-${HOME}/.stremio-server/}"
 
 # Update paths in server-settings.json if it exists
 if [ -f "${CONFIG_FOLDER}server-settings.json" ]; then
@@ -13,12 +13,83 @@ if [ -f "${CONFIG_FOLDER}server-settings.json" ]; then
     sed -i "s|\"cacheRoot\": \"[^\"]*\"|\"cacheRoot\": \"${CONFIG_PATH}\"|g" "${CONFIG_FOLDER}server-settings.json"
 fi
 
+# Function to get public IP address from various services
+get_public_ip() {
+    # Try multiple services to get public IP in case one fails
+    PUBLIC_IP=""
+    
+    # Try ipify.org first
+    if [ -z "${PUBLIC_IP}" ]; then
+        echo "DEBUG: Trying ipify.org to get public IP..." >&2
+        IP_RESULT=$(curl -s --connect-timeout 5 https://api.ipify.org)
+        if [ -n "${IP_RESULT}" ] && [ "${IP_RESULT}" != "curl: "* ]; then
+            echo "DEBUG: Successfully obtained public IP from ipify.org: ${IP_RESULT}" >&2
+            PUBLIC_IP="${IP_RESULT}"
+        else
+            echo "DEBUG: Failed to get IP from ipify.org" >&2
+        fi
+    fi
+    
+    # If ipify failed, try icanhazip.com
+    if [ -z "${PUBLIC_IP}" ]; then
+        echo "DEBUG: Trying icanhazip.com to get public IP..." >&2
+        IP_RESULT=$(curl -s --connect-timeout 5 https://icanhazip.com)
+        if [ -n "${IP_RESULT}" ] && [ "${IP_RESULT}" != "curl: "* ]; then
+            echo "DEBUG: Successfully obtained public IP from icanhazip.com: ${IP_RESULT}" >&2
+            PUBLIC_IP="${IP_RESULT}"
+        else
+            echo "DEBUG: Failed to get IP from icanhazip.com" >&2
+        fi
+    fi
+    
+    # If icanhazip failed, try ifconfig.me
+    if [ -z "${PUBLIC_IP}" ]; then
+        echo "DEBUG: Trying ifconfig.me to get public IP..." >&2
+        IP_RESULT=$(curl -s --connect-timeout 5 https://ifconfig.me)
+        if [ -n "${IP_RESULT}" ] && [ "${IP_RESULT}" != "curl: "* ]; then
+            echo "DEBUG: Successfully obtained public IP from ifconfig.me: ${IP_RESULT}" >&2
+            PUBLIC_IP="${IP_RESULT}"
+        else
+            echo "DEBUG: Failed to get IP from ifconfig.me" >&2
+        fi
+    fi
+    
+    # Return only the IP address, no debug messages
+    echo "${PUBLIC_IP}"
+}
+
 # Check if proxyStreamsEnabled is set to false in server.js and add it if not.
 if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then
     sed -i '/self.allTranscodeProfiles = \[\]/a \ \ \ \ \ \ \ \ self.proxyStreamsEnabled = false,' server.js
 fi
 
 sed -i 's/df -k/df -Pk/g' server.js
+
+if [ -n "${SERVER_URL}" ]; then    
+    # Check if SERVER_URL contains 0.0.0.0 and replace with public IP
+    if echo "${SERVER_URL}" | grep -q "0\.0\.0\.0"; then
+        echo "SERVER_URL contains 0.0.0.0, attempting to replace with public IP..."
+        PUBLIC_IP=$(get_public_ip)
+        
+        if [ -n "${PUBLIC_IP}" ]; then
+            echo "Replacing 0.0.0.0 with public IP ${PUBLIC_IP} in SERVER_URL"
+            # Replace 0.0.0.0 with the public IP while preserving protocol and port
+            SERVER_URL=$(echo "${SERVER_URL}" | sed "s/0\.0\.0\.0/${PUBLIC_IP}/g")
+            echo "New Target URL: ${SERVER_URL}"
+        else
+            echo "Failed to obtain public IP. Keeping original SERVER_URL: ${SERVER_URL}"
+        fi
+    fi
+    
+    SERVER_URL=$(echo "${SERVER_URL}" | sed 's:/*$:/:' )
+    echo "Target URL: ${SERVER_URL}"
+    cp localStorage.json build/localStorage.json
+    sed -i "s|http://127.0.0.1:11470/|${SERVER_URL}|g" build/localStorage.json
+fi
+
+start_http_server() {
+    http-server build/ -p 8080 -d false "$@"
+}
 
 # If WEBUI_LOCATION is set, modify server.js to use it as the redirect target
 if [ -n "${WEBUI_LOCATION}" ]; then
@@ -63,41 +134,44 @@ if [ -n "${WEBUI_LOCATION}" ]; then
     fi
 fi
 
-if [ -n "${SERVER_URL}" ]; then
-    TARGET_URL="${SERVER_URL}"
-    if [ -z "${TARGET_URL}" ]; then
-      TARGET_URL="http://127.0.0.1:11470/"
-    fi
-    TARGET_URL=$(echo "${TARGET_URL}" | sed 's:/*$:/:' )
-    echo "Target URL: ${TARGET_URL}"
-    sed -i "s|http://127.0.0.1:11470/|${TARGET_URL}|g" localStorage.json
-    cp localStorage.json build/localStorage.json
-fi
-
-start_http_server() {
-    http-server build/ -p 8080 -d false "$@"
-}
-
 # Echo startup message
 echo "Starting Stremio server at $(date)"
 echo "Config folder: ${CONFIG_FOLDER}"
 echo "IP Address: ${IPADDRESS}"
 echo "Server URL: ${SERVER_URL}"
 
-node server.js &
-SERVER_PID=$!
-echo "Stremio server started with PID ${SERVER_PID}"
-
-sleep 2
-
 if [ -n "${IPADDRESS}" ]; then
-    echo "Attempting to fetch HTTPS certificate for IP address: ${IPADDRESS}"
+    node server.js &
+
+    # Check if IPADDRESS is set to a value that means "any address" (0.0.0.0, *, any, etc.)
+    if [ "${IPADDRESS}" = "0.0.0.0" ] || [ "${IPADDRESS}" = "*" ] || [ "${IPADDRESS}" = "any" ]; then
+        echo "IPADDRESS is set to ${IPADDRESS}, which indicates 'any address'. Attempting to get public IP..."
+        PUBLIC_IP=$(get_public_ip)
+        
+        # If we successfully obtained a public IP, use it instead of the original IPADDRESS
+        if [ -n "${PUBLIC_IP}" ]; then
+            echo "Using discovered public IP address: ${PUBLIC_IP}"
+            IPADDRESS="${PUBLIC_IP}"
+        else
+            echo "Failed to obtain public IP address. Falling back to original value: ${IPADDRESS}"
+        fi
+    fi
+    
+    # Log the URL we're about to call with curl for debugging
+    CERT_URL="http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
+    echo "Attempting to fetch HTTPS certificate using URL: ${CERT_URL}"
+    
+    # Use set -x to show the exact curl command being executed
+    set -x
     curl --connect-timeout 5 \
-        --retry 10 \
-        --retry-delay 1 \
-        --verbose \
-        "http://localhost:${SERVER_PORT}/get-https?authKey=&ipAddress=${IPADDRESS}"
+         --retry-all-errors \
+         --retry 10 \
+         --retry-delay 1 \
+         --verbose \
+         "${CERT_URL}"
     CURL_STATUS="$?"
+    set +x
+    
     if [ "${CURL_STATUS}" -ne 0 ]; then
         echo "Failed to fetch HTTPS certificate. Curl exited with status: ${CURL_STATUS}"
     else
@@ -110,26 +184,27 @@ if [ -n "${IPADDRESS}" ]; then
     echo "Extracted domain ${IMPORTED_DOMAIN} with status ${EXTRACT_STATUS} and cert file ${IMPORTED_CERT_FILE}"
 
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
-        echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >>/etc/hosts
-        echo "Starting Web UI with HTTPS using fetched certificate..."
+        echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
+        
         start_http_server -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
     else
-        echo "Failed to setup HTTPS using fetched certificate. Falling back to HTTP."
+        echo "Failed to setup HTTPS. Falling back to HTTP."
         start_http_server
     fi
 elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
     node certificate.js --action load --pem-path "${CONFIG_FOLDER}${CERT_FILE}" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
-    LOAD_STATUS="$?"
-    if [ "${LOAD_STATUS}" -eq 0 ]; then
-        echo "Starting Web UI with HTTPS using provided certificate ${CERT_FILE} for domain ${DOMAIN}..."
+    if [ "$?" -eq 0 ]; then
+        node server.js &
         start_http_server -S -C "${CONFIG_FOLDER}${CERT_FILE}" -K "${CONFIG_FOLDER}${CERT_FILE}"
     else
-        echo "Failed to load custom certificate ${CERT_FILE}. Falling back to HTTP."
+        echo "Failed to load certificate. Falling back to HTTP."
+        node server.js &
         start_http_server
     fi
 else
     echo "Starting Web UI with HTTP..."
+    node server.js &
     start_http_server
 fi
 
-wait ${SERVER_PID}
+#wait ${SERVER_PID}

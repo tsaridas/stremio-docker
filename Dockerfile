@@ -118,8 +118,6 @@ ENV HTTPS_CERT_ENDPOINT=
 ENV DISABLE_CACHING=
 # disable or enable
 ENV READABLE_STREAM=
-# remote or local
-ENV HLSV2_REMOTE=
 
 # Custom application path for storing server settings, certificates, etc
 # You can change this but server.js always saves cache to /root/.stremio-server/

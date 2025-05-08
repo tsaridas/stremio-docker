@@ -1,0 +1,171 @@
+# Deploy Stremio and the streaming server behind a VPN using Gluetun, and reverse proxied with Traefik.
+# This setup allows you to stream movies and TV shows from various sources while maintaining privacy and security.
+#
+# These environment variables are used to configure your containers for stremio and Traefik.
+# | Variable                     | Description                                                                                                                          |
+# | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+# | `ACME_RESOLVER_EMAIL`        | Email used specifically for the ACME certificate resolver within Traefik.
+# | `CERTS_PATH`                 | Local host path that stores TLS certificates for Traefik. Mounted into the container.                                                |
+# | `CONFIG_PATH`                | Root path for configuration volume mounts (default: `./configs`).                                                                    |
+# | `CONFIGS_PATH`               | Local host path for Traefik configuration files (default: `./configs`).                                                              |
+# | `DOMAIN`                     | Your root domain (e.g., `example.com`). Used for setting up subdomain-based routing via Traefik.                                     |
+# | `DUCKDNS_TOKEN`              | API token for the DuckDNS DNS challenge provider. Required for wildcard cert generation.                                             |
+# | `LETS_ENCRYPT_EMAIL`         | Email address used for Let's Encrypt certificate registration.                                                                       |
+# | `PUBLICNET_GATEWAY`          | Gateway IP for the `publicnet` Docker bridge (default: `10.76.0.1`).                                                                 |
+# | `PUBLICNET_IP_RANGE`         | IP range available for assignment in `publicnet` (default: `10.76.0.0/16`).                                                          |
+# | `PUBLICNET_SUBNET`           | Subnet used by the custom Docker bridge network `publicnet` (default: `10.76.0.0/16`).                                               |
+# | `SRC_PATH`                   | Path to source directory for the Stremio Docker build (default: `./src`).                                                            |
+# | `TRAEFIK_INTERNAL_CERTS_DIR` | Internal path inside the Traefik container where TLS certificates and ACME storage are stored (default: `/certs`).                   |
+#
+# Other environment variables (used in the stremio-web-service-run.sh script):
+# | `APP_PATH`                   | Optional. Sets custom configuration folder path. Default: $HOME/.stremio-server/
+# | `CERT_FILE`:                 | Optional. Custom certificate file name (used with DOMAIN)
+# | `DOMAIN`:                    | Optional. Custom domain name for certificate (used with CERT_FILE)
+# | `IPADDRESS`:                 | Optional. IP address for HTTPS certificate generation
+# | `SERVER_URL`:                | Optional. Custom server URL. Supports IP address, domain name, or 0.0.0.0
+# | `UPDATE_HOSTS`:              | Optional. Set to "true" to update /etc/hosts with certificate domain
+
+services:
+  stremio:
+    # 🔹🔹 Stremio 🔹🔹
+    # Stream Movies/TV instantly from a large collection of sources.
+    # https://stremio.com
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: th3w1zard1/stremio-docker:latest
+    container_name: stremio
+    hostname: stremio
+    networks:
+      - publicnet
+    ports:
+      - "8080:8080"  # Web UI (feel free to remove this line since we are using Traefik)
+      # The following ports are used for the streaming server.
+      - "12470:12470"  # HTTPS Streaming Server (recommended)
+      - "11470:11470"  # HTTP Streaming Server (fallback)
+    volumes:
+      - ${CONFIG_PATH:-./configs}/stremio/root/.stremio-server:/root/.stremio-server
+    <<: [*common-logging, *resource-limits]
+    environment:
+      # 0.0.0.0 will auto-resolve to your public IP.
+      # Alternatively, you can set your public/LAN IP address here.
+      IPADDRESS: 0.0.0.0
+      # Force a streaming server URL in the 'streaming' tab of the web UI.
+      # Note: Anytime this is changed on the frontend by the user, the page will redirect automatically and reset to this URL.
+      # This prevents the user from changing it.
+      SERVER_URL: "https://stremio.${DOMAIN}"
+      # Alternatively, use stremio's own ngrok-style server URL.
+      # The 0-0-0-0 will auto-resolve to your public IP.
+#      SERVER_URL: "https://0-0-0-0.519b6502d940.stremio.rocks:12470/"
+      WEBUI_LOCATION: "https://stremio-web.${DOMAIN}/shell/"  # Where the streaming server will redirect to. Defaults to "https://app.strem.io/shell-v4.4/"
+      NO_CORS: 0
+      # Disable chromecast support if you don't plan on using this container across your LAN.
+      # This is a workaround for the "No devices found" error in the web UI.
+      CASTING_DISABLED: 1
+    labels:
+      traefik.enable: "true"
+      # Stremio Web
+      traefik.http.routers.stremio-web.service: stremio-web
+      traefik.http.routers.stremio-web.rule: Host(`stremio-web.${DOMAIN}`)
+      traefik.http.services.stremio-web.loadbalancer.server.scheme: https
+      traefik.http.services.stremio-web.loadbalancer.server.port: 8080
+      # Stremio HTTPS Streaming Server
+      traefik.http.routers.stremio.service: stremio
+      traefik.http.routers.stremio.rule: Host(`stremio.${DOMAIN}`)
+      traefik.http.services.stremio.loadbalancer.server.scheme: https
+      traefik.http.services.stremio.loadbalancer.server.port: 12470
+      # Stremio HTTP Streaming Server
+      # NOTE: in my experience the 11470 never works correctly. Has various issues I could never debug.
+      # I recommend using the HTTPS streaming server instead (12470, configured above).
+      traefik.http.routers.stremio-fallback.service: stremio-fallback
+      traefik.http.routers.stremio-fallback.rule: Host(`stremio.${DOMAIN}`)
+      traefik.http.services.stremio-fallback.loadbalancer.server.scheme: http
+      traefik.http.services.stremio-fallback.loadbalancer.server.port: 11470
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:11470 || curl -fs http://127.0.0.1:12470"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
+
+  # Multiple DNS challenge provider are not supported with Traefik,
+  # but you can use CNAME to handle that. For example, if you have example.org (account foo) and
+  # example.com (account bar) you can create a CNAME on example.org called _acme-challenge.example.org
+  # pointing to challenge.example.com. This way, you can obtain certificates for example.org with the bar account.
+  traefik:
+    # 🔹🔹 Traefik 🔹🔹
+    image: traefik
+    container_name: traefik
+    hostname: traefik
+    extra_hosts:
+      - host.docker.internal:172.17.0.1
+    networks:
+      - auth-net
+      - traefik_public
+    ports:
+      # Listen on port 80, default for HTTP, necessary to redirect to HTTPS
+      - 80:80
+      # Listen on port 443, default for HTTPS
+      - 443:443
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONFIGS_PATH:-./configs}/traefik/config:/config
+      - ${CERTS_PATH:-./certs}:${TRAEFIK_INTERNAL_CERTS_DIR:-/certs}
+    #      - /etc/localtime:/etc/localtime:ro
+    # Note: The environment variable names can be suffixed by _FILE to reference a file instead of a value
+    environment:
+      <<: *common-env
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:?not set} # DuckDNS token (required for DuckDNS provider)
+      LETS_ENCRYPT_EMAIL: ${LETS_ENCRYPT_EMAIL} # Email address used for Letsencrypt registration.
+    command:
+      - --accesslog=true # Enable the access log, with HTTP requests
+      - --certificatesresolvers.myresolver.acme.caServer=https://acme-v02.api.letsencrypt.org/directory  # Let's Encrypt has a limit: 5 certs generated a week. Use staging when breaking things (specifically https://acme-staging-v02.api.letsencrypt.org/directory). see https://doc.traefik.io/traefik/https/acme/#caserver
+      - --certificatesresolvers.myresolver.acme.dnsChallenge.provider=duckdns
+      - --certificatesresolvers.myresolver.acme.dnsChallenge=true # Use the DNS challenges from 'duckdns'. (Default: false)
+      - --certificatesresolvers.myresolver.acme.email=${ACME_RESOLVER_EMAIL} # Email address used for ACME registration.
+      - --certificatesresolvers.myresolver.acme.httpChallenge.entryPoint=web
+      - --certificatesresolvers.myresolver.acme.httpChallenge=true # Activate HTTP-01 Challenge. (Default: false)
+      - --certificatesresolvers.myresolver.acme.tlsChallenge=true # Use the TLS-ALPN-01 challenge to generate and renew ACME certificates by provisioning a TLS certificate.  As described on the Let's Encrypt community forum, when using the TLS-ALPN-01 challenge, Traefik must be reachable by Let's Encrypt through port 443.
+      - --certificatesresolvers.myresolver.acme.storage=${TRAEFIK_INTERNAL_CERTS_DIR:-/certs}/acme.json # Storage to use. (Default: acme.json)
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.asDefault=false # Adds this EntryPoint to the list of default EntryPoints to be used on routers that don't have any Entrypoint defined. (Default: false)
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https # The redirection target scheme (optional).
+      - --entrypoints.web.http.redirections.entryPoint.permanent=true # The redirection is permanent (301) or temporary (302).
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure # The redirection target entry point.
+      - --entrypoints.web.observability.accesslogs=true
+      - --entrypoints.web.observability.metrics=true
+      - --entrypoints.web.observability.tracing=true
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.asDefault=true # Adds this EntryPoint to the list of default EntryPoints to be used on routers that don't have any Entrypoint defined. (Default: false)
+      - --entrypoints.websecure.observability.accesslogs=true
+      - --entrypoints.websecure.observability.metrics=true
+      - --entrypoints.websecure.observability.tracing=true
+      - --entrypoints.websecure.http.tls.certResolver=myresolver
+      - --entrypoints.websecure.http.tls.domains[0].main=${DOMAIN}
+      - --entrypoints.websecure.http.tls.domains[0].sans=*.${DOMAIN}  # Remove this line to disable wildcard certs (new certificate for every subdomain).
+      - --entrypoints.websecure.http.tls=true
+      - --log # Enable the Traefik log, for configurations and errors
+      - --log.level=INFO # Log level. (Default: INFO)
+      - --providers.docker.defaultRule=Host(`{{ .ContainerName }}.${DOMAIN}`) # Default rule.
+      - --providers.docker.endpoint=unix:///var/run/docker.sock # Docker server endpoint. Can be a TCP or a Unix socket endpoint. (Default: unix:///var/run/docker.sock)
+      - --providers.docker.exposedByDefault=false  # Expose all containers by default. (Default: true)
+      - --providers.docker.network=publicnet # Default Docker network used.
+      - --providers.docker=true # Enable Docker in Traefik, so that it reads labels from Docker services and containers.
+    restart: always
+
+networks:
+  publicnet:  # https://docs.docker.com/engine/network/drivers/bridge/#differences-between-user-defined-bridges-and-the-default-bridge
+# Uncomment the following line to use an external network created in the cli, instead of creating a new one per stack.
+#    external: true  # docker network create --driver=bridge --attachable publicnet --subnet=${PUBLICNET_SUBNET:-10.76.0.0/16} --gateway=${PUBLICNET_GATEWAY:-10.76.0.1} --ip-range=${PUBLICNET_IP_RANGE:-10.76.0.0/16}
+    attachable: true  # allow containers outside of this docker-compose.yml stack file to access this network.
+    name: publicnet
+    ipam:
+      config:
+        - subnet: ${PUBLICNET_SUBNET:-10.76.0.0/16}
+          gateway: ${PUBLICNET_GATEWAY:-10.76.0.1}
+          ip_range: ${PUBLICNET_IP_RANGE:-10.76.0.0/16}

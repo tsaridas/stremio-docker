@@ -1,10 +1,8 @@
-# Base image
-FROM node:23-alpine AS base
+FROM node:18-alpine3.18 AS base
 
 RUN apk update && apk upgrade
 
 FROM base AS ffmpeg
-
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
 RUN cd && \
@@ -46,7 +44,7 @@ RUN cd && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
   ./configure --bindir="$BIN" --disable-debug \
-  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --disable-asm --disable-x86asm --disable-inline-asm --disable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --extra-cflags="-O2 -fno-lto -fno-tree-vectorize" --extra-cxxflags="-O2 -fno-lto -fno-tree-vectorize" --extra-ldflags="-fno-lto" --toolchain=hardened && \
+  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened && \
   make -j4 && \
   make install && \
   make distclean && \

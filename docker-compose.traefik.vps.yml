@@ -72,10 +72,10 @@ services:
       # Stremio HTTP Streaming Server
       # NOTE: in my experience the 11470 never works correctly. Has various issues I could never debug.
       # I recommend using the HTTPS streaming server instead (12470, above).
-      traefik.http.routers.stremio-fallback.service: stremio-fallback
-      traefik.http.routers.stremio-fallback.rule: Host(`stremio.${DOMAIN}`)
-      traefik.http.services.stremio-fallback.loadbalancer.server.scheme: http
-      traefik.http.services.stremio-fallback.loadbalancer.server.port: 11470
+      #traefik.http.routers.stremio-fallback.service: stremio-fallback
+      #traefik.http.routers.stremio-fallback.rule: Host(`stremio.${DOMAIN}`)
+      #traefik.http.services.stremio-fallback.loadbalancer.server.scheme: http
+      #traefik.http.services.stremio-fallback.loadbalancer.server.port: 11470
       homepage.group: Media Streaming
       homepage.name: Stremio
       homepage.icon: stremio.png

@@ -83,6 +83,43 @@ get_public_ip() {
     echo "${PUBLIC_IP}"
 }
 
+# Function to resolve a domain/hostname to an IP address
+resolve_domain_to_ip() {
+    DOMAIN="$1"
+    
+    # Check if input is already an IP address (simple check)
+    if echo "${DOMAIN}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+        echo "${DOMAIN}"
+        return
+    fi
+    
+    echo "[DNS LOOKUP] Attempting to resolve domain: ${DOMAIN}" >&2
+    
+    # Try to resolve using host command
+    if command -v host >/dev/null 2>&1; then
+        RESOLVED_IP=$(host -t A "${DOMAIN}" | grep "has address" | head -n 1 | awk '{print $NF}')
+        if [ -n "${RESOLVED_IP}" ]; then
+            echo "[DNS LOOKUP] Resolved ${DOMAIN} to IP: ${RESOLVED_IP} using 'host' command" >&2
+            echo "${RESOLVED_IP}"
+            return
+        fi
+    fi
+    
+    # Try to resolve using nslookup as fallback
+    if command -v nslookup >/dev/null 2>&1; then
+        RESOLVED_IP=$(nslookup "${DOMAIN}" | grep -A1 "Name:" | grep "Address:" | head -n 1 | awk '{print $NF}')
+        if [ -n "${RESOLVED_IP}" ]; then
+            echo "[DNS LOOKUP] Resolved ${DOMAIN} to IP: ${RESOLVED_IP} using 'nslookup' command" >&2
+            echo "${RESOLVED_IP}"
+            return
+        fi
+    fi
+    
+    # Return original input if resolution failed
+    echo "[DNS LOOKUP] Failed to resolve domain ${DOMAIN} to IP address" >&2
+    echo "${DOMAIN}"
+}
+
 # Patch server.js with necessary fixes
 echo "[PATCH] Checking server.js for required patches..."
 
@@ -129,26 +166,12 @@ if [ -n "${SERVER_URL}" ]; then
         PUBLIC_IP=$(get_public_ip)
 
         if [ -n "${PUBLIC_IP}" ]; then
-            # Replace 0-0-0-0.519b6502d940.stremio.rocks with the public IP
-            SERVER_URL=$(echo "${SERVER_URL}" | sed "s/0-0-0-0\.519b6502d940\.stremio\.rocks/${PUBLIC_IP}/g")
-            echo "[URL CONFIG] Replaced stremio.rocks domain with public IP: ${ORIGINAL_SERVER_URL} -> ${SERVER_URL}"
+            # Convert dots in IP to dashes for domain format, then replace 0-0-0-0 with it
+            FORMATTED_IP=$(echo "${PUBLIC_IP}" | sed 's/\./-/g')
+            SERVER_URL=$(echo "${SERVER_URL}" | sed "s/0-0-0-0/${FORMATTED_IP}/g")
+            echo "[URL CONFIG] Replaced 0-0-0-0 in domain with public IP (using dashes): ${ORIGINAL_SERVER_URL} -> ${SERVER_URL}"
         else
             echo "[URL CONFIG] Failed to obtain public IP, keeping original SERVER_URL with stremio.rocks domain"
-        fi
-    else
-        # Handle domains that need IP resolution
-        SERVER_DOMAIN=$(echo "${SERVER_URL}" | sed -E 's|^(https?://)([^:/]+).*|\2|')
-        if [ -n "${SERVER_DOMAIN}" ] && [ "${SERVER_DOMAIN}" != "${SERVER_URL}" ]; then
-            echo "[URL CONFIG] Checking if domain in SERVER_URL can be resolved: ${SERVER_DOMAIN}"
-            RESOLVED_IP=$(resolve_domain_to_ip "${SERVER_DOMAIN}")
-
-            if [ "${RESOLVED_IP}" != "${SERVER_DOMAIN}" ]; then
-                # Only update if we actually got an IP different from the domain
-                SERVER_URL=$(echo "${SERVER_URL}" | sed "s/${SERVER_DOMAIN}/${RESOLVED_IP}/g")
-                echo "[URL CONFIG] Replaced domain with resolved IP: ${ORIGINAL_SERVER_URL} -> ${SERVER_URL}"
-            else
-                echo "[URL CONFIG] Domain could not be resolved to IP, keeping original SERVER_URL"
-            fi
         fi
     fi
 

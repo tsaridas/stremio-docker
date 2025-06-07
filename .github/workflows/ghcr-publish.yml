@@ -117,7 +117,7 @@ jobs:
           sleep 15 # wait for server to startup
           timeout 60s bash -c 'while [[ "$(docker inspect -f {{.State.Health.Status}} $(docker ps -q))" != "healthy" ]]; do sleep 2; done'
 
-          WEB_URL="http://172.18.0.3:8080" npx playwright test --timeout=60000 || (
+          npx playwright test --timeout=60000 || (
             docker ps -a;
             docker logs $(docker ps -a | grep stremio | awk '{print $1}');
             exit 1;

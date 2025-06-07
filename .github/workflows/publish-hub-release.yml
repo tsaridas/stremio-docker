@@ -154,10 +154,10 @@ jobs:
       - name: Run Docker Container and Test (4th run with WEBUI_LOCATION and WEBUI_INTERNAL_PORT)
         run: |
           platform=${{ matrix.platform }}
-          docker run -d --network custom_network --ip 172.18.0.3 -p 7070:9090 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_LOCATION=http://172.18.0.3:7070 -e WEBUI_INTERNAL_PORT=9090 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 7070:9090 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_INTERNAL_PORT=9090 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 10 # wait for server to startup
-          WEB_URL="http://172.18.0.3:7070" npx playwright test || (
+          WEB_URL="http://172.18.0.3:9090" npx playwright test || (
             docker ps -a;
             docker logs $(docker ps -a | grep stremio | awk '{print $1}');
             exit 1;

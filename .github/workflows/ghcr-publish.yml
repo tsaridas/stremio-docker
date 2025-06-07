@@ -113,9 +113,6 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           docker run -d --network custom_network --ip 172.18.0.3 -p 7070:9090 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_LOCATION=http://172.18.0.3:7070 -e WEBUI_INTERNAL_PORT=9090 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-
-          npm install @playwright/test
-          npx playwright install --with-deps
           cd tests
           sleep 10 # wait for server to startup
           npx playwright test || (

@@ -10,6 +10,7 @@ on:
 jobs:
   purge-image:
     name: Delete image from ghcr.io
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: chipkent/action-cleanup-package@v1.0.1

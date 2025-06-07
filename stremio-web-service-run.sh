@@ -17,7 +17,7 @@ fi
 
 start_http_server() {
     echo "Starting http-server on port ${WEBUI_INTERNAL_PORT:-8080}"
-    http-server build/ -p ${WEBUI_INTERNAL_PORT:-8080} -a 0.0.0.0 -d false "$@"
+    http-server build/ -p ${WEBUI_INTERNAL_PORT:-8080} -d false "$@"
 }
 
 if [ -n "${IPADDRESS}" ]; then 

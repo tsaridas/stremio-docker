@@ -16,7 +16,7 @@ if [ -n "${SERVER_URL}" ]; then
 fi
 
 start_http_server() {
-    http-server build/ -p 8080 -d false "$@"
+    http-server build/ -p ${WEBUI_INTERNAL_PORT:-8080} -d false "$@"
 }
 
 if [ -n "${IPADDRESS}" ]; then 

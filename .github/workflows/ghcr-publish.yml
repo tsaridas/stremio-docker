@@ -112,7 +112,7 @@ jobs:
       - name: Run Docker Container and Test (4th run with WEBUI_LOCATION and WEBUI_INTERNAL_PORT)
         run: |
           platform=${{ matrix.platform }}
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:9090 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_LOCATION=http://172.18.0.3:8080 -e WEBUI_INTERNAL_PORT=9090 --health-cmd="curl -f http://localhost:9090 || exit 1" --health-interval=1s  --health-timeout=3s --health-retries=3 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080/tcp -p 11470:11470/tcp -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_INTERNAL_PORT=8080 --health-cmd="curl -f http://localhost:8080 || exit 1" --health-interval=1s  --health-timeout=3s --health-retries=3 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 15 # wait for server to startup
           timeout 60s bash -c 'while [[ "$(docker inspect -f {{.State.Health.Status}} $(docker ps -q))" != "healthy" ]]; do sleep 2; done'

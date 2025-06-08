@@ -2,7 +2,7 @@
 
 ## Introduction
 
-[Stremio](https://www.stremio.com/) is a free application which lets you stream your favorite shows and movies.
+[Stremio](https://www.stremio.com/) is a free application which lets you stream your favorite shows and movies. 
 
 The Docker images in this repository bundle stremio-server, ffmpeg and web player for you, ready to use in a small Alpine image.
 

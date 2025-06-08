@@ -1,4 +1,4 @@
-# Easy stremio on Docker
+# Easy stremio on Docker 
 
 ## Introduction
 

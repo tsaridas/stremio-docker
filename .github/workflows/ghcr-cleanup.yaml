@@ -21,4 +21,4 @@ jobs:
         with:
           package-name: ${{ github.event.repository.name }}
           tag: ${{ github.event.inputs.package-name  || github.head_ref || github.ref_name }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_DEL_PACK }}

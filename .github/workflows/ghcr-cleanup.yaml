@@ -19,6 +19,6 @@ jobs:
     steps:
       - uses: chipkent/action-cleanup-package@v1.0.1
         with:
-          package-name: ${{ github.event.inputs.package-name || github.event.repository.name }}
-          tag: ${{ github.head_ref || github.ref_name }}
+          package-name: ${{ github.event.repository.name }}
+          tag: ${{ github.event.inputs.package-name  || github.head_ref || github.ref_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

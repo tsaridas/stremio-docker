@@ -3,7 +3,9 @@ name: ghcr-publish
 on:
   push:
     branches:
-      - '*'
+      - 'development'
+  pull_request:
+    types: [opened, synchronize]
 
 permissions:
   contents: read

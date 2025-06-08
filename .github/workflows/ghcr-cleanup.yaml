@@ -1,20 +1,24 @@
-# Delete Docker images after PR merge
+# Delete Docker images after PR merge or on request for a specific package name
 #
 
-name: 'Clean up Docker images from PR'
+name: 'Clean up Docker images from PR or on request'
 
 on:
   pull_request:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      package-name:
+        description: 'Package name to clean up'
+        required: true
 
 jobs:
   purge-image:
     name: Delete image from ghcr.io
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: chipkent/action-cleanup-package@v1.0.1
         with:
-          package-name: ${{ github.event.repository.name }}
+          package-name: ${{ github.event.inputs.package-name || github.event.repository.name }}
           tag: ${{ github.head_ref || github.ref_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

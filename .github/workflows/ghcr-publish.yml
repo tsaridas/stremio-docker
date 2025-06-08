@@ -5,6 +5,10 @@ on:
     branches:
       - '*'
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY: ghcr.io

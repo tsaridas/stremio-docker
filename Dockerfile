@@ -1,10 +1,8 @@
-# Base image
 FROM node:18-alpine3.18 AS base
 
 RUN apk update && apk upgrade
 
 FROM base AS ffmpeg
-
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
 RUN cd && \

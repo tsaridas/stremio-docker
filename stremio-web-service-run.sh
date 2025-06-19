@@ -14,6 +14,7 @@
 # - UPDATE_HOSTS:  Optional. Set to "true" to update /etc/hosts with certificate domain
 # - CERT_FILE:     Optional. Custom certificate file name (used with DOMAIN)
 # - DOMAIN:        Optional. Custom domain name for certificate (used with CERT_FILE)
+# - WEBUI_INTERNAL_PORT:          Optional. Port to expose webui, defaults to 8080
 
 #############################################
 # INITIAL SERVER CONFIGURATION
@@ -47,7 +48,7 @@ fi
 # Function to start HTTP server with specified options
 start_http_server() {
     echo "[SERVER] Starting HTTP server on port 8080 with options: $*"
-    http-server build/ -p 8080 -d false "$@"
+    http-server build/ -p ${WEBUI_INTERNAL_PORT:-8080} -d false "$@"
 }
 
 # Function to get public IP address from various services

@@ -7,6 +7,8 @@ FROM base AS ffmpeg
 
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
+ENV CC=gcc-13
+ENV CXX=g++-13
 RUN cd && \
   apk add --no-cache --virtual .build-dependencies \
   gnutls \
@@ -26,6 +28,8 @@ RUN cd && \
   x265-dev \
   yasm-dev \
   build-base \
+  gcc13 \
+  g++13 \
   coreutils \
   gnutls \
   nasm \

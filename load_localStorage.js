@@ -43,7 +43,8 @@ function processLocalStorageData(items, server_url) {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
             const existingData = JSON.parse(localStorage.getItem(key));
-            if (!existingData.items[server_url]) {
+            console.log("Existing data is : ", existingData)
+            if (existingData.items && !existingData.items[server_url]) {
                 console.log("Server url in streaming_server_urls doesn't exist", existingData.items)
                 existingData.items = items;
                 localStorage.setItem(key, JSON.stringify(existingData));

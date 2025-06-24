@@ -1,5 +1,5 @@
 let isRunning = false; 
-let cachedData = null;
+let cachedData = {};
 let items = {};
 let server_url = null;
 

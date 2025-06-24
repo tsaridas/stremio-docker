@@ -1,6 +1,6 @@
 let isRunning = false; 
 let cachedData = null;
-let items = null;
+let items = {};
 let server_url = null;
 
 async function loadJsonAndStoreInLocalStorage() {

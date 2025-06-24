@@ -51,7 +51,10 @@ function processLocalStorageData(items, server_url) {
             }
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
-            if (existingProfile.settings?.streamingServerUrl !== server_url) {
+            if (!existingProfile.settings) {
+                existingProfile.settings = {};
+            }
+            if (existingProfile.settings.streamingServerUrl !== server_url) {
                 console.log("Server url in profile doesn't exist", existingProfile.settings?.streamingServerUrl)
                 existingProfile.settings.streamingServerUrl = server_url;
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));

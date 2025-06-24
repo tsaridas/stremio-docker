@@ -20,7 +20,7 @@ async function loadJsonAndStoreInLocalStorage() {
         const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
         if (!serverUrlExists.ok) {
             const timestamp = new Date().toISOString();
-            server_url = JSON.stringify(getCurrentUrl());
+            server_url = getCurrentUrl().toString();
             items[server_url] = timestamp;
             console.log('Server URL does not exist. Setting Server URL automagically.', server_url, items);
         } else {

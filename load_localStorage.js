@@ -25,7 +25,7 @@ async function loadJsonAndStoreInLocalStorage() {
             console.log('Server URL does not exist. Setting Server URL automagically.', server_url, items);
         } else {
             items = cachedData.streaming_server_urls.items;
-            server_url = JSON.stringify(Object.keys(items)[0]);
+            server_url = Object.keys(items)[0];
             console.log('Server URL exists.', items, server_url);
         }
 

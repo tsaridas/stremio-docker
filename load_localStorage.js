@@ -15,11 +15,12 @@ async function loadJsonAndStoreInLocalStorage() {
             throw new Error(`Failed to load localStorage.json: ${response.status} ${response.statusText}`);
         }
         cachedData = await response.json();
+        console.log("Received cachedData", cachedData)
 
         const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
         if (!serverUrlExists.ok) {
             const timestamp = new Date().toISOString();
-            server_url = getCurrentUrl().toString();
+            server_url = JSON.stringify(getCurrentUrl());
             items[server_url] = timestamp;
             console.log('Server URL does not exist. Setting Server URL automagically.', server_url, items);
         } else {

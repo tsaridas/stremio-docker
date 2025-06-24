@@ -137,7 +137,7 @@ ENV CERT_FILE=
 
 # Server url
 ENV SERVER_URL=
-ENV AUTO_SERVER_URL=1
+ENV AUTO_SERVER_URL=0
 
 # Basic Auth username/password
 ENV USERNAME=

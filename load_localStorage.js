@@ -20,10 +20,10 @@ async function loadJsonAndStoreInLocalStorage() {
             const timestamp = new Date().toISOString();
             server_url = getCurrentUrl().toString();
             items[server_url] = timestamp
-            console.error('Server URL does not exist. Setting Server URL automagically.');
+            console.log('Server URL does not exist. Setting Server URL automagically.');
         } else {
             items = cachedData.streaming_server_urls.items;
-            server_url = Object.keys(items)[0];
+            server_url = Object.keys(items)[0].toString();
             console.log('Server URL exists.');
         }
 
@@ -44,6 +44,7 @@ function processLocalStorageData(items, server_url) {
         } else if (key === 'streaming_server_urls') {
             const existingData = JSON.parse(localStorage.getItem(key));
             if (!existingData.items[server_url]) {
+                console.log("Server url in streaming_server_urls doesn't exist", existingData.items)
                 existingData.items = items || {};
 
                 localStorage.setItem(key, JSON.stringify(existingData));
@@ -52,6 +53,7 @@ function processLocalStorageData(items, server_url) {
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
             if (existingProfile.settings?.streamingServerUrl !== server_url) {
+                console.log("Server url in profile doesn't exist", existingProfile.settings?.streamingServerUrl)
                 existingProfile.settings.streamingServerUrl = server_url;
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                 reload = true;

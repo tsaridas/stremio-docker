@@ -22,7 +22,6 @@ async function loadJsonAndStoreInLocalStorage() {
             const timestamp = new Date().toISOString();
             server_url = getCurrentUrl().toString();
             items[server_url] = timestamp;
-            items = JSON.stringify(items);
             console.log('Server URL does not exist. Setting Server URL automagically.', server_url, items);
         } else {
             items = cachedData.streaming_server_urls.items;

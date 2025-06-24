@@ -2,7 +2,14 @@ name: ghcr-publish
 
 on:
   push:
-    branches: '*'
+    branches:
+      - 'development'
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  packages: write
 
 env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}

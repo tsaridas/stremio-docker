@@ -81,7 +81,7 @@ RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/mast
 # Main image
 FROM base AS final
 
-ARG VERSION=master
+ARG VERSION=main
 LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
 LABEL org.opencontainers.image.description="Stremio Web Player and Server"
 LABEL org.opencontainers.image.licenses=MIT
@@ -105,6 +105,7 @@ ENV FFMPEG_BIN=
 ENV FFPROBE_BIN=
 # default https://app.strem.io/shell-v4.4/
 ENV WEBUI_LOCATION=
+ENV WEBUI_INTERNAL_PORT=
 ENV OPEN=
 ENV HLS_DEBUG=
 ENV DEBUG=

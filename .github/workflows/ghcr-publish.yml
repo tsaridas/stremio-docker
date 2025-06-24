@@ -1,9 +1,6 @@
 name: ghcr-publish
 
 on:
-  push:
-    branches:
-      - 'development'
   pull_request:
     types: [opened, synchronize]
 
@@ -144,7 +141,7 @@ jobs:
             docker exec "$CONTAINER_ID" ps aux
             docker logs "$CONTAINER_ID"
 
-            WEB_URL="http://172.18.0.3:9090" npx playwright test --timeout=60000 || (
+            WEB_URL="http://172.18.0.3:9090" SERVER_URL="http://172.18.0.3:9090" npx playwright test --timeout=60000 || (
               docker ps -a;
               docker logs $(docker ps -a | grep stremio | awk '{print $1}');
               exit 1;

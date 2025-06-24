@@ -32,14 +32,14 @@ fi
 node server.js &
 
 start_http_server() {
-    if [ -n "${WEBUI_INTERNAL_PORT-}" ]; then
+    if [ -n "${WEBUI_INTERNAL_PORT-}" ] && [[ "${WEBUI_INTERNAL_PORT}" =~ ^[0-9]+$ ]] && [ "${WEBUI_INTERNAL_PORT}" -ge 1 ] && [ "${WEBUI_INTERNAL_PORT}" -le 65535 ]; then
         sed -i "s/8080/${WEBUI_INTERNAL_PORT}/g" /etc/nginx/http.d/default.conf
     fi
     nginx -g "daemon off;"
 }
 
 if [ -n "${IPADDRESS}" ]; then 
-    node certificate.js
+    node certificate.js --action fetch
     EXTRACT_STATUS="$?"
 
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -f "/srv/stremio-server/certificates.pem" ]; then

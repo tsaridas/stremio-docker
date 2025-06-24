@@ -1,4 +1,4 @@
-# Base image
+# We use node:18-alpine3.18 because it's the only one that supports the build-base package for ffmpeg. Changing to 3.21 will require a new ffmpeg build.
 FROM node:18-alpine3.18 AS base
 
 RUN apk update && apk upgrade

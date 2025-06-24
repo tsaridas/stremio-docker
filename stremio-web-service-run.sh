@@ -32,6 +32,9 @@ fi
 node server.js &
 
 start_http_server() {
+    if [ -n "${WEBUI_INTERNAL_PORT-}" ]; then
+        sed -i "s/8080/${WEBUI_INTERNAL_PORT}/g" /etc/nginx/http.d/default.conf
+    fi
     nginx -g "daemon off;"
 }
 

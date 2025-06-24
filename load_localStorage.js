@@ -54,8 +54,7 @@ function processLocalStorageData(items, server_url) {
             if (!existingProfile.settings) {
                 existingProfile.settings = {};
             }
-            if (existingProfile.settings.streamingServerUrl !== server_url) {
-                console.log("Server url in profile doesn't exist", existingProfile.settings?.streamingServerUrl)
+            if (!existingProfile.settings.streamingServerUrl) {
                 existingProfile.settings.streamingServerUrl = server_url;
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                 reload = true;

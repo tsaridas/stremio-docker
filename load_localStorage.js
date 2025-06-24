@@ -17,14 +17,7 @@ async function loadJsonAndStoreInLocalStorage() {
         cachedData = await response.json();
         console.log("Received cachedData", cachedData)
 
-        let serverUrlExists;
-        try {
-            serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
-        } catch (error) {
-            console.error('Failed to check server_url.env existence:', error);
-            serverUrlExists = { ok: false };
-        }
-        
+        const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
         if (!serverUrlExists.ok) {
             const timestamp = new Date().toISOString();
             server_url = getCurrentUrl().toString();

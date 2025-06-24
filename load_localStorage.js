@@ -6,6 +6,8 @@ async function loadJsonAndStoreInLocalStorage() {
     
     try {
         isRunning = true;
+        let items = {};
+        let server_url = "";
 
         const response = await fetch('localStorage.json');
         if (!response.ok) {
@@ -13,7 +15,19 @@ async function loadJsonAndStoreInLocalStorage() {
         }
         cachedData = await response.json();
 
-        processLocalStorageData(cachedData);
+        const serverUrlExists = await fetch('server_url', { method: 'HEAD' });
+        if (!serverUrlExists.ok) {
+            const timestamp = new Date().toISOString();
+            server_url = getCurrentUrl().toString();
+            items[server_url] = timestamp
+            console.error('Server URL does not exist. Setting Server URL automagically.');
+        } else {
+            items = cachedData.streaming_server_urls.items;
+            server_url = Object.keys(items)[0];
+            console.log('Server URL exists.');
+        }
+
+        processLocalStorageData(items, server_url);
 
     } catch (error) {
         console.error('Error loading JSON data from localStorage.json:', error);
@@ -22,27 +36,23 @@ async function loadJsonAndStoreInLocalStorage() {
     }
 }
 
-function processLocalStorageData() {
+function processLocalStorageData(items, server_url) {
     let reload = false;
     Object.entries(cachedData).forEach(([key, value]) => {
         if (!localStorage.getItem(key)) {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
             const existingData = JSON.parse(localStorage.getItem(key));
-            const currentUrl = getCurrentUrl().toString();
-            const timestamp = new Date().toISOString();
-            if (!existingData.items[currentUrl]) {
-                // Ensure items exists and is an object
-                existingData.items = existingData.items || {};
-                existingData.items[currentUrl] = timestamp;
+            if (!existingData.items[server_url]) {
+                existingData.items = items || {};
 
                 localStorage.setItem(key, JSON.stringify(existingData));
                 reload = true;
-        }
+            }
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
-            if (existingProfile.settings?.streamingServerUrl !== getCurrentUrl().toString()) {
-                existingProfile.settings.streamingServerUrl = getCurrentUrl().toString();
+            if (existingProfile.settings?.streamingServerUrl !== server_url) {
+                existingProfile.settings.streamingServerUrl = server_url;
                 localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
                 reload = true;
             }

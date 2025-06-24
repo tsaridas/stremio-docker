@@ -16,7 +16,10 @@ if [ -n "${SERVER_URL}" ]; then
         SERVER_URL="$SERVER_URL/"
     fi
     cp localStorage.json build/localStorage.json
+    touch build/server_url
     sed -i "s|http://127.0.0.1:11470/|${SERVER_URL}|g" build/localStorage.json
+elif [ -n "${AUTO_SERVER_URL}" ]; then
+    cp localStorage.json build/localStorage.json
 fi
 
 # Setup authentication if environment variables are set

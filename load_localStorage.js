@@ -56,7 +56,7 @@ function processLocalStorageData() {
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
 
-            if (existingProfile.settings?.streamingServerUrl !== server_url)
+            if (existingProfile.settings?.streamingServerUrl !== server_url) {
                 existingProfile.settings.streamingServerUrl = server_url;
                 localStorage.setItem(key, JSON.stringify(existingProfile));
                 reload = true;

@@ -1,13 +1,14 @@
 let isRunning = false; 
 let cachedData = null;
+let items = null;
+let server_url = null;
 
 async function loadJsonAndStoreInLocalStorage() {
     if (isRunning) return;
     
     try {
         isRunning = true;
-        let items = {};
-        let server_url = "";
+
 
         const response = await fetch('localStorage.json');
         if (!response.ok) {
@@ -18,7 +19,7 @@ async function loadJsonAndStoreInLocalStorage() {
         const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
         if (!serverUrlExists.ok) {
             const timestamp = new Date().toISOString();
-            server_url = JSON.stringify(getCurrentUrl().toString());
+            server_url = getCurrentUrl().toString();
             items[server_url] = timestamp;
             console.log('Server URL does not exist. Setting Server URL automagically.', server_url, items);
         } else {
@@ -27,7 +28,7 @@ async function loadJsonAndStoreInLocalStorage() {
             console.log('Server URL exists.', items, server_url);
         }
 
-        processLocalStorageData(items, server_url);
+        processLocalStorageData();
 
     } catch (error) {
         console.error('Error loading JSON data from localStorage.json:', error);
@@ -36,7 +37,7 @@ async function loadJsonAndStoreInLocalStorage() {
     }
 }
 
-function processLocalStorageData(items, server_url) {
+function processLocalStorageData() {
     let reload = false;
     console.log("Items and server_url are :", items, server_url)
     Object.entries(cachedData).forEach(([key, value]) => {
@@ -58,7 +59,7 @@ function processLocalStorageData(items, server_url) {
             }
             if (!existingProfile.settings.streamingServerUrl) {
                 existingProfile.settings.streamingServerUrl = server_url;
-                localStorage.setItem(key, JSON.stringify(existingProfile, null, 2));
+                localStorage.setItem(key, JSON.stringify(existingProfile));
                 reload = true;
             }
         }

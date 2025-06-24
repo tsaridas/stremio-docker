@@ -18,7 +18,7 @@ if [ -n "${SERVER_URL}" ]; then
     cp localStorage.json build/localStorage.json
     touch build/server_url.env
     sed -i "s|http://127.0.0.1:11470/|${SERVER_URL}|g" build/localStorage.json
-elif [ -n "${AUTO_SERVER_URL}" ]; then
+elif [ -n "${AUTO_SERVER_URL}" ] && [ "${AUTO_SERVER_URL}" -eq 1 ]; then
     cp localStorage.json build/localStorage.json
 fi
 

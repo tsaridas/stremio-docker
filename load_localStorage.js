@@ -6,8 +6,8 @@ async function loadJsonAndStoreInLocalStorage() {
     
     try {
         isRunning = true;
-        let items = null;
-        let server_url = null;
+        let items = {};
+        let server_url = "";
 
         const response = await fetch('localStorage.json');
         if (!response.ok) {

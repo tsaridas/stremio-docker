@@ -15,7 +15,7 @@ async function loadJsonAndStoreInLocalStorage() {
         }
         cachedData = await response.json();
 
-        const serverUrlExists = await fetch('server_url', { method: 'HEAD' });
+        const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
         if (!serverUrlExists.ok) {
             const timestamp = new Date().toISOString();
             server_url = getCurrentUrl().toString();
@@ -45,8 +45,7 @@ function processLocalStorageData(items, server_url) {
             const existingData = JSON.parse(localStorage.getItem(key));
             if (!existingData.items[server_url]) {
                 console.log("Server url in streaming_server_urls doesn't exist", existingData.items)
-                existingData.items = items || {};
-
+                existingData.items = items;
                 localStorage.setItem(key, JSON.stringify(existingData));
                 reload = true;
             }

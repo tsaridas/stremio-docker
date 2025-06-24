@@ -38,6 +38,7 @@ async function loadJsonAndStoreInLocalStorage() {
 
 function processLocalStorageData(items, server_url) {
     let reload = false;
+    console.log("Items and server_url are :", items, server_url)
     Object.entries(cachedData).forEach(([key, value]) => {
         if (!localStorage.getItem(key)) {
             localStorage.setItem(key, JSON.stringify(value));

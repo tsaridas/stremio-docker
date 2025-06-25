@@ -69,16 +69,17 @@ function loadCertificate(pemPath, domain, jsonPath) {
     try {
         const pemContent = fs.readFileSync(pemPath, 'utf8');
 
-        const privateKeyTokens = [
-            '-----END PRIVATE KEY-----',
-            '-----END RSA PRIVATE KEY-----'
-        ];
-        const privateKeyToken = privateKeyTokens.find(token => pemContent.includes(token));
-        if (!privateKeyToken) {
-            throw new Error(`No private key token found in ${pemPath}`);
+        const privateKeyMatch = pemContent.match(/-----BEGIN (?:RSA )?PRIVATE KEY-----[\s\S]+?-----END (?:RSA )?PRIVATE KEY-----/);
+        if (!privateKeyMatch) {
+            throw new Error(`No private key found in ${pemPath}`);
         }
+        const privateKey = privateKeyMatch[0];
 
-        const [privateKey, certificate] = pemContent.split(privateKeyToken);
+        const certMatch = pemContent.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/);
+        if (!certMatch) {
+            throw new Error(`No certificate found in ${pemPath}`);
+        }
+        const certificate = certMatch[0];
 
         const cert = new crypto.X509Certificate(certificate);
         const notBefore = cert.validFrom;
@@ -86,8 +87,8 @@ function loadCertificate(pemPath, domain, jsonPath) {
 
         const httpsCertContent = {
             domain: domain,
-            key: privateKey.trim() + `\n${privateKeyToken}\n`,
-            cert: certificate.trim(),
+            key: privateKey,
+            cert: certificate,
             notBefore: new Date(notBefore).toISOString(),
             notAfter: new Date(notAfter).toISOString()
         };

@@ -15,7 +15,6 @@ async function loadJsonAndStoreInLocalStorage() {
             throw new Error(`Failed to load localStorage.json: ${response.status} ${response.statusText}`);
         }
         cachedData = await response.json();
-        console.log("Received cachedData", cachedData)
 
         const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
         if (!serverUrlExists.ok) {
@@ -26,13 +25,13 @@ async function loadJsonAndStoreInLocalStorage() {
         } else {
             items = cachedData.streaming_server_urls.items;
             server_url = Object.keys(items)[0];
-            console.log('Server URL exists.', items, server_url);
+            console.log('Server URL exists. Setting up with localStorage file.', items, server_url);
         }
 
         processLocalStorageData();
 
     } catch (error) {
-        console.error('Error loading JSON data from localStorage.json:', error);
+        console.error('Error loading JSON data from localStorage.json:');
     } finally {
         isRunning = false;
     }
@@ -40,15 +39,12 @@ async function loadJsonAndStoreInLocalStorage() {
 
 function processLocalStorageData() {
     let reload = false;
-    console.log("Items and server_url are :", items, server_url)
     Object.entries(cachedData).forEach(([key, value]) => {
         if (!localStorage.getItem(key)) {
             localStorage.setItem(key, JSON.stringify(value));
         } else if (key === 'streaming_server_urls') {
             const existingData = JSON.parse(localStorage.getItem(key));
-            console.log("Existing data is : ", existingData)
             if (existingData.items && !existingData.items[server_url]) {
-                console.log("Server url in streaming_server_urls doesn't exist", existingData.items)
                 existingData.items = items;
                 localStorage.setItem(key, JSON.stringify(existingData));
                 reload = true;
@@ -73,12 +69,10 @@ function processLocalStorageData() {
 async function initialize() {
     await loadJsonAndStoreInLocalStorage();
     if (Object.keys(cachedData).length !== 0) {
-        console.log("We received cached data", cachedData)
         setInterval(processLocalStorageData, 5000);
     }
 }
 
-// Function to get the current URL the user is browsing
 function getCurrentUrl() {
     const url = window.location.href;
     const protocolIndex = url.indexOf('://') + 3;
@@ -86,8 +80,5 @@ function getCurrentUrl() {
     const baseUrl = index === -1 ? url : url.substring(0, index);
     return baseUrl + '/';
 }
-
-// Log the current URL to the console
-console.log("Current URL:", getCurrentUrl());
 
 initialize();

@@ -1,10 +1,19 @@
 import { expect } from '@playwright/test';
 import { test } from './fixtures';
 
+const username = process.env.AUTH_USERNAME || 'default_user';
+const password = process.env.AUTH_PASSWORD || 'default_pass';
+
 test.describe('Stremio API and Settings', () => {
-  test('API endpoints return expected responses', async ({ browser, serverURL }) => {
+  test('API endpoints return expected responses', async ({ browser, serverURL, auth }) => {
     console.log('Testing API endpoints with serverURL:', serverURL);
     const context = await browser.newContext({ baseURL: serverURL });
+
+    if (auth) {
+      await context.setExtraHTTPHeaders({
+        'Authorization': `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`
+      });
+    }
 
     async function testEndpoint(path: string, expectedStatus = 200) {
       const response = await context.request.get(path);
@@ -22,8 +31,13 @@ test.describe('Stremio API and Settings', () => {
     console.log('Network Info:', JSON.stringify(networkInfo, null, 2));
   });
 
-  test('User can configure streaming server URL', async ({ page, serverURL, webURL }) => {
+  test('User can configure streaming server URL', async ({ page, serverURL, webURL, auth }) => {
     console.log('Testing settings with serverURL:', serverURL, 'webURL:', webURL);
+    if (auth) {
+      await page.setExtraHTTPHeaders({
+        'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64')
+      });
+    }
     await page.goto(`${webURL}/#/settings`);
     
     await page.getByTitle('Streaming').click();

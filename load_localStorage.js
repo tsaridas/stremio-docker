@@ -72,7 +72,7 @@ function processLocalStorageData() {
 
 async function initialize() {
     await loadJsonAndStoreInLocalStorage();
-    if (cachedData) {
+    if (Object.keys(cachedData).length !== 0) {
         console.log("We received cached data", cachedData)
         setInterval(processLocalStorageData, 5000);
     }

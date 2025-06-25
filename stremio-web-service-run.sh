@@ -32,8 +32,6 @@ else
     echo "No HTTP basic authentication will be used."
 fi
 
-node server.js &
-
 start_http_server() {
     if [ -n "${WEBUI_INTERNAL_PORT-}" ] && [[ "${WEBUI_INTERNAL_PORT}" =~ ^[0-9]+$ ]] && [ "${WEBUI_INTERNAL_PORT}" -ge 1 ] && [ "${WEBUI_INTERNAL_PORT}" -le 65535 ]; then
         sed -i "s/8080/${WEBUI_INTERNAL_PORT}/g" /etc/nginx/http.d/default.conf
@@ -52,6 +50,12 @@ if [ -n "${IPADDRESS}" ]; then
         echo "##############################################################################################"
         echo "### PLEASE SETUP YOUR DNS ${IPADDRESS} TO POINT TO ${IP_DOMAIN}.519b6502d940.stremio.rocks ###"
         echo "##############################################################################################"
+        node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${IP_DOMAIN}.519b6502d940.stremio.rocks" --json-path "${CONFIG_FOLDER}httpsCert.json"
+        if [ "$?" -eq 0 ]; then
+            echo "Certificate for stremio server on port 12470 was setup."
+        else
+            echo "Failed to setup Certificate for stremio server on port 12470."
+        fi
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
     fi
@@ -59,7 +63,13 @@ elif [ -n "${CERT_FILE}" ]; then
     if [ -f ${CONFIG_FOLDER}${CERT_FILE} ]; then
         cp ${CONFIG_FOLDER}${CERT_FILE} /srv/stremio-server/certificates.pem
         cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
+        node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
+        if [ "$?" -eq 0 ]; then
+            echo "Certificate for stremio server on port 12470 was setup."
+        else
+            echo "Failed to setup Certificate for stremio server on port 12470."
+        fi
     fi
 fi
-
+node server.js &
 start_http_server

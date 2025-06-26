@@ -16,7 +16,7 @@ export const test = baseTest.extend<MyFixtures>({
     await use(webURL);
   },
   auth: async ({}, use) => {
-    const auth = process.env.AUTH === 'true' || false;
+    const auth = process.env.AUTH === 'true';
     await use(auth);
   },
 });

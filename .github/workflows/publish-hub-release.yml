@@ -2,6 +2,11 @@ name: DockerHub-Release
 
 on:
   workflow_dispatch:
+    inputs:
+      INPUT_VERSION:
+        description: 'New version to release'
+        required: true
+        default: ''
   schedule:
     - cron: "0 3 * * *"
   push:
@@ -45,7 +50,12 @@ jobs:
             echo "We need to release. Found new url ${URL}"
             RELEASE="true"
           fi
-          if [ "$RELEASE" ]; then
+          if [ -n "${INPUT_VERSION}" ]; then 
+            echo "We need to release ${INPUT_VERSION}"
+            NEWVERSION=${INPUT_VERSION}
+            echo "version=$NEWVERSION" >> $GITHUB_OUTPUT
+            echo "continue=true" >> $GITHUB_OUTPUT
+          elif [ "$RELEASE" ]; then
             VERSION=$(curl -s https://api.github.com/repos/tsaridas/stremio-docker/releases/latest | grep \"name | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
             NEWVERSION=$(echo $VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
             echo "We need to release $NEWVERSION"
@@ -144,7 +154,7 @@ jobs:
           sleep 10 # wait for server to startup
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test || (
             docker ps -a;
-            docker logs $(docker ps -aq);
+            docker logs $(docker ps -a | grep stremio | awk '{print $1}');
             exit 1;
           )
           docker logs $(docker ps -a | grep stremio | awk '{print $1}');

@@ -138,7 +138,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
-          docker run -d --network custom_network --ip 172.18.0.3 -p 12470:12470 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 15 # wait for server to startup
 
@@ -146,8 +146,8 @@ jobs:
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
-          curl -v --cacert https://172-18-0-3.519b6502d940.stremio.rocks:12470
           cat  ~/.stremio-server/httpsCert.json
+          curl -v --trace-ascii https://172-18-0-3.519b6502d940.stremio.rocks:12470
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test settings.spec --timeout=60000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";

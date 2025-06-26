@@ -75,20 +75,22 @@ function loadCertificate(pemPath, domain, jsonPath) {
         }
         const privateKey = privateKeyMatch[0];
 
-        const certMatch = pemContent.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/);
-        if (!certMatch) {
+        const certMatches = pemContent.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g);
+        if (!certMatches || certMatches.length === 0) {
             throw new Error(`No certificate found in ${pemPath}`);
         }
-        const certificate = certMatch[0];
+        
+        // Join all certificates
+        const certificate = certMatches.join('\n');
 
-        const cert = new crypto.X509Certificate(certificate);
+        const cert = new crypto.X509Certificate(certMatches[0]); 
         const notBefore = cert.validFrom;
         const notAfter = cert.validTo;
 
         const httpsCertContent = {
             domain: domain,
             key: privateKey,
-            cert: certificate,
+            cert: certificate, 
             notBefore: new Date(notBefore).toISOString(),
             notAfter: new Date(notAfter).toISOString()
         };

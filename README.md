@@ -10,19 +10,19 @@ My motivation for doing this is having it running on my RPi5 and couldn't find s
 
 ## Features
 
-Idea here is to have both Stremio web player and server run on the same container and if IPADDRESS env variable is setup generate a certificate and use it for both.
+Idea here is to have both Stremio web player and server run on the same container and if IPADDRESS env variable is set generate a certificate and use it for both.
 
-The Web player runs on port 8080 and server runs on both ports 11470 ( plain http ) and 12470 (https).
+Both the Web player and server run on port 8080 behind nginx. One does not need to expose server port anymore. You can set AUTO_SERVER_URL or SERVER_URL to avoid setting the server manually.
 
 ---
 
-1. If you exposed the ports 8080, 11470 for HTTP just point your streaming server (http://{LAN IP}:8080/) in settings to the lan ip address and set the server to be http://{LAN IP}:11470/ and enjoy. Make sure you set NO_CORS=1 with this option.
+1. If you exposed the port 8080 for HTTP just point your streaming server (http://{LAN IP}:8080/) in settings to the lan ip address and set the server to be http://{LAN IP}:8080/ and enjoy. Make sure you set NO_CORS=1 with this option. 
 
 This is the easy option since there is **no need to setup dns or have an external ip. Do not set the IPADDRESS env variable** if you just want HTTP. You do not need to expose port 12470 with this option but you will only be able to use the webplayer with HTTP.
 
 ---
 
-2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. You should then expose ports 8080 and 12470 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 12470.
+2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. You should then expose port 8080 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 8080. 
 
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
 
@@ -34,7 +34,7 @@ To find the FQDN that the certificate is pointing to, look at the folder you mou
 192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks # this is an example. set your own ip and fqnd here.
 ```
 
-Then you can point your browser to https://192-168-1-10.519b6502d940.stremio.rocks:8080 and setup Streaming server to https://192-168-1-10.519b6502d940.stremio.rocks:12470 .
+Then you can point your browser to https://192-168-1-10.519b6502d940.stremio.rocks:8080 and setup Streaming server to https://192-168-1-10.519b6502d940.stremio.rocks:8080 .
 
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
 
@@ -100,12 +100,11 @@ $ docker run -d \
   -e NO_CORS=1 \
   -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
-  -p 11470:11470/tcp \
   --restart unless-stopped \
   tsaridas/stremio-docker:latest
 </pre>
 
-The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Set streaming server to `http://`YOUR_SERVER_IP`:11470` add your add ons and start watching your favourite movie.
+The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Set streaming server to `http://`YOUR_SERVER_IP`:8080` add your add ons and start watching your favourite movie.
 
 > 💡 Your configuration files and cache will be saved in `~/.stremio-server`
 
@@ -116,7 +115,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | Env                   | Default | Example                      | Description                                                                                                                                                                                                  |
 |-----------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `IPADDRESS`           | -       | `192.168.1.10`               | Set this to enable https                                                                                                                                                                                     |
-| `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
+| `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically to what you want. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
+| `AUTO_SERVER_URL`          | 0       | 1 | Set this to set server url automatically taken from the url of the browser. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
 | `NO_CORS`             | -       | `1`                          | Set to disable server's cors                                                                                                                                                                                 |
 | `CASTING_DISABLED`    | -       | `1`                          | Set to disable casting. You should set this to `1` if you're getting SSDP errors in the logs                                                                                                                 |
 | `WEBUI_LOCATION`      | -       | `http://192.168.1.10:8080`   | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470. Default is https://app.strem.io/shell-v4.4/                 |

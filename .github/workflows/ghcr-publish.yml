@@ -68,7 +68,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           docker network create --subnet=172.18.0.0/24 custom_network
-          docker run -d --network custom_network --ip 172.18.0.3 -p 80:80 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 80:8080 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           
           npm install @playwright/test
           npx playwright install --with-deps
@@ -92,7 +92,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
-          docker run -d --network custom_network --ip 172.18.0.3 -p 443:443 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -p 443:8080 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 15 # wait for server to startup
 
@@ -101,7 +101,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks" npx playwright test settings.spec --timeout=60000 || (
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" npx playwright test settings.spec --timeout=60000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
@@ -113,7 +113,7 @@ jobs:
       - name: Run Docker Container and Test (3rd run SERVER_URL)
         run: |
             platform=${{ matrix.platform }}
-            docker run -d --network custom_network --ip 172.18.0.3 -p 80:80 -e NO_CORS=1 -e CASTING_DISABLED=1 -e SERVER_URL="http://172.18.0.3/" --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+            docker run -d --network custom_network --ip 172.18.0.3 -p 80:8080 -e NO_CORS=1 -e CASTING_DISABLED=1 -e SERVER_URL="http://172.18.0.3:8080/" --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
             cd tests
             sleep 15 # wait for server to startup
             
@@ -133,7 +133,7 @@ jobs:
       - name: Run Docker Container and Test (4rd run AUTO_SERVER_URL)
         run: |
             platform=${{ matrix.platform }}
-            docker run -d --network custom_network --ip 172.18.0.3 -p 80:80 -e NO_CORS=1 -e CASTING_DISABLED=1 -e AUTO_SERVER_URL=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+            docker run -d --network custom_network --ip 172.18.0.3 -p 80:8080 -e NO_CORS=1 -e CASTING_DISABLED=1 -e AUTO_SERVER_URL=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
             cd tests
             sleep 15 # wait for server to startup
                 

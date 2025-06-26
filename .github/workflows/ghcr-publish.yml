@@ -63,6 +63,10 @@ jobs:
           for image in /tmp/images/*.tar; do
             docker load -i $image
           done
+      - name: Install playwright
+        run: |
+          npm install @playwright/test
+          npx playwright install --with-deps
 
       - name: Run Docker Container and Test (1st run)
         run: |
@@ -70,8 +74,7 @@ jobs:
           docker network create --subnet=172.18.0.0/24 custom_network
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           
-          npm install @playwright/test
-          npx playwright install --with-deps
+
           cd tests
 
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
@@ -87,14 +90,12 @@ jobs:
           docker logs "$CONTAINER_ID";
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
+
       - name: Run Docker Container and Test (with http 11470)
         run: |
           platform=${{ matrix.platform }}
-          docker network create --subnet=172.18.0.0/24 custom_network
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           
-          npm install @playwright/test
-          npx playwright install --with-deps
           cd tests
 
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
@@ -110,6 +111,7 @@ jobs:
           docker logs "$CONTAINER_ID";
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
+
       - name: Run Docker Container and Test (with IPADDRESS)
         run: |
           platform=${{ matrix.platform }}
@@ -131,6 +133,7 @@ jobs:
           docker logs "$CONTAINER_ID"
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
+
       - name: Run Docker Container and Test (with IPADDRESS https 12470)
         run: |
           platform=${{ matrix.platform }}
@@ -152,6 +155,7 @@ jobs:
           docker logs "$CONTAINER_ID"
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
+
       - name: Run Docker Container and Test (with SERVER_URL)
         run: |
           platform=${{ matrix.platform }}
@@ -172,6 +176,7 @@ jobs:
           docker logs "$CONTAINER_ID";
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
+  
       - name: Run Docker Container and Test (with AUTO_SERVER_URL)
         run: |
           platform=${{ matrix.platform }}
@@ -192,6 +197,7 @@ jobs:
           docker logs "$CONTAINER_ID";
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
+
       - name: Run Docker Container and Test (with WEBUI_LOCATION and WEBUI_INTERNAL_PORT)
         run: |
           platform=${{ matrix.platform }}
@@ -212,6 +218,7 @@ jobs:
           docker logs "$CONTAINER_ID";
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
+
       - name: Run Docker Container and Test (with basic auth)
         run: |
           platform=${{ matrix.platform }}
@@ -232,7 +239,7 @@ jobs:
           docker logs "$CONTAINER_ID";
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
-  
+
       - name: Upload image
         uses: actions/upload-artifact@v4
         with:

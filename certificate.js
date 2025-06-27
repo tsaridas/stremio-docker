@@ -16,14 +16,13 @@ async function getCertificate() {
   try {
     let ipAddress = process.env.IPADDRESS;
 
-    if (!/^(?:0-0-0-0|25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ipAddress)) {
-        throw new Error('Invalid IPv4 address format.');
-    }
-
     if (ipAddress === "0-0-0-0") {
         const publicIp = await fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => data.ip);
         ipAddress = publicIp;
+    }
 
+    if (!/^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ipAddress)) {
+        throw new Error('Invalid IPv4 address format.');
     }
 
     let data;

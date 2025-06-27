@@ -22,7 +22,7 @@ This is the easy option since there is **no need to setup dns or have an externa
 
 ---
 
-2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. You should then expose port 8080 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 8080. 
+2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. Alternativly you can set the value of `IPADDRESS` to 0-0-0-0 to automatically get your public ip address. You should then expose port 8080 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 8080. 
 
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
 
@@ -98,13 +98,14 @@ To automatically run stremio web player and server in http, simply run:
 $ docker run -d \
   --name=stremio-docker \
   -e NO_CORS=1 \
+  -e AUTO_SERVER_URL: 1 \
   -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   --restart unless-stopped \
   tsaridas/stremio-docker:latest
 </pre>
 
-The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Set streaming server to `http://`YOUR_SERVER_IP`:8080` add your add ons and start watching your favourite movie.
+The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Streaming server will be autosetup for you from the url of the browser you are opening it.
 
 > 💡 Your configuration files and cache will be saved in `~/.stremio-server`
 
@@ -126,6 +127,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | `APP_PATH`            | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                                      |
 | `DOMAIN`              | -       | `your.custom.domain`         | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE |
 | `CERT_FILE`           | -       | `certificate.pem`            | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
+| `USERNAME`           | -       | `myusername`            | Set for custom username for http simple authentiation.                                                                                                               |
+| `PASSWORD`           | -       | `Mypasseword`            | Set for custom password for http simple authentiation.                                                                                                               |
 | `DISABLE_CACHING`     | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |                  
 
 There are multiple other options defined but probably best not settings any.

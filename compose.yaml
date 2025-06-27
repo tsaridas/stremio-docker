@@ -4,10 +4,9 @@ services:
     restart: unless-stopped
     environment:
       NO_CORS: 1
+      AUTO_SERVER_URL: 1
       #IPADDRESS: 192.168.1.10 # Setup your ip address here
     ports:
       - "8080:8080"
-      - "11470:11470" # Just one of the two should be enough
-      - "12470:12470"
     volumes:
       - "/srv/config/stremio/:/root/.stremio-server" # set the first part to your local folder. Its not required though

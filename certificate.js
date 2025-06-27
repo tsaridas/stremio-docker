@@ -15,11 +15,17 @@ const crypto = require('crypto');
 async function getCertificate() {
   try {
     let ipAddress = process.env.IPADDRESS;
+
+    if (!/^(?:0-0-0-0|25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ipAddress)) {
+        throw new Error('Invalid IPv4 address format.');
+    }
+
     if (ipAddress === "0-0-0-0") {
         const publicIp = await fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => data.ip);
         ipAddress = publicIp;
 
     }
+
     let data;
     let attempts = 0;
     const maxAttempts = Number(process.env.MAXATTEMPTS) || 5;
@@ -101,13 +107,13 @@ function loadCertificate(pemPath, domain, jsonPath) {
 
         const privateKeyMatch = pemContent.match(/-----BEGIN (?:RSA )?PRIVATE KEY-----[\s\S]+?-----END (?:RSA )?PRIVATE KEY-----/);
         if (!privateKeyMatch) {
-            throw new Error(`No private key found in ${pemPath}`);
+            throw new Error(`No private key found in ${pemPath} .`);
         }
         const privateKey = privateKeyMatch[0];
 
         const certMatches = pemContent.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g);
         if (!certMatches || certMatches.length === 0) {
-            throw new Error(`No certificate found in ${pemPath}`);
+            throw new Error(`No certificate found in ${pemPath} .`);
         }
         
         // Join all certificates
@@ -127,9 +133,9 @@ function loadCertificate(pemPath, domain, jsonPath) {
 
         fs.writeFileSync(jsonPath, JSON.stringify(httpsCertContent, null, 2));
 
-        console.log(`Certificate information saved to ${jsonPath}`);
+        console.log(`Certificate information saved to ${jsonPath} .`);
     } catch (error) {
-        console.error(`Error loading certificate: ${error.message}`);
+        console.error(`Error loading certificate: ${error.message} .`);
         process.exit(1);
     }
 }
@@ -145,7 +151,7 @@ function extractCertificate(jsonPath) {
 
         console.log(`${certData.domain}`);
     } catch (error) {
-        console.error(`Error extracting certificate: ${error.message}`);
+        console.error(`Error extracting certificate: ${error.message} .`);
         process.exit(1);
     }
 }
@@ -160,7 +166,7 @@ try {
     } else if (args.action === 'fetch') {
         getCertificate();
     } else {
-        throw new Error('Invalid action specified');
+        throw new Error('Invalid action specified!');
     }
 } catch (error) {
     console.error(`Error: ${error.message}`);

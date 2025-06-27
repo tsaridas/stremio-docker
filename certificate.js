@@ -20,27 +20,54 @@ async function getCertificate() {
         ipAddress = publicIp;
 
     }
-    const response = await fetch('http://api.strem.io/api/certificateGet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            authKey: null,
-            ipAddress: ipAddress,
-      }),
-    });
+    let data;
+    let attempts = 0;
+    const maxAttempts = Number(process.env.MAXATTEMPTS) || 5;
+    while (attempts < maxAttempts) {
+        try {
+            const response = await fetch('http://api.strem.io/api/certificateGet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    authKey: null,
+                    ipAddress: ipAddress,
+                }),
+            });
+            if (!response || !response.ok) {
+                throw new Error(`Failed to fetch certificate.`);
+            }
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+            data = await response.json();
+            break;
+        } catch (error) {
+            console.error(`Failed to fetch certificate. Retrying... (${attempts + 1}/${maxAttempts})`);
+            attempts++;
+            if (attempts === maxAttempts) {
+                throw new Error(`Failed to fetch certificate after ${maxAttempts} attempts.`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
     }
 
-    const data = await response.json();
+    if (!data) {
+        throw new Error('No data received from certificate API after retries.');
+    }
+
+    if (!data.result || !data.result.certificate) {
+        throw new Error('No certificate found in API response.');
+    }
+
     const certResp = JSON.parse(data.result.certificate);
 
     if (!certResp) {
-        throw new Error('Missing certificate or privateKey in API response');
+        throw new Error('Missing certificate or privateKey in API response.');
     }
 
-    const combinedCertificates = Buffer.from(certResp.contents.Certificate, 'base64').toString() + Buffer.from(certResp.contents.PrivateKey, 'base64').toString();
+    if (!certResp.contents || !certResp.contents.Certificate || !certResp.contents.PrivateKey) {
+        throw new Error('Certificate or PrivateKey missing in API response.');
+    }
+
+    const combinedCertificates = Buffer.from(certResp.contents.Certificate, 'base64').toString() + '\n' + Buffer.from(certResp.contents.PrivateKey, 'base64').toString();
 
     fs.writeFileSync('certificates.pem', combinedCertificates);
 
@@ -49,8 +76,6 @@ async function getCertificate() {
     console.error('Error fetching certificate:', error);
   }
 }
-
-
 
 function parseCommandLineArgs() {
     const args = process.argv.slice(2);
@@ -108,7 +133,7 @@ function loadCertificate(pemPath, domain, jsonPath) {
         process.exit(1);
     }
 }
-// not used
+
 function extractCertificate(jsonPath) {
     try {
         const jsonContent = fs.readFileSync(jsonPath, 'utf8');

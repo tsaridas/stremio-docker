@@ -47,13 +47,8 @@ if [ -n "${IPADDRESS}" ]; then
         IP_DOMAIN=$(echo $IPADDRESS | sed 's/\./-/g')
         echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
         cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
-        
+
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${IP_DOMAIN}.519b6502d940.stremio.rocks" --json-path "${CONFIG_FOLDER}httpsCert.json"
-        if [ "$?" -eq 0 ]; then
-            echo "Certificate for stremio server on port 12470 was setup."
-        else
-            echo "Failed to setup Certificate for stremio server on port 12470."
-        fi
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
     fi
@@ -62,11 +57,6 @@ elif [ -n "${CERT_FILE}" ]; then
         cp ${CONFIG_FOLDER}${CERT_FILE} /srv/stremio-server/certificates.pem
         cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
-        if [ "$?" -eq 0 ]; then
-            echo "Certificate for stremio server on port 12470 was setup."
-        else
-            echo "Failed to setup Certificate for stremio server on port 12470."
-        fi
     fi
 fi
 node server.js &

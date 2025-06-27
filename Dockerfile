@@ -1,4 +1,4 @@
-# Base image
+# We use node:18-alpine3.18 because it's the only one that supports the build-base package for ffmpeg. Changing to 3.21 will require a new ffmpeg build.
 FROM node:18-alpine3.18 AS base
 
 RUN apk update && apk upgrade
@@ -16,19 +16,19 @@ RUN cd && \
   libass-dev \
   libogg-dev \
   libtheora-dev \
-  libvorbis-dev \ 
+  libvorbis-dev \
   libvpx-dev \
-  libwebp-dev \ 
+  libwebp-dev \
   libssh2 \
   opus-dev \
   rtmpdump-dev \
   x264-dev \
   x265-dev \
   yasm-dev \
-  build-base \ 
-  coreutils \ 
-  gnutls \ 
-  nasm \ 
+  build-base \
+  coreutils \
+  gnutls \
+  nasm \
   dav1d-dev \
   libbluray-dev \
   libdrm-dev \
@@ -46,7 +46,7 @@ RUN cd && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
   ./configure --bindir="$BIN" --disable-debug \
-  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened && \
+  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --enable-hwaccel=hevc_vaapi --toolchain=hardened && \
   make -j4 && \
   make install && \
   make distclean && \
@@ -90,8 +90,10 @@ LABEL version=${VERSION}
 WORKDIR /srv/stremio-server
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
-RUN yarn global add http-server --no-audit --no-optional --mutex network --no-progress --ignore-scripts
 
+RUN apk add --no-cache nginx
+
+COPY ./nginx/ /etc/nginx/
 COPY ./stremio-web-service-run.sh ./
 COPY ./certificate.js ./
 RUN chmod +x stremio-web-service-run.sh
@@ -117,8 +119,6 @@ ENV HTTPS_CERT_ENDPOINT=
 ENV DISABLE_CACHING=
 # disable or enable
 ENV READABLE_STREAM=
-# remote or local
-ENV HLSV2_REMOTE=
 
 # Custom application path for storing server settings, certificates, etc
 # You can change this but server.js always saves cache to /root/.stremio-server/
@@ -137,13 +137,18 @@ ENV CERT_FILE=
 
 # Server url
 ENV SERVER_URL=
+ENV AUTO_SERVER_URL=0
+
+# Basic Auth username/password
+ENV USERNAME=
+ENV PASSWORD=
 
 # Copy ffmpeg
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
+RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl apache2-utils
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
@@ -156,7 +161,7 @@ RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
 VOLUME ["/root/.stremio-server"]
 
 # Expose default ports
-EXPOSE 8080 11470 12470
+EXPOSE 8080
 
 ENTRYPOINT []
 

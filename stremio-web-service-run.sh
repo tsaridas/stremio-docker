@@ -1,7 +1,8 @@
 #!/bin/sh -e
 
-# set the configuration folder path.
 CONFIG_FOLDER="${APP_PATH:-${HOME}/.stremio-server/}"
+AUTH_CONF_FILE="/etc/nginx/auth.conf"
+HTPASSWD_FILE="/etc/nginx/.htpasswd"
 
 # check if proxyStreamsEnabled is set to false in server.js and add it if not.
 if ! grep -q 'self.proxyStreamsEnabled = false,' server.js; then
@@ -11,56 +12,50 @@ fi
 sed -i 's/df -k/df -Pk/g' server.js
 
 if [ -n "${SERVER_URL}" ]; then
+    if [ "${SERVER_URL: -1}" != "/" ]; then
+        SERVER_URL="$SERVER_URL/"
+    fi
     cp localStorage.json build/localStorage.json
-    sed -i "s|http://127.0.0.1:11470/|${SERVER_URL}|g" build/localStorage.json
+    touch build/server_url.env
+    sed -i "s|http://127.0.0.1:11470/|"${SERVER_URL}"|g" build/localStorage.json
+elif [ -n "${AUTO_SERVER_URL}" ] && [ "${AUTO_SERVER_URL}" -eq 1 ]; then
+    cp localStorage.json build/localStorage.json
+fi
+
+if [ -n "${USERNAME}" ] && [ -n "${PASSWORD}" ]; then
+    echo "Setting up HTTP basic authentication..."
+    htpasswd -bc "${HTPASSWD_FILE}" "${USERNAME}" "${PASSWORD}"
+    echo 'auth_basic "Restricted Content";' >"${AUTH_CONF_FILE}"
+    echo 'auth_basic_user_file '"${HTPASSWD_FILE}"';' >>"${AUTH_CONF_FILE}"
+else
+    echo "No HTTP basic authentication will be used."
 fi
 
 start_http_server() {
-    echo "Starting http-server on port ${WEBUI_INTERNAL_PORT:-8080}"
-    http-server build/ -p ${WEBUI_INTERNAL_PORT:-8080} -d false "$@"
+    if [ -n "${WEBUI_INTERNAL_PORT}" ] && [ "${WEBUI_INTERNAL_PORT}" -ge 1 ] && [ "${WEBUI_INTERNAL_PORT}" -le 65535 ]; then
+        sed -i "s/8080/"${WEBUI_INTERNAL_PORT}"/g" /etc/nginx/http.d/default.conf
+    fi
+    nginx -g "daemon off;"
 }
 
 if [ -n "${IPADDRESS}" ]; then 
-    node server.js &
-
-    echo "Attempting to fetch HTTPS certificate for IP address: ${IPADDRESS}"
-    curl --connect-timeout 5 \
-         --retry-all-errors \
-         --retry 10 \
-         --retry-delay 1 \
-         --verbose \
-         "http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
-    CURL_STATUS="$?"
-    if [ "${CURL_STATUS}" -ne 0 ]; then
-        echo "Failed to fetch HTTPS certificate. Curl exited with status: ${CURL_STATUS}"
-    else
-        echo "Successfully fetched HTTPS certificate."
-    fi
-
-    IMPORTED_DOMAIN="$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}httpsCert.json")"
+    node certificate.js --action fetch
     EXTRACT_STATUS="$?"
-    IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
-    echo "Extracted domain ${IMPORTED_DOMAIN} with status ${EXTRACT_STATUS} and cert file ${IMPORTED_CERT_FILE}"
 
-    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
-        echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
-        
-        start_http_server -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
+    if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -f "/srv/stremio-server/certificates.pem" ]; then
+        IP_DOMAIN=$(echo "${IPADDRESS}" | sed 's/\./-/g')
+        echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
+        cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
+        node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${IP_DOMAIN}.519b6502d940.stremio.rocks" --json-path "${CONFIG_FOLDER}httpsCert.json"
     else
         echo "Failed to setup HTTPS. Falling back to HTTP."
-        start_http_server
     fi
-elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
-    node certificate.js --action load --pem-path "${CONFIG_FOLDER}${CERT_FILE}" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
-    if [ "$?" -eq 0 ]; then
-        node server.js &
-        start_http_server -S -C "${CONFIG_FOLDER}${CERT_FILE}" -K "${CONFIG_FOLDER}${CERT_FILE}"
-    else
-        echo "Failed to load certificate. Falling back to HTTP."
-        node server.js &
-        start_http_server
+elif [ -n "${CERT_FILE}" ]; then
+    if [ -f "${CONFIG_FOLDER}${CERT_FILE}" ]; then
+        cp "${CONFIG_FOLDER}${CERT_FILE}" /srv/stremio-server/certificates.pem
+        cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
+        node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
     fi
-else
-    node server.js &
-    start_http_server
 fi
+node server.js &
+start_http_server

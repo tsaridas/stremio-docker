@@ -110,19 +110,20 @@ jobs:
             docker load -i $image
           done
 
-      - name: Install playwright
-        run: |
-          npm install @playwright/test
-          npx playwright install --with-deps
-  
-      - name: Run Docker Container and Test (1st run)
+      - name: Setup environment
         run: |
           platform=${{ matrix.platform }}
+          npm install @playwright/test
+          npx playwright install --with-deps
           docker network create --subnet=172.18.0.0/24 custom_network
+          echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
+
+      - name: Run Docker Container and Test (1st run)
+        run: |
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           
-
           cd tests
+          sleep 15 # wait for server to startup
 
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
@@ -140,10 +141,10 @@ jobs:
 
       - name: Run Docker Container and Test (with http 11470)
         run: |
-          platform=${{ matrix.platform }}
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           
           cd tests
+          sleep 15 # wait for server to startup
 
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
@@ -161,9 +162,9 @@ jobs:
 
       - name: Run Docker Container and Test (with IPADDRESS)
         run: |
-          platform=${{ matrix.platform }}
-          echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
+          
           docker run -d --network custom_network --ip 172.18.0.3 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
           cd tests
           sleep 15 # wait for server to startup
 
@@ -183,12 +184,10 @@ jobs:
 
       - name: Run Docker Container and Test (with IPADDRESS https 12470)
         run: |
-          platform=${{ matrix.platform }}
-          echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
           docker run -d --network custom_network --ip 172.18.0.3 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           cd tests
           sleep 15 # wait for server to startup
-
+          
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
           docker exec "$CONTAINER_ID" ps aux
@@ -206,8 +205,8 @@ jobs:
 
       - name: Run Docker Container and Test (with SERVER_URL)
         run: |
-          platform=${{ matrix.platform }}
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 -e SERVER_URL="http://172.18.0.3:8080/" --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
           cd tests
           sleep 15 # wait for server to startup
           
@@ -227,8 +226,8 @@ jobs:
   
       - name: Run Docker Container and Test (with AUTO_SERVER_URL)
         run: |
-          platform=${{ matrix.platform }}
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 -e AUTO_SERVER_URL=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
           cd tests
           sleep 15 # wait for server to startup
               
@@ -248,10 +247,11 @@ jobs:
 
       - name: Run Docker Container and Test (with WEBUI_LOCATION and WEBUI_INTERNAL_PORT)
         run: |
-          platform=${{ matrix.platform }}
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_INTERNAL_PORT=9090 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
           cd tests
           sleep 15 # wait for server to startup
+
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
           docker exec "$CONTAINER_ID" ps aux
@@ -269,10 +269,11 @@ jobs:
 
       - name: Run Docker Container and Test (with basic auth)
         run: |
-          platform=${{ matrix.platform }}
           docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e USERNAME=default_user -e PASSWORD=default_pass -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
           cd tests
           sleep 15 # wait for server to startup
+          
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
           docker exec "$CONTAINER_ID" ps aux
@@ -287,7 +288,7 @@ jobs:
           docker logs "$CONTAINER_ID";
           docker stop "$CONTAINER_ID"
           docker rm "$CONTAINER_ID"
-  
+
       - name: Upload image
         uses: actions/upload-artifact@v4
         with:

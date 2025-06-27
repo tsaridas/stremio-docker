@@ -47,9 +47,7 @@ if [ -n "${IPADDRESS}" ]; then
         IP_DOMAIN=$(echo $IPADDRESS | sed 's/\./-/g')
         echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
         cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
-        echo "##############################################################################################"
-        echo "### PLEASE SETUP YOUR DNS ${IPADDRESS} TO POINT TO ${IP_DOMAIN}.519b6502d940.stremio.rocks ###"
-        echo "##############################################################################################"
+        
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${IP_DOMAIN}.519b6502d940.stremio.rocks" --json-path "${CONFIG_FOLDER}httpsCert.json"
         if [ "$?" -eq 0 ]; then
             echo "Certificate for stremio server on port 12470 was setup."

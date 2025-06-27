@@ -149,7 +149,6 @@ jobs:
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
-          cat  ~/.stremio-server/httpsCert.json
           
           WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test settings.spec --timeout=60000 || (
             docker ps -a;

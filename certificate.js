@@ -18,6 +18,7 @@ async function getCertificate() {
     if (ipAddress === "0-0-0-0") {
         const publicIp = await fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => data.ip);
         ipAddress = publicIp;
+
     }
     const response = await fetch('http://api.strem.io/api/certificateGet', {
         method: 'POST',

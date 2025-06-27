@@ -103,7 +103,7 @@ function loadCertificate(pemPath, domain, jsonPath) {
         process.exit(1);
     }
 }
-
+// not used
 function extractCertificate(jsonPath) {
     try {
         const jsonContent = fs.readFileSync(jsonPath, 'utf8');

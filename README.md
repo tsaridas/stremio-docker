@@ -6,7 +6,7 @@
 
 The Docker images in this repository bundle stremio-server, ffmpeg and web player for you, ready to use in a small Alpine image.
 
-My motivation for doing this is having it running on my RPi5 and couldn't find something that has both player and server but also the official image seemed too big but also lacks the Web Player and doesn't work out of the box if no HTTPS is configured.
+I built this to run Stremio on my Raspberry Pi 5 and couldn't find something that has both player and server but also the official image seemed too big but also lacks the Web Player and doesn't work out of the box if no HTTPS is configured.
 
 ## Features
 
@@ -18,7 +18,7 @@ Both the Web player and server run on port 8080 behind nginx. One does not need 
 
 1. If you exposed the port 8080 for HTTP just point your streaming server (http://{LAN IP}:8080/) in settings to the lan ip address and set the server to be http://{LAN IP}:8080/ and enjoy. Make sure you set NO_CORS=1 with this option. 
 
-This is the easy option since there is **no need to setup dns or have an external ip. Do not set the IPADDRESS env variable** if you just want HTTP. You do not need to expose port 12470 with this option but you will only be able to use the webplayer with HTTP.
+This is the easy option since there is **no need to setup dns or have an external ip. Do not set the IPADDRESS env variable** if you just want HTTP. No need to expose port 12470 with this setup option but you will only be able to use the webplayer with HTTP.
 
 ---
 
@@ -102,6 +102,7 @@ cd stremio-docker
 # Edit compose.yaml if needed, then run:
 docker-compose up -d
 ```
+The compose file includes common settings like `NO_CORS: 1` and `AUTO_SERVER_URL: 1`.
 
 **Option B: Using Docker Run**
 ```bash
@@ -115,20 +116,9 @@ $ docker run -d \
   tsaridas/stremio-docker:latest
 ```
 
-The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Streaming server will be autosetup for you from the url of the browser you are opening it.
+The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Streaming server will be auto-setup for you from the url of the browser you are opening it.
 
 > 💡 Your configuration files and cache will be saved in `~/.stremio-server`
-
-### Using Docker Compose
-
-For easier deployment, you can use the provided `compose.yaml`:
-
-```bash
-# Edit compose.yaml to set your IP address if needed
-docker-compose up -d
-```
-
-The compose file includes common settings like `NO_CORS: 1` and `AUTO_SERVER_URL: 1`.
 
 ## Options
 

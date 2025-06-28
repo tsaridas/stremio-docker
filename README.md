@@ -26,6 +26,7 @@ This is the easy option since there is **no need to setup dns or have an externa
 
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
 
+If you setup the IPADDRESS environment variable to 0-0-0-0 the container will automatically try to get your public IP address and setup the certificates and DNS. This wont work for IPv6.
 ---
 
 3. If you set IPADDRESS to your private ip address then the server should still set the certificate to the wildcard \*.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
@@ -92,22 +93,42 @@ And log in again.
 
 ### 2. Run Stremio Web + Server
 
-To automatically run stremio web player and server in http, simply run:
+**Option A: Using Docker Compose (Recommended)**
+```bash
+# Clone the repository
+git clone https://github.com/tsaridas/stremio-docker.git
+cd stremio-docker
 
-<pre>
+# Edit compose.yaml if needed, then run:
+docker-compose up -d
+```
+
+**Option B: Using Docker Run**
+```bash
 $ docker run -d \
   --name=stremio-docker \
   -e NO_CORS=1 \
-  -e AUTO_SERVER_URL: 1 \
+  -e AUTO_SERVER_URL=1 \
   -v ~/.stremio-server:/root/.stremio-server \
   -p 8080:8080/tcp \
   --restart unless-stopped \
   tsaridas/stremio-docker:latest
-</pre>
+```
 
 The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Streaming server will be autosetup for you from the url of the browser you are opening it.
 
 > 💡 Your configuration files and cache will be saved in `~/.stremio-server`
+
+### Using Docker Compose
+
+For easier deployment, you can use the provided `compose.yaml`:
+
+```bash
+# Edit compose.yaml to set your IP address if needed
+docker-compose up -d
+```
+
+The compose file includes common settings like `NO_CORS=1` and `AUTO_SERVER_URL=1`.
 
 ## Options
 
@@ -115,7 +136,7 @@ These options can be configured by setting environment variables using `-e KEY="
 
 | Env                   | Default | Example                      | Description                                                                                                                                                                                                  |
 |-----------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 in order enable https and generate certificates with stremio domain. If you set this to 0-0-0-0 it will try to automatically get your public ip. Getting the public ip and DNS is not reliable and might need multiple retries. **Have not tried if it works for IPv6.**                                                                                                                                                                                 |
+| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 in order enable https and generate certificates with stremio domain. If you set this to 0-0-0-0 it will try to automatically get your public ip. Getting the public ip and DNS is not reliable and might need multiple retries. **It will not work for IPv6**                                                                                                                                                                                 |
 | `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically to what you want. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
 | `AUTO_SERVER_URL`          | 0       | 1 | Set this to set server url automatically taken from the url of the browser. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
 | `NO_CORS`             | -       | `1`                          | Set to disable server's cors                                                                                                                                                                                 |
@@ -147,7 +168,12 @@ And then run the `docker run -d \ ...` command above again.
 
 ## FFMPEG
 
-We build our own ffmpeg from jellyfin repo with version 4.4.1-4 This plays well and its what stremio officially supports.
+We build our own ffmpeg from jellyfin repo with version 4.4.1-4. This includes:
+- Hardware acceleration support for both Intel and AMD (VAAPI)
+- Multiple codec support (H.264, HEVC, VP9, etc.)
+- Optimized for streaming workloads
+
+Hardware acceleration is automatically detected and enabled when supported devices are available. Due to alpine missing glic nvidia transcoding would probably not work.
 
 ### FFMPEG add configure options
 
@@ -204,15 +230,15 @@ cli :
 
 ## Builds
 
-Builds are setup to make images for the below archs :
+Builds are setup to make images for the below archs:
 
-- linux/arm/v6
 - linux/amd64
-- linux/arm64/v8
+- linux/arm/v6
 - linux/arm/v7
+- linux/arm64/v8
 - linux/ppc64le
 
-I can add more build archs if you require them and you can ask but I doubt anybody ever will need to install these containers in anything else.
+Images are automatically built and tested on pull requests using GitHub Actions with comprehensive end-to-end testing.
 
 ### Build tags
 
@@ -253,7 +279,16 @@ cache-size=10000
 
 then you set your dns server to the ip address of your dns caching server and you are set.
 
+## Security
+
+- HTTP Basic Authentication is supported via `USERNAME` and `PASSWORD` environment variables
+- Automatic certificate generation for HTTPS deployments
+- CORS can be disabled for local deployments
+- All images are built with minimal dependencies and security updates
+
 ## Last words
 
 I don't intend to spend much time on this and tried to automate as much as I had time to.
 PRs and Issues are welcome. If you find some issue please do let me know.
+
+

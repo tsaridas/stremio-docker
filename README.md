@@ -320,7 +320,10 @@ Additionally there is the restart_if_idle.sh script that will restart stremio se
 - CORS can be disabled for local deployments
 - All images are built with minimal dependencies and security updates
 
-## Last words
+## ToDo
+
+- Build another image with base something that is small and has glibc
+- Automatically add addons passed from enviromental variables
 
 I don't intend to spend much time on this and tried to automate as much as I had time to.
 PRs and Issues are welcome. If you find some issue please do let me know.

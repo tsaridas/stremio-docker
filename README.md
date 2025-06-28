@@ -256,6 +256,16 @@ You can build your own image by running the below command. By default it will bu
 docker build -t stremio:myserver .
 ```
 
+## Advanced usage for customizing local storage
+
+Stremio's web application stores configuration data, such as login information and addon settings, in the browser's local storage. To automate these configurations or use your own custom settings, you can modify the `localStorage.json` file and pass it to the container. Under the hood, there is a script running trying to load the values of this file.
+
+To do this, first edit the `localStorage.json` file to include your desired configurations. Then, when running the container, use the following volume mount to pass your custom `localStorage.json` file to the container:
+
+-v ~/localStorage.json:/srv/stremio-server/build/localStorage.json
+
+This ensures that Stremio starts with your custom configuration settings.
+
 ## Common Use Cases
 
 - [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)

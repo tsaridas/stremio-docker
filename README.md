@@ -20,6 +20,15 @@ Both the Web player and server run on port 8080 behind nginx. One does not need 
 
 This is the easy option since there is **no need to setup dns or have an external ip. Do not set the IPADDRESS env variable** if you just want HTTP. No need to expose port 12470 with this setup option but you will only be able to use the webplayer with HTTP.
 
+```bash
+docker run -d \
+  --name=stremio-docker \
+  -e NO_CORS=1 \
+  -e AUTO_SERVER_URL=1 \
+  -p 8080:8080 \
+  tsaridas/stremio-docker:latest
+```
+
 ---
 
 2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. Alternatively you can set the value of `IPADDRESS` to 0-0-0-0 to automatically get your public ip address. You should then expose port 8080 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 8080. 
@@ -27,6 +36,16 @@ This is the easy option since there is **no need to setup dns or have an externa
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add to your hosts in case of local ip address.
 
 If you setup the IPADDRESS environment variable to 0-0-0-0 the container will automatically try to get your public IP address and setup the certificates and DNS. This won't work for IPv6.
+
+```bash
+docker run -d \
+  --name=stremio-docker \
+  -e NO_CORS=1 \
+  -e AUTO_SERVER_URL=1 \
+  -e IPADDRESS=0-0-0-0
+  -p 8080:8080 \
+  tsaridas/stremio-docker:latest
+```
 
 ---
 

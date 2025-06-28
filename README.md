@@ -22,22 +22,22 @@ This is the easy option since there is **no need to setup dns or have an externa
 
 ---
 
-2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. Alternativly you can set the value of `IPADDRESS` to 0-0-0-0 to automatically get your public ip address. You should then expose port 8080 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 8080. 
+2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. Alternatively you can set the value of `IPADDRESS` to 0-0-0-0 to automatically get your public ip address. You should then expose port 8080 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 8080. 
 
-To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
+To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add to your hosts in case of local ip address.
 
-If you setup the IPADDRESS environment variable to 0-0-0-0 the container will automatically try to get your public IP address and setup the certificates and DNS. This wont work for IPv6.
+If you setup the IPADDRESS environment variable to 0-0-0-0 the container will automatically try to get your public IP address and setup the certificates and DNS. This won't work for IPv6.
 ---
 
-3. If you set IPADDRESS to your private ip address then the server should still set the certificate to the wildcard \*.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
+3. If you set IPADDRESS to your private ip address then the server should still set the certificate to the wildcard \*.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private ip is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
 
 ```bash
-192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks # this is an example. set your own ip and fqnd here.
+192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks # this is an example. set your own ip and fqdn here.
 ```
 
 Then you can point your browser to https://192-168-1-10.519b6502d940.stremio.rocks:8080 and setup Streaming server to https://192-168-1-10.519b6502d940.stremio.rocks:8080 .
 
-To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add your your hosts in case of local ip address.
+To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add to your hosts in case of local ip address.
 
 ---
 
@@ -128,7 +128,7 @@ For easier deployment, you can use the provided `compose.yaml`:
 docker-compose up -d
 ```
 
-The compose file includes common settings like `NO_CORS=1` and `AUTO_SERVER_URL=1`.
+The compose file includes common settings like `NO_CORS: 1` and `AUTO_SERVER_URL: 1`.
 
 ## Options
 
@@ -136,7 +136,7 @@ These options can be configured by setting environment variables using `-e KEY="
 
 | Env                   | Default | Example                      | Description                                                                                                                                                                                                  |
 |-----------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 in order enable https and generate certificates with stremio domain. If you set this to 0-0-0-0 it will try to automatically get your public ip. Getting the public ip and DNS is not reliable and might need multiple retries. **It will not work for IPv6**                                                                                                                                                                                 |
+| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 in order to enable https and generate certificates with stremio domain. If you set this to 0-0-0-0 it will try to automatically get your public ip. Getting the public ip and DNS is not reliable and might need multiple retries. **It will not work for IPv6**                                                                                                                                                                                 |
 | `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically to what you want. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
 | `AUTO_SERVER_URL`          | 0       | 1 | Set this to set server url automatically taken from the url of the browser. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
 | `NO_CORS`             | -       | `1`                          | Set to disable server's cors                                                                                                                                                                                 |
@@ -145,14 +145,14 @@ These options can be configured by setting environment variables using `-e KEY="
 | `WEBUI_INTERNAL_PORT` | 8080    | `9090`                       | Sets the port inside the docker container for the web player                                                                                                                                                 |
 | `FFMPEG_BIN`          | -       | `/usr/bin/`                  | Set for custom ffmpeg bin path                                                                                                                                                                               |
 | `FFPROBE_BIN`         | -       | `/usr/bin/`                  | Set for custom ffprobe bin path                                                                                                                                                                              |
-| `APP_PATH`            | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so its only for its config files.                                                                      |
+| `APP_PATH`            | -       | `/srv/stremio-path/`         | Set for custom path for stremio server. Server will always save cache to /root/.stremio-server though so it's only for its config files.                                                                      |
 | `DOMAIN`              | -       | `your.custom.domain`         | Set for custom domain for stremio server. Server will use the specified domain for the web player and streaming server. This should match the certificate and cannot be applied without specifying CERT_FILE |
 | `CERT_FILE`           | -       | `certificate.pem`            | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
-| `USERNAME`           | -       | `myusername`            | Set for custom username for http simple authentiation.                                                                                                               |
-| `PASSWORD`           | -       | `Mypasseword`            | Set for custom password for http simple authentiation.                                                                                                               |
+| `USERNAME`           | -       | `myusername`            | Set for custom username for http simple authentication.                                                                                                               |
+| `PASSWORD`           | -       | `Mypassword`            | Set for custom password for http simple authentication.                                                                                                               |
 | `DISABLE_CACHING`     | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |                  
 
-There are multiple other options defined but probably best not settings any.
+There are multiple other options defined but probably best not setting any.
 
 ## Updating
 
@@ -173,7 +173,7 @@ We build our own ffmpeg from jellyfin repo with version 4.4.1-4. This includes:
 - Multiple codec support (H.264, HEVC, VP9, etc.)
 - Optimized for streaming workloads
 
-Hardware acceleration is automatically detected and enabled when supported devices are available. Due to alpine missing glic nvidia transcoding would probably not work.
+Hardware acceleration is automatically detected and enabled when supported devices are available. Due to alpine missing glibc nvidia transcoding would probably not work.
 
 ### FFMPEG add configure options
 
@@ -293,7 +293,7 @@ cache-size=10000
 
 then you set your dns server to the ip address of your dns caching server and you are set.
 
-an extra addition is the restart_if_idle.sh script that will restart stremio server if it is idle. You can add the below healthcheck to your docker compose file.
+Additionally there is the restart_if_idle.sh script that will restart stremio server if it is idle. You can add the below healthcheck to your docker compose file.
 
 ```bash
   healthcheck:

@@ -293,6 +293,16 @@ cache-size=10000
 
 then you set your dns server to the ip address of your dns caching server and you are set.
 
+an extra addition is the restart_if_idle.sh script that will restart stremio server if it is idle. You can add the below healthcheck to your docker compose file.
+
+```bash
+  healthcheck:
+    test: ["CMD-SHELL", "./restart_if_idle.sh"]
+    interval: 1h
+    start_period: 1h
+    retries: 1
+```
+
 ## Security
 
 - HTTP Basic Authentication is supported via `USERNAME` and `PASSWORD` environment variables

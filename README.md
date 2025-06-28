@@ -289,7 +289,8 @@ This ensures that Stremio starts with your custom configuration settings.
   
 ## Useful links
 
-[Stremio addons](https://stremio-addons.netlify.app/)
+[Stremio addons](https://stremio-addons.com/)
+[Stremio addons Beta](https://beta.stremio-addons.net/)
 
 ## Suggestions
 

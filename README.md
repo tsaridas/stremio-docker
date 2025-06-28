@@ -266,6 +266,10 @@ To do this, first edit the `localStorage.json` file to include your desired conf
 
 This ensures that Stremio starts with your custom configuration settings.
 
+## Known issues
+
+- Unable to login through facebook
+
 ## Common Use Cases
 
 - [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)

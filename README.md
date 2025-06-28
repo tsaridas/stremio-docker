@@ -27,6 +27,7 @@ This is the easy option since there is **no need to setup dns or have an externa
 To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add to your hosts in case of local ip address.
 
 If you setup the IPADDRESS environment variable to 0-0-0-0 the container will automatically try to get your public IP address and setup the certificates and DNS. This won't work for IPv6.
+
 ---
 
 3. If you set IPADDRESS to your private ip address then the server should still set the certificate to the wildcard \*.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private ip is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :

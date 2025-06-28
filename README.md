@@ -268,7 +268,7 @@ This ensures that Stremio starts with your custom configuration settings.
 
 ## Known issues
 
-- Unable to login through facebook
+- Unable to login through facebook.
 
 ## Common Use Cases
 

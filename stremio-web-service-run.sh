@@ -15,6 +15,9 @@
 # - CERT_FILE:     Optional. Custom certificate file name (used with DOMAIN)
 # - DOMAIN:        Optional. Custom domain name for certificate (used with CERT_FILE)
 # - WEBUI_INTERNAL_PORT:          Optional. Port to expose webui, defaults to 8080
+# - USERNAME:      Optional. Username for HTTP basic authentication
+# - PASSWORD:      Optional. Password for HTTP basic authentication
+# - AUTO_SERVER_URL: Optional. Set to 1 to enable automatic server URL detection
 
 #############################################
 # INITIAL SERVER CONFIGURATION
@@ -22,6 +25,8 @@
 
 # Set the configuration folder path.
 CONFIG_FOLDER="${APP_PATH:-${HOME}/.stremio-server/}"
+AUTH_CONF_FILE="/etc/nginx/auth.conf"
+HTPASSWD_FILE="/etc/nginx/.htpasswd"
 
 # Update paths in server-settings.json if it exists
 if [ -f "${CONFIG_FOLDER}server-settings.json" ]; then
@@ -45,10 +50,18 @@ fi
 # HELPER FUNCTIONS
 #############################################
 
-# Function to start HTTP server with specified options
+# Function to start HTTP server with specified options (add-traefik version)
 start_http_server() {
     echo "[SERVER] Starting HTTP server on port 8080 with options: $*"
     http-server build/ -p ${WEBUI_INTERNAL_PORT:-8080} -d false "$@"
+}
+
+# Function to start nginx server (main version - for backwards compatibility)
+start_nginx_server() {
+    if [ -n "${WEBUI_INTERNAL_PORT}" ] && [ "${WEBUI_INTERNAL_PORT}" -ge 1 ] && [ "${WEBUI_INTERNAL_PORT}" -le 65535 ]; then
+        sed -i "s/8080/"${WEBUI_INTERNAL_PORT}"/g" /etc/nginx/http.d/default.conf
+    fi
+    nginx -g "daemon off;"
 }
 
 # Function to get public IP address from various services
@@ -190,7 +203,20 @@ if [ -n "${SERVER_URL}" ]; then
     echo "[CONFIG] Updating localStorage.json to use configured server URL"
     echo "[CONFIG] Replacing 'http://127.0.0.1:11470/' with '${SERVER_URL}'"
     cp localStorage.json build/localStorage.json
-    sed -i "s|http://127.0.0.1:11470/|${SERVER_URL}|g" build/localStorage.json
+    touch build/server_url.env
+    sed -i "s|http://127.0.0.1:11470/|"${SERVER_URL}"|g" build/localStorage.json
+elif [ -n "${AUTO_SERVER_URL}" ] && [ "${AUTO_SERVER_URL}" -eq 1 ]; then
+    cp localStorage.json build/localStorage.json
+fi
+
+# HTTP basic authentication setup (from main branch)
+if [ -n "${USERNAME}" ] && [ -n "${PASSWORD}" ]; then
+    echo "[AUTH] Setting up HTTP basic authentication..."
+    htpasswd -bc "${HTPASSWD_FILE}" "${USERNAME}" "${PASSWORD}"
+    echo 'auth_basic "Restricted Content";' >"${AUTH_CONF_FILE}"
+    echo 'auth_basic_user_file '"${HTPASSWD_FILE}"';' >>"${AUTH_CONF_FILE}"
+else
+    echo "[AUTH] No HTTP basic authentication will be used."
 fi
 
 #############################################
@@ -201,8 +227,8 @@ fi
 echo "[STARTUP] Starting Stremio server at $(date)"
 echo "[STARTUP] Configuration summary:"
 echo "  - Config folder: ${CONFIG_FOLDER}"
-echo "  - IP Address: ${IPADDRESS}"
-echo "  - Server URL: ${SERVER_URL}"
+echo "  - IP Address: ${IPADDRESS:-not set}"
+echo "  - Server URL: ${SERVER_URL:-not set}"
 
 # Handle different startup modes based on configuration
 if [ -n "${IPADDRESS}" ]; then
@@ -212,7 +238,8 @@ if [ -n "${IPADDRESS}" ]; then
     SERVER_PID=$!
     echo "[STARTUP] Server started with PID: ${SERVER_PID}"
 
-    # Handle IP address resolution for "any address" values
+    # Handle IP address resolution for "any address" values or special cases
+    if echo "${IPADDRESS}" | grep -qE '^(0\.0\.0\.0|any)$'; then
         echo "[STARTUP] IPADDRESS is set to '${IPADDRESS}' which indicates 'any address'"
         PUBLIC_IP=$(get_public_ip)
 
@@ -242,7 +269,7 @@ if [ -n "${IPADDRESS}" ]; then
         fi
     fi
 
-    # Certificate setup for HTTPS
+    # Certificate setup for HTTPS - try add-traefik method first, fallback to main method
     CERT_URL="http://localhost:11470/get-https?authKey=&ipAddress=${IPADDRESS}"
     echo "[HTTPS] Attempting to fetch HTTPS certificate for IP: ${IPADDRESS}"
     echo "[HTTPS] Using URL: ${CERT_URL}"
@@ -259,55 +286,109 @@ if [ -n "${IPADDRESS}" ]; then
     set +x
 
     if [ "${CURL_STATUS}" -ne 0 ]; then
-        echo "[HTTPS] ⚠ Failed to fetch HTTPS certificate. Curl exited with status: ${CURL_STATUS}"
-    else
-        echo "[HTTPS] ✓ Successfully requested HTTPS certificate"
-    fi
-
-    # Extract certificate information
-    echo "[HTTPS] Extracting certificate information from ${CONFIG_FOLDER}httpsCert.json"
-    IMPORTED_DOMAIN="$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}httpsCert.json")"
-    EXTRACT_STATUS="$?"
-    IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
-
-    if [ "${EXTRACT_STATUS}" -eq 0 ]; then
-        echo "[HTTPS] ✓ Successfully extracted domain from certificate: ${IMPORTED_DOMAIN}"
-        echo "[HTTPS] Certificate file location: ${IMPORTED_CERT_FILE}"
-
-        # Only update hosts file if UPDATE_HOSTS is set to true
-        if [ "${UPDATE_HOSTS:-false}" = "true" ]; then
-            echo "[HOSTS] Adding entry to /etc/hosts: '${IPADDRESS} ${IMPORTED_DOMAIN}'"
-            echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
-        fi
+        echo "[HTTPS] ⚠ Failed to fetch HTTPS certificate using add-traefik method. Curl exited with status: ${CURL_STATUS}"
+        echo "[HTTPS] Trying main branch certificate method as fallback..."
         
-        if [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
-        echo "[SERVER] Starting Web UI server with HTTPS enabled"
-        echo "[SERVER] Using certificate: ${IMPORTED_CERT_FILE}"
-        start_http_server -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
+        # Fallback to main branch method
+        node certificate.js --action fetch
+        EXTRACT_STATUS="$?"
+
+        if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -f "/srv/stremio-server/certificates.pem" ]; then
+            echo "[HTTPS] ✓ Successfully fetched certificate using main branch method"
+            IP_DOMAIN=$(echo "${IPADDRESS}" | sed 's/\./-/g')
+            
+            # Only update hosts file if UPDATE_HOSTS is set to true
+            if [ "${UPDATE_HOSTS:-false}" = "true" ]; then
+                echo "[HOSTS] Adding entry to /etc/hosts: '${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks'"
+                echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
+            fi
+            
+            # Use nginx if available, otherwise fall back to http-server
+            if command -v nginx >/dev/null 2>&1 && [ -f "/etc/nginx/https.conf" ]; then
+                echo "[SERVER] Using nginx for HTTPS"
+                cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
+                node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${IP_DOMAIN}.519b6502d940.stremio.rocks" --json-path "${CONFIG_FOLDER}httpsCert.json"
+                start_nginx_server
+            else
+                echo "[SERVER] Nginx not available, falling back to http-server"
+                start_http_server
+            fi
+        else
+            echo "[HTTPS] ⚠ Both certificate methods failed. Starting with HTTP"
+            start_http_server
+        fi
     else
-            echo "[HTTPS] ⚠ Failed to setup HTTPS due to missing or invalid certificate"
+        echo "[HTTPS] ✓ Successfully requested HTTPS certificate using add-traefik method"
+        
+        # Extract certificate information (add-traefik method)
+        echo "[HTTPS] Extracting certificate information from ${CONFIG_FOLDER}httpsCert.json"
+        IMPORTED_DOMAIN="$(node certificate.js --action extract --json-path "${CONFIG_FOLDER}httpsCert.json")"
+        EXTRACT_STATUS="$?"
+        IMPORTED_CERT_FILE="${CONFIG_FOLDER}${IMPORTED_DOMAIN}.pem"
+
+        if [ "${EXTRACT_STATUS}" -eq 0 ]; then
+            echo "[HTTPS] ✓ Successfully extracted domain from certificate: ${IMPORTED_DOMAIN}"
+            echo "[HTTPS] Certificate file location: ${IMPORTED_CERT_FILE}"
+
+            # Only update hosts file if UPDATE_HOSTS is set to true
+            if [ "${UPDATE_HOSTS:-false}" = "true" ]; then
+                echo "[HOSTS] Adding entry to /etc/hosts: '${IPADDRESS} ${IMPORTED_DOMAIN}'"
+                echo "${IPADDRESS} ${IMPORTED_DOMAIN}" >> /etc/hosts
+            fi
+            
+            if [ -n "${IMPORTED_DOMAIN}" ] && [ -f "${IMPORTED_CERT_FILE}" ]; then
+                echo "[SERVER] Starting Web UI server with HTTPS enabled"
+                echo "[SERVER] Using certificate: ${IMPORTED_CERT_FILE}"
+                start_http_server -S -C "${IMPORTED_CERT_FILE}" -K "${IMPORTED_CERT_FILE}"
+            else
+                echo "[HTTPS] ⚠ Failed to setup HTTPS due to missing or invalid certificate"
+                echo "[HTTPS] ⚠ Attempting to start Web UI server with HTTP instead"
+                echo "[SERVER] Starting Web UI server with HTTP"
+                start_http_server
+            fi
+        else
+            echo "[HTTPS] ⚠ Failed to extract domain from certificate, exit code: ${EXTRACT_STATUS}"
+            echo "[HTTPS] ⚠ This may indicate a problem with the certificate generation process"
             echo "[HTTPS] ⚠ Attempting to start Web UI server with HTTP instead"
             echo "[SERVER] Starting Web UI server with HTTP"
             start_http_server
         fi
-    else
-        echo "[HTTPS] ⚠ Failed to extract domain from certificate, exit code: ${EXTRACT_STATUS}"
-        echo "[HTTPS] ⚠ This may indicate a problem with the certificate generation process"
-        echo "[HTTPS] ⚠ Attempting to start Web UI server with HTTP instead"
-        echo "[SERVER] Starting Web UI server with HTTP"
-        start_http_server
     fi
-elif [ -n "${CERT_FILE}" ] && [ -n "${DOMAIN}" ]; then
-    node certificate.js --action load --pem-path "${CONFIG_FOLDER}${CERT_FILE}" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
-    if [ "$?" -eq 0 ]; then
+elif [ -n "${CERT_FILE}" ]; then
+    # Custom certificate file handling (from main branch)
+    if [ -f "${CONFIG_FOLDER}${CERT_FILE}" ]; then
+        echo "[HTTPS] Using custom certificate file: ${CONFIG_FOLDER}${CERT_FILE}"
+        
+        # Start server first
         node server.js &
-        start_http_server -S -C "${CONFIG_FOLDER}${CERT_FILE}" -K "${CONFIG_FOLDER}${CERT_FILE}"
+        
+        # Try nginx method first if available
+        if command -v nginx >/dev/null 2>&1 && [ -f "/etc/nginx/https.conf" ]; then
+            echo "[SERVER] Using nginx with custom certificate"
+            cp "${CONFIG_FOLDER}${CERT_FILE}" /srv/stremio-server/certificates.pem
+            cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
+            node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
+            start_nginx_server
+        else
+            echo "[SERVER] Using http-server with custom certificate"
+            start_http_server -S -C "${CONFIG_FOLDER}${CERT_FILE}" -K "${CONFIG_FOLDER}${CERT_FILE}"
+        fi
     else
-        echo "Failed to load certificate. Falling back to HTTP."
+        echo "[HTTPS] ⚠ Custom certificate file not found: ${CONFIG_FOLDER}${CERT_FILE}"
         node server.js &
         start_http_server
     fi
 else
+    # No IPADDRESS or CERT_FILE, start with HTTP only
+    echo "[STARTUP] No certificate configuration found, starting with HTTP only"
     node server.js &
-    start_http_server
+    
+    # Choose between nginx and http-server based on availability
+    if command -v nginx >/dev/null 2>&1; then
+        echo "[SERVER] Using nginx for HTTP"
+        start_nginx_server
+    else
+        echo "[SERVER] Using http-server for HTTP"
+        start_http_server
+    fi
 fi

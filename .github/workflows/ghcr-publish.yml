@@ -1,9 +1,6 @@
 name: ghcr-publish
 
 on:
-  push:
-    branches:
-      - 'development'
   pull_request:
     types: [opened, synchronize]
 
@@ -18,6 +15,8 @@ env:
   REGISTRY_TAG: ${{ github.head_ref || github.ref_name }} 
   VERSION: testing
   BRANCH: development
+  TAG: 
+  TARFILE: 
 
 jobs:
   build:
@@ -65,72 +64,175 @@ jobs:
             docker load -i $image
           done
 
+      - name: Setup environment
+        run: |
+          npm install @playwright/test
+          npx playwright install --with-deps
+          docker network create --subnet=172.18.0.0/24 custom_network
+          echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
+
       - name: Run Docker Container and Test (1st run)
         run: |
           platform=${{ matrix.platform }}
-          # We are using a custom network to avoid conflicts with the default network. Port forwarding is not really required.
-          docker network create --subnet=172.18.0.0/24 custom_network
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-
-          npm install @playwright/test
-          npx playwright install --with-deps
-          cd tests
-          npx playwright test --timeout=60000 || (
-            docker ps -a;
-            docker logs $(docker ps -a | grep stremio | awk '{print $1}');
-            exit 1;
-          )
-          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
-          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
-          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
-
-      - name: Run Docker Container and Test (2nd run with IPADDRESS)
-        run: |
-          platform=${{ matrix.platform }}
-          echo "172.18.0.3 172-18-0-3.519b6502d940.stremio.rocks" | sudo tee -a /etc/hosts
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
           cd tests
           sleep 15 # wait for server to startup
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test --timeout=60000 || (
+
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+
+          npx playwright test settings.spec --timeout=60000 || (
             docker ps -a;
-            docker logs $(docker ps -a | grep stremio | awk '{print $1}');
+            docker logs "$CONTAINER_ID";
             exit 1;
           )
-          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
-          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
-          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
+          docker logs "$CONTAINER_ID";
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
 
-      - name: Run Docker Container and Test (3rd run with CERT_FILE and DOMAIN)
+      - name: Run Docker Container and Test (with http 11470)
         run: |
           platform=${{ matrix.platform }}
-          sudo rm -f ~/.stremio-server/httpsCert.json
-          docker run -d --network custom_network --ip 172.18.0.3 -p 8080:8080 -p 12470:12470 -e CASTING_DISABLED=1 -e CERT_FILE=172-18-0-3.519b6502d940.stremio.rocks.pem -e DOMAIN=172-18-0-3.519b6502d940.stremio.rocks -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-          cd tests
-          sleep 10 # wait for server to startup
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test --timeout=60000 || (
-            docker ps -a;
-            docker logs $(docker ps -aq);
-            exit 1;
-          )
-          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
-          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
-          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
-
-      - name: Run Docker Container and Test (4th run with WEBUI_LOCATION and WEBUI_INTERNAL_PORT)
-        run: |
-          platform=${{ matrix.platform }}
-          docker run -d --network custom_network --ip 172.18.0.3 -p 7070:9090 -p 11470:11470 -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_INTERNAL_PORT=9090 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
-          cd tests
-          sleep 10 # wait for server to startup
-          WEB_URL="http://172.18.0.3:9090" npx playwright test --timeout=60000 || (
-            docker ps -a;
-            docker logs $(docker ps -a | grep stremio | awk '{print $1}');
-            exit 1;
-          )
+          docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           
-          docker logs $(docker ps -a | grep stremio | awk '{print $1}');
-          docker stop $(docker ps -a | grep stremio | awk '{print $1}')
-          docker rm $(docker ps -a | grep stremio | awk '{print $1}')
+          cd tests
+          sleep 15 # wait for server to startup
+
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+
+          SERVER_URL="http://172.18.0.3:11470" npx playwright test settings.spec --timeout=60000 || (
+            docker ps -a;
+            docker logs "$CONTAINER_ID";
+            exit 1;
+          )
+          docker logs "$CONTAINER_ID";
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
+
+      - name: Run Docker Container and Test (with IPADDRESS)
+        run: |
+          platform=${{ matrix.platform }}
+          docker run -d --network custom_network --ip 172.18.0.3 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
+          cd tests
+          sleep 60 # wait longer for server to startup
+
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" npx playwright test settings.spec --timeout=60000 || (
+            docker ps -a;
+            docker logs "$CONTAINER_ID";
+            exit 1;
+          )
+          echo "--------------------------------"
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test settings.spec --timeout=60000 || (
+            docker ps -a;
+            docker logs "$CONTAINER_ID";
+            exit 1;
+          )
+          echo "--------------------------------"
+          docker logs "$CONTAINER_ID"
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
+
+      - name: Run Docker Container and Test (with SERVER_URL)
+        run: |
+          platform=${{ matrix.platform }}
+          docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 -e SERVER_URL="http://172.18.0.3:8080/" --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
+          cd tests
+          sleep 15 # wait for server to startup
+          
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+
+          npx playwright test settings_server_url.spec --timeout=60000 || (
+            docker ps -a;
+            docker logs "$CONTAINER_ID";
+            exit 1;
+          )
+          docker logs "$CONTAINER_ID";
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
+  
+      - name: Run Docker Container and Test (with AUTO_SERVER_URL)
+        run: |
+          platform=${{ matrix.platform }}
+          docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 -e AUTO_SERVER_URL=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
+          cd tests
+          sleep 15 # wait for server to startup
+              
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+    
+          npx playwright test settings_server_url.spec --timeout=60000 || (
+            docker ps -a;
+            docker logs "$CONTAINER_ID";
+            exit 1;
+          )
+          docker logs "$CONTAINER_ID";
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
+
+      - name: Run Docker Container and Test (with WEBUI_LOCATION and WEBUI_INTERNAL_PORT)
+        run: |
+          platform=${{ matrix.platform }}
+          docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e CASTING_DISABLED=1 -e WEBUI_INTERNAL_PORT=9090 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
+          cd tests
+          sleep 15 # wait for server to startup
+
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+
+          WEB_URL="http://172.18.0.3:9090" SERVER_URL="http://172.18.0.3:9090" npx playwright test settings.spec --timeout=60000 || (
+            docker ps -a;
+            docker logs "$CONTAINER_ID";
+            exit 1;
+          )
+            
+          docker logs "$CONTAINER_ID";
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
+
+      - name: Run Docker Container and Test (with basic auth)
+        run: |
+          platform=${{ matrix.platform }}
+          docker run -d --network custom_network --ip 172.18.0.3 -e NO_CORS=1 -e USERNAME=default_user -e PASSWORD=default_pass -e CASTING_DISABLED=1 --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
+          
+          cd tests
+          sleep 15 # wait for server to startup
+
+          CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
+          docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf
+          docker exec "$CONTAINER_ID" ps aux
+          docker logs "$CONTAINER_ID"
+  
+          AUTH=true npx playwright test settings.spec --timeout=60000 || (
+            docker ps -a;
+            docker logs "$CONTAINER_ID";
+            exit 1;
+          )
+                
+          docker logs "$CONTAINER_ID";
+          docker stop "$CONTAINER_ID"
+          docker rm "$CONTAINER_ID"
 
       - name: Upload image
         uses: actions/upload-artifact@v4

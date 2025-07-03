@@ -121,7 +121,7 @@ jobs:
           docker run -d --network custom_network --ip 172.18.0.3 -e CASTING_DISABLED=1 -e IPADDRESS=172.18.0.3 -v ~/.stremio-server:/root/.stremio-server --platform ${{ matrix.platform }} ${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}
           
           cd tests
-          sleep 120 # wait for server to startup
+          sleep 60 # wait longer for server to startup
 
           CONTAINER_ID=$(docker ps -a | grep stremio | awk '{print $1}')
           docker exec "$CONTAINER_ID" cat /etc/nginx/http.d/default.conf

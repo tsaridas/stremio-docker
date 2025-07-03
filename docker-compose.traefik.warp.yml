@@ -1,4 +1,4 @@
-# Deploy Stremio and the streaming server behind a VPN using Gluetun, and reverse proxied with Traefik.
+# Deploy Stremio and the streaming server behind warp, and reverse proxied with Traefik.
 # This setup allows you to stream movies and TV shows from various sources while maintaining privacy and security.
 #
 # These environment variables are used to configure your containers for VPN, networking, Traefik, and service-specific behavior.
@@ -30,20 +30,16 @@
 services:
   stremio:
     # 🔹🔹 Stremio 🔹🔹
-    # Stream Movies/TV over debrid instantly.
-    depends_on:
-      gluetun:
-        condition: service_healthy
     build:
       context: ${SRC_PATH:-./src}/stremio/stremio-docker
       dockerfile: Dockerfile
     image: th3w1zard1/stremio-docker:latest
     container_name: stremio
-    network_mode: service:gluetun
+    network_mode: service:warp
     volumes:
       - ${CONFIG_PATH:-./configs}/stremio/root/.stremio-server:/root/.stremio-server
     environment:
-      # Note: You CANNOT use the autodetection '0.0.0.0' unless traefik is *also* routed through the VPN.
+      # Note: You CANNOT use the autodetection '0.0.0.0' unless traefik is *also* routed through the VPN/warp (which it isn't by default).
       IPADDRESS: 127.0.0.1  # Set to your public/LAN IP address.
 #     SERVER_URL: "https://0-0-0-0.519b6502d940.stremio.rocks:12470/"
       # Force a streaming server URL in the 'streaming' tab of the web UI.
@@ -82,85 +78,73 @@ services:
       homepage.href: https://stremio.${DOMAIN}/
       homepage.description: A one-stop hub for video content aggregation, allowing you to stream movies, series, and more from various sources.
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:11470 || curl -fs http://127.0.0.1:12470"]
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:11470 > /dev/null 2>&1 || curl -fs https://127.0.0.1:12470 > /dev/null 2>&1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     restart: always
 
-  gluetun:  # United States
-    # 🔹🔹 Gluetun 🔹🔹  # https://github.com/qdm12/gluetun
-    # Gluetun is a VPN client that supports various VPN protocols, providing secure and private internet access for your applications.
-    image: ghcr.io/qdm12/gluetun
-    container_name: gluetun
-    hostname: gluetun
+
+  warp:
+    # 🔹🔹 Cloudflare WARP 🔹🔹
+    # Cloudflare WARP is a VPN service that allows you to bypass censorship and access the internet privately.
+    # Use this for all services that don't need listening ports exposed
+    image: caomingjun/warp:latest
+    container_name: warp
     networks:
-      publicnet:
-        ipv4_address: ${GLUETUN_IPV4_ADDRESS:-10.76.128.98}
+      - publicnet
+    # add removed rule back (https://github.com/opencontainers/runc/pull/3468)
+    device_cgroup_rules:
+      - 'c 10:200 rwm'
+    expose:
+      - 1080  # WARP SOCKS5 Proxy
+      - 443
+      - 8080  # Stremio WebUI
+      - 11470  # Stremio HTTP Streaming Server
+      - 12470  # Stremio HTTPS Streaming Server
+    ports:
+      - 1080:1080  # WARP SOCKS5 Proxy
+      - 443:443/udp
+      - 11470:11470  # Stremio HTTP Streaming Server (HTTP)
+      - 12470:12470  # Stremio HTTPS Streaming Server (HTTPS)
+    environment:
+      - WARP_SLEEP=2
+      - WARP_LICENSE_KEY=${WARP_LICENSE_KEY}
+      # - WARP_ENABLE_NAT=1 # enable nat
+      - TUNNEL_TOKEN=${WARP_TUNNEL_TOKEN}
     cap_add:
+      # Docker already have them, these are for podman users
+      - MKNOD
+      - AUDIT_WRITE
+      # additional required cap for warp, both for podman and docker
       - NET_ADMIN
     sysctls:
-      net.ipv6.conf.all.disable_ipv6: 1
-    extra_hosts:
-      - host.docker.internal:172.17.0.1
-      - gluetun:${GLUETUN_IPV4_ADDRESS:-10.76.128.98}
-      - vpn-us.premiumize.me:199.58.86.204
-    expose:  # unnecessary, but helps for things like `docker inspect` and portainer.
-      - 8080  # Stremio
-      - 11470 # Stremio HTTP Streaming Server
-      - 12470 # Stremio HTTPS Streaming Server
-    devices:
-      - "/dev/net/tun:/dev/net/tun" # https://github.com/qdm12/gluetun-wiki/blob/main/errors/tun.md
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv4.conf.all.src_valid_mark=1
+      # uncomment for nat
+      # - net.ipv4.ip_forward=1
+      # - net.ipv6.conf.all.forwarding=1
+      # - net.ipv6.conf.all.accept_ra=2
     volumes:
-      - ${CONFIG_PATH:-./configs}/gluetun/premiumize/config:/gluetun
-      - ${CONFIG_PATH:-./configs}/gluetun/premiumize/us/etc/openvpn:/etc/openvpn
-    ports:
-      - "8080:8080"  # Web UI (feel free to remove this line since we are using Traefik)
-      # The following ports are used for the streaming server.
-      - "12470:12470"  # HTTPS Streaming Server (recommended)
-      - "11470:11470"  # HTTP Streaming Server (fallback)
-    environment:
-      - VPN_SERVICE_PROVIDER=custom
-      - OPENVPN_CUSTOM_CONFIG=/gluetun/vpn-us.premiumize.me.ovpn
-      - OPENVPN_CIPHERS=AES-256-CBC
-      - OPENVPN_FLAGS=--auth-user-pass /etc/openvpn/auth.conf
-      - BLOCK_ADS=on  # Uses ads hostnames and IP addresses block lists for Unbound: https://github.com/qdm12/files
-      - BLOCK_MALICIOUS=on  # Uses malicious hostnames and IP addresses block lists for Unbound: https://github.com/qdm12/files
-      - BLOCK_SURVEILLANCE=on  # Uses surveillance hostnames and IP addresses block lists for Unbound: https://github.com/qdm12/files
-      - DOT_IPV6=off
-      # firewall references:
-      # https://github.com/qdm12/gluetun-wiki/blob/main/setup/options/firewall.md
-      # https://github.com/qdm12/gluetun-wiki/blob/main/errors/firewall.md
-      # https://github.com/qdm12/gluetun-wiki/blob/main/errors/routing.md
-      # Comma separated subnets that Gluetun and the containers sharing its network stack are allowed to access. This involves firewall and routing modifications.
-      - FIREWALL_OUTBOUND_SUBNETS=10.76.0.0/16,172.17.0.0/16,100.64.0.0/10  # publicnet,docker0,tailscale. feel free to remove the tailscale subnet if you don't use it.
-      - OPENVPN_IPV6=off
-      - OPENVPN_PROTOCOL=tcp
-      - OPENVPN_ROOT=no
-      - OPENVPN_VERSION=2.6
-      - STORAGE_FILEPATH=/gluetun/servers/servers.json
-      - VERSION_INFORMATION=on
-      - VPN_TYPE=openvpn
+      - ${CONFIG_PATH:-./configs}/warp/data:/var/lib/cloudflare-warp
     labels:
       traefik.enable: "true"
       # Stremio Web
       traefik.http.routers.stremio-web.service: stremio-web
-      traefik.http.routers.stremio-web.rule: Host(`stremio-web.${DOMAIN}`)
+      traefik.http.routers.stremio-web.rule: Host(`stremio-web.${DOMAIN}`) || Host(`stremio-web.${SECOND_DOMAIN}`) || Host(`stremio-web.${DUCKDNS_SUBDOMAIN}.duckdns.org`) || Host(`stremio-web.${TS_HOSTNAME}.duckdns.org`)
       traefik.http.services.stremio-web.loadbalancer.server.scheme: https
       traefik.http.services.stremio-web.loadbalancer.server.port: 8080
-      # Stremio HTTPS Streaming Server
-      traefik.http.routers.stremio.service: stremio
-      traefik.http.routers.stremio.rule: Host(`stremio.${DOMAIN}`)
-      traefik.http.services.stremio.loadbalancer.server.scheme: https
-      traefik.http.services.stremio.loadbalancer.server.port: 12470
       # Stremio HTTP Streaming Server
-      # NOTE: in my experience the 11470 never works correctly. Has various issues I could never debug.
-      # I recommend using the HTTPS streaming server instead (12470, configured above).
-      traefik.http.routers.stremio-fallback.service: stremio-fallback
-      traefik.http.routers.stremio-fallback.rule: Host(`stremio.${DOMAIN}`)
-      traefik.http.services.stremio-fallback.loadbalancer.server.scheme: http
-      traefik.http.services.stremio-fallback.loadbalancer.server.port: 11470
+      traefik.http.routers.stremio-http-server.service: stremio-http-server
+      traefik.http.routers.stremio-http-server.rule: Host(`stremio-fallback.${DOMAIN}`) || Host(`stremio-fallback.${SECOND_DOMAIN}`) || Host(`stremio-fallback.${DUCKDNS_SUBDOMAIN}.duckdns.org`) || Host(`stremio-fallback.${TS_HOSTNAME}.duckdns.org`)
+      traefik.http.services.stremio-http-server.loadbalancer.server.scheme: http
+      traefik.http.services.stremio-http-server.loadbalancer.server.port: 11470
+      # Stremio HTTPS Streaming Server
+      traefik.http.routers.stremio-https-server.service: stremio-https-server
+      traefik.http.routers.stremio-https-server.rule: Host(`stremio.${DOMAIN}`) || Host(`stremio.${SECOND_DOMAIN}`) || Host(`stremio.${DUCKDNS_SUBDOMAIN}.duckdns.org`) || Host(`stremio.${TS_HOSTNAME}.duckdns.org`)
+      traefik.http.services.stremio-https-server.loadbalancer.server.scheme: https
+      traefik.http.services.stremio-https-server.loadbalancer.server.port: 12470
     restart: always
 
   # Multiple DNS challenge provider are not supported with Traefik,
@@ -172,10 +156,7 @@ services:
     image: traefik
     container_name: traefik
     hostname: traefik
-    extra_hosts:
-      - host.docker.internal:172.17.0.1
     networks:
-      - auth-net
       - traefik_public
     ports:
       # Listen on port 80, default for HTTP, necessary to redirect to HTTPS

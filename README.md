@@ -10,88 +10,14 @@ I built this to run Stremio on my Raspberry Pi 5 and couldn't find something tha
 
 ## Features
 
-Idea here is to have both Stremio web player and server run on the same container and if IPADDRESS env variable is set generate a certificate and use it for both.
-
-Both the Web player and server run on port 8080 behind nginx. One does not need to expose server port anymore. You can set AUTO_SERVER_URL or SERVER_URL to avoid setting the server manually.
-
----
-
-1. If you exposed the port 8080 for HTTP just point your streaming server (http://{LAN IP}:8080/) in settings to the lan ip address and set the server to be http://{LAN IP}:8080/ and enjoy. Make sure you set NO_CORS=1 with this option. 
-
-This is the easy option since there is **no need to setup dns or have an external ip. Do not set the IPADDRESS env variable** if you just want HTTP. No need to expose port 12470 with this setup option but you will only be able to use the webplayer with HTTP.
-
-```bash
-docker run -d \
-  --name=stremio-docker \
-  -e NO_CORS=1 \
-  -e AUTO_SERVER_URL=1 \
-  -p 8080:8080 \
-  tsaridas/stremio-docker:latest
-```
-
----
-
-2. If you set your public IP address for the `IPADDRESS` environment variable, then the Stremio server should automatically set the certificate to the wildcard `*.519b6502d940.stremio.rocks` and should generate an A record for your public IP address. Alternatively you can set the value of `IPADDRESS` to 0-0-0-0 to automatically get your public ip address. You should then expose port 8080 to your servers and then setup port forwarding to your router to point these two ports to your server. Once this is done you can point the WebPlayer to your streaming server on port 8080. 
-
-To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add to your hosts in case of local ip address.
-
-If you setup the IPADDRESS environment variable to 0-0-0-0 the container will automatically try to get your public IP address and setup the certificates and DNS. This won't work for IPv6.
-
-```bash
-docker run -d \
-  --name=stremio-docker \
-  -e NO_CORS=1 \
-  -e AUTO_SERVER_URL=1 \
-  -e IPADDRESS=0-0-0-0
-  -p 8080:8080 \
-  tsaridas/stremio-docker:latest
-```
-
----
-
-3. If you set IPADDRESS to your private ip address then the server should still set the certificate to the wildcard \*.519b6502d940.stremio.rocks and have the subdomain set as 192-168-1-10 assuming your private ip is 192.168.1.10. Full domain should look like 192-168-1-10.519b6502d940.stremio.rocks. You can then setup your /etc/hosts in Linux or c:\Windows\System32\Drivers\etc\hosts in windows to point that host to your lan address like :
-
-```bash
-192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks # this is an example. set your own ip and fqdn here.
-```
-
-Then you can point your browser to https://192-168-1-10.519b6502d940.stremio.rocks:8080 and setup Streaming server to https://192-168-1-10.519b6502d940.stremio.rocks:8080 .
-
-To find the FQDN that the certificate is pointing to, look at the folder you mounted for a file with a `.pem` extension. The filename is the domain you need to add to your hosts in case of local ip address.
-
----
-
-4. If you want to use your own custom certificate and domain, you can specify them using the `CERT_FILE` and `DOMAIN` environment variables. The server and web player will load the specified certificate.
-
-```bash
-$ docker run -d \
-  --name=stremio-docker \
-  -e CERT_FILE=certificate.pem \
-  -e DOMAIN=your.custom.domain \
-  -v ~/.stremio-server:/root/.stremio-server \
-  -p 8080:8080/tcp \
-  -p 12470:12470/tcp \
-  --restart unless-stopped \
-  tsaridas/stremio-docker:latest
-```
-
-Make sure the certificate file is placed in the same folder that you expose in `/root/.stremio-server`. For example, if your certificate is located at `~/.stremio-server/certificate.pem` on your host machine, it will be accessible inside the container at `/root/.stremio-server/certificate.pem`.
-
-The WebPlayer will be available at `https://your.custom.domain:8080` and the streaming server at `https://your.custom.domain:12470`.
-
----
-
-## Thoughts
-
-You don't need to have both Stremio Server and Web Player running. One could use the Stremio web player ([https://app.strem.io/#/](https://app.strem.io/#/)). Stremio's web player should also work for options 2 and 3 above because the web player requires that the server's URL is in HTTPS.
-
-You can also use the native clients for options 2-3 since they use https but those clients also run a server so there is no point doing this.
-
-Another option is to use an External Media player like VLC or any other supported by stremio to avoid transcoding on the docker container. This would help if you don't have GPU transcoding or some other good CPU.
-
-## Shell
-
-I added stremio shell html files under http(s)://{Your stremio url}:{port}/shell/ . One should be able to get the old online stremio version of the files that are in app.stremio.io. Defaults to the normal webplayer on the root "/". I have had issues playing youtube videos with these files though and I assume so will you.
+- **All-in-One:** Bundles Stremio server, web player, and ffmpeg in a single container.
+- **Simple Networking:** Both the web player and server run on port 8080 behind nginx, so you only need to expose one port.
+- **Automatic Server Configuration:** Use `AUTO_SERVER_URL` or `SERVER_URL` to automatically configure the streaming server URL in the web player.
+- **HTTPS Out-of-the-Box:** Automatically generates and uses SSL certificates when an `IPADDRESS` is provided.
+- **Custom Certificates:** Supports using your own domain and SSL certificates.
+- **Hardware Acceleration:** Includes ffmpeg with VAAPI support for Intel and AMD GPUs.
+- **Cross-Platform:** Builds are available for `amd64`, `arm/v6`, `arm/v7`, `arm64/v8`, and `ppc64le`.
+- **HTTP Basic Auth:** Secure your instance with a username and password.
 
 ## Requirements
 
@@ -101,17 +27,16 @@ I added stremio shell html files under http(s)://{Your stremio url}:{port}/shell
 
 ### 1. Install Docker
 
-If you haven't installed Docker yet, install it by running:
+If you haven't installed Docker yet, you can usually install it with:
 
 ```bash
-$ curl -sSL https://get.docker.com | sh
-$ sudo usermod -aG docker $(whoami)
-$ exit
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker $(whoami)
+exit
 ```
-
 And log in again.
 
-### 2. Run Stremio Web + Server
+### 2. Run Stremio
 
 **Option A: Using Docker Compose (Recommended)**
 ```bash
@@ -126,7 +51,7 @@ The compose file includes common settings like `NO_CORS: 1` and `AUTO_SERVER_URL
 
 **Option B: Using Docker Run**
 ```bash
-$ docker run -d \
+docker run -d \
   --name=stremio-docker \
   -e NO_CORS=1 \
   -e AUTO_SERVER_URL=1 \
@@ -136,9 +61,99 @@ $ docker run -d \
   tsaridas/stremio-docker:latest
 ```
 
-The Web UI will now be available on `http://`YOUR_SERVER_IP`:8080`. Streaming server will be auto-setup for you from the url of the browser you are opening it.
+The Web UI will now be available on `http://<YOUR_SERVER_IP>:8080`. The streaming server will be auto-configured for you from the URL of the browser you are using to open it.
 
-> 💡 Your configuration files and cache will be saved in `~/.stremio-server`
+> 💡 Your configuration files and cache will be saved in `~/.stremio-server` on your host machine.
+
+## Usage & Configuration Scenarios
+
+Here are some common ways to configure and use this Docker image.
+
+### Scenario 1: Simple HTTP (No Certificate)
+
+This is the easiest option and works on your local network without needing a public IP or DNS.
+
+- **Do not set the `IPADDRESS` environment variable.**
+- Set `NO_CORS=1` to allow the web player to connect to the server.
+- Set `AUTO_SERVER_URL=1` to automatically set the server URL.
+
+```bash
+docker run -d \
+  --name=stremio-docker \
+  -e NO_CORS=1 \
+  -e AUTO_SERVER_URL=1 \
+  -p 8080:8080 \
+  tsaridas/stremio-docker:latest
+```
+Access Stremio at `http://<YOUR_LAN_IP>:8080`.
+
+---
+
+### Scenario 2: HTTPS with Public IP
+
+This option automatically gets a certificate for a `*.stremio.rocks` subdomain and points it to your public IP address.
+
+- Set `IPADDRESS=0.0.0.0` to auto-detect your public IP.
+- Expose port `8080` and configure port forwarding on your router.
+
+```bash
+docker run -d \
+  --name=stremio-docker \
+  -e IPADDRESS=0.0.0.0 \
+  -e AUTO_SERVER_URL=1 \
+  -p 8080:8080 \
+  tsaridas/stremio-docker:latest
+```
+The container will generate a certificate and an A record for your public IP. To find the FQDN, look for a `.pem` file in your mounted volume (`~/.stremio-server`).
+
+---
+
+### Scenario 3: HTTPS with Private IP
+
+This is useful for accessing Stremio via HTTPS on your local network. It generates a certificate for a `*.stremio.rocks` subdomain that resolves to your private IP.
+
+1.  Set `IPADDRESS` to your server's private LAN IP (e.g., `192.168.1.10`).
+2.  The container will generate a certificate for a domain like `192-168-1-10.519b6502d940.stremio.rocks`. Find the exact FQDN from the `.pem` filename in your mounted volume.
+3.  Add an entry to your hosts file on your client machine to point the FQDN to your server's private IP.
+
+    - **Linux/macOS:** `/etc/hosts`
+    - **Windows:** `c:\Windows\System32\Drivers\etc\hosts`
+
+    ```
+    192.168.1.10    192-168-1-10.519b6502d940.stremio.rocks
+    ```
+4.  Run the container:
+    ```bash
+    docker run -d \
+      --name=stremio-docker \
+      -e IPADDRESS=192.168.1.10 \
+      -e AUTO_SERVER_URL=1 \
+      -p 8080:8080 \
+      -v ~/.stremio-server:/root/.stremio-server \
+      tsaridas/stremio-docker:latest
+    ```
+5.  Access Stremio at `https://192-168-1-10.519b6502d940.stremio.rocks:8080`.
+
+---
+
+### Scenario 4: HTTPS with Your Own Domain and Certificate
+
+If you have your own domain and SSL certificate, you can use them directly.
+
+- Place your certificate file (e.g., `certificate.pem`) in the directory you mount to `/root/.stremio-server`.
+- Set the `DOMAIN` and `CERT_FILE` environment variables.
+
+```bash
+docker run -d \
+  --name=stremio-docker \
+  -e DOMAIN=your.custom.domain \
+  -e CERT_FILE=certificate.pem \
+  -e AUTO_SERVER_URL=1 \
+  -v ~/.stremio-server:/root/.stremio-server \
+  -p 8080:8080 \
+  tsaridas/stremio-docker:latest
+```
+The WebPlayer will be available at `https://your.custom.domain:8080`.
 
 ## Options
 
@@ -174,139 +189,88 @@ docker rm stremio-docker
 docker pull tsaridas/stremio-docker:latest
 ```
 
-And then run the `docker run -d \ ...` command above again.
+And then run your `docker run` or `docker-compose up -d` command again.
 
-## FFMPEG
+## Advanced Topics
 
-We build our own ffmpeg from jellyfin repo with version 4.4.1-4. This includes:
+### FFMPEG
+
+We build our own ffmpeg from the jellyfin repo (version 4.4.1-4), which includes:
 - Hardware acceleration support for both Intel and AMD (VAAPI)
 - Multiple codec support (H.264, HEVC, VP9, etc.)
 - Optimized for streaming workloads
 
-Hardware acceleration is automatically detected and enabled when supported devices are available. Due to alpine missing glibc nvidia transcoding would probably not work.
+Hardware acceleration is automatically detected. To enable it, you must expose your GPU device to the container.
 
-### FFMPEG add configure options
+**Support for Intel/AMD GPU Transcoding (VAAPI)**
 
-You could build your own image with extra ffmpeg configure options. Your new option will probably require that you have the -dev libraries installed for alpine.
+If you have a supported Intel or AMD GPU on Linux, you can enable hardware transcoding by passing the `dri` device to the container:
 
-If you cannot find the -dev libraries in the alpine repo then you might need to compile them as well.
+**Docker Compose:**
+```yaml
+services:
+  stremio:
+    # ... your other config
+    devices:
+      - "/dev/dri:/dev/dri"
+```
+
+**Docker CLI:**
+```bash
+docker run -d \
+  # ... your other flags
+  --device /dev/dri:/dev/dri \
+  tsaridas/stremio-docker:latest
+```
+
+### Builds
+
+Builds are created for the following architectures:
+- `linux/amd64`
+- `linux/arm/v6`
+- `linux/arm/v7`
+- `linux/arm64/v8`
+- `linux/ppc64le`
+
+Images are automatically built and tested on pull requests using GitHub Actions.
+
+**Build tags:**
+- `latest`: Builds when a new version of the server or Web Player is released.
+- `nightly`: Builds daily from the development branch of the web player.
+- `vX.X.X`: Specific release versions.
+
+Images are hosted on [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker).
+
+### Customizing Local Storage
+
+Stremio's web app stores settings in the browser's local storage. You can pre-configure these settings by editing the `localStorage.json` file and mounting it into the container:
 
 ```bash
-  xvidcore-dev \
-  fdk-aac-dev \
-  libva-dev \
-  git \
-  x264 `ADD-DEV-PACKAGE-HERE` && \
+docker run -d \
+  # ... your other flags
+  -v /path/to/your/localStorage.json:/srv/stremio-server/build/localStorage.json \
+  tsaridas/stremio-docker:latest
 ```
 
-Add your extra options at the end line before the && :
+### Shell
 
-```bash
---prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --toolchain=hardened `ADD-OPTION-HERE` &&
-```
-
-You also add the dev libraries to the above line from configure where you see lots of -dev packages installed. Those packages are purged later so you will also need to install the normal library (not the headers) in the end.
-
-```bash
-apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac curl libva `ADD-NON-DEV-PACKAGE-HERE` && \
-```
-
-The lines shown above might have changed so just try to use common sense on where to add your package. If you want hardware acceleration you might need to compile it with the driver for your hardware. The version of ffmpeg that we compile comes with (VA-API)[https://en.wikipedia.org/wiki/Video_Acceleration_API]. You will probably need to expose your hardware device inside the container in order to make it work. Server tries to see if it can use any devices on first start. You can see those log messages to see if it worked for you.
-
-### Support for Intel/AMD CPU/GPU Transcoding
-
-If you have an Intel/AMD CPU/GPU and you are running Linux make sure you have the latest/nightly version of the container you can expose the devices to have hardware transcoding capabilities via VAAPI :
-
-```
-/dev/dri/card0
-/dev/dri/renderD128
-```
-
-docker compose :
-
-```
-devices:
-  - "/dev/dri/card0:/dev/dri/card0"
-  - "/dev/dri/renderD128:/dev/dri/renderD128"
-```
-
-cli :
-
-```
- --device /dev/dri/renderD128:/dev/dri/renderD128 --device /dev/dri/card0:/dev/dri/card0
-```
-
-**If you have some other device that you would like to add drivers for please reach out.**
-
-## Builds
-
-Builds are setup to make images for the below archs:
-
-- linux/amd64
-- linux/arm/v6
-- linux/arm/v7
-- linux/arm64/v8
-- linux/ppc64le
-
-Images are automatically built and tested on pull requests using GitHub Actions with comprehensive end-to-end testing.
-
-### Build tags
-
-- latest -> Builds automatically when new version of server or WebPlayer is released. Builds WebPlayer only from release tags.
-- nightly -> Builds automatically daily from development branch of web player and gets latest version of server.
-- release version (example v1.0.0) -> to have old releases available in case there is something wrong with new release.
-
-Images saved in [Docker Hub](https://hub.docker.com/r/tsaridas/stremio-docker)
-
-### Build your own
-
-You can build your own image by running the below command. By default it will build from development branch of web player and latest version of the server. If you want to build from latest release of web please you can add --build-arg BRANCH=release or the branch that you want.
-
-```bash
-docker build -t stremio:myserver .
-```
-
-## Advanced usage for customizing local storage
-
-Stremio's web application stores configuration data, such as login information and addon settings, in the browser's local storage. To automate these configurations or use your own custom settings, you can modify the `localStorage.json` file and pass it to the container. Under the hood, there is a script running trying to load the values of this file.
-
-To do this, first edit the `localStorage.json` file to include your desired configurations. Then, when running the container, use the following volume mount to pass your custom `localStorage.json` file to the container:
-
--v ~/localStorage.json:/srv/stremio-server/build/localStorage.json
-
-This ensures that Stremio starts with your custom configuration settings.
+The old Stremio shell files are available at `http(s)://<your_url>/shell/`. These may have issues with some content like YouTube videos.
 
 ## Known issues
 
-- Unable to login through facebook.
-
-## Common Use Cases
-
-- [Using HTTP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-HTTP)
-- [Using HTTPS Local IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Private-IP)
-- [Using HTTPS Public IP](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Public-IP)
-- [Using HTTPS with custom certificate](https://github.com/tsaridas/stremio-docker/wiki/Using-Stremio-Server-with-Custom-Certificate)
-  
-## Useful links
-
-[Stremio addons](https://stremio-addons.com/)
-[Stremio addons Beta](https://beta.stremio-addons.net/)
+- Unable to login through Facebook.
 
 ## Suggestions
 
-I recommend setting up dnsmasq or similar to cache your dns queries since Stremio seems to be spamming with requests to trackers.
+### DNS Caching
 
-The config option you need with dnsmasq is :
+Stremio can be heavy on DNS queries. It's recommended to use a local DNS cache like `dnsmasq` to improve performance.
 
-```bash
-cache-size=10000
-```
+### Idle Restart
 
-then you set your dns server to the ip address of your dns caching server and you are set.
+The `restart_if_idle.sh` script can restart the Stremio server when it's not in use. You can add this as a healthcheck in your `compose.yaml`:
 
-Additionally there is the restart_if_idle.sh script that will restart stremio server if it is idle. You can add the below healthcheck to your docker compose file.
-
-```bash
+```yaml
   healthcheck:
     test: ["CMD-SHELL", "./restart_if_idle.sh"]
     interval: 1h
@@ -316,17 +280,14 @@ Additionally there is the restart_if_idle.sh script that will restart stremio se
 
 ## Security
 
-- HTTP Basic Authentication is supported via `USERNAME` and `PASSWORD` environment variables
-- Automatic certificate generation for HTTPS deployments
-- CORS can be disabled for local deployments
-- All images are built with minimal dependencies and security updates
+- **HTTP Basic Authentication:** Supported via `USERNAME` and `PASSWORD` environment variables.
+- **HTTPS:** Automatic certificate generation is enabled when `IPADDRESS` is set.
+- **CORS:** Can be disabled for local deployments with `NO_CORS=1`.
+- **Minimal Images:** All images are built on Alpine with minimal dependencies.
 
 ## ToDo
 
-- Build another image with base something that is small and has glibc
-- Automatically add addons passed from enviromental variables
+- Build another image with a base that is small and has glibc.
+- Automatically add addons passed from environmental variables.
 
-I don't intend to spend much time on this and tried to automate as much as I had time to.
-PRs and Issues are welcome. If you find some issue please do let me know.
-
-
+PRs and Issues are welcome. If you find an issue, please let me know.

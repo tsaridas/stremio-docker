@@ -45,7 +45,7 @@ git clone https://github.com/tsaridas/stremio-docker.git
 cd stremio-docker
 
 # Edit compose.yaml if needed, then run:
-docker-compose up -d
+docker compose up -d
 ```
 The compose file includes common settings like `NO_CORS: 1` and `AUTO_SERVER_URL: 1`.
 
@@ -55,7 +55,7 @@ docker run -d \
   --name=stremio-docker \
   -e NO_CORS=1 \
   -e AUTO_SERVER_URL=1 \
-  -v ~/.stremio-server:/root/.stremio-server \
+  -v ./stremio-data:/root/.stremio-server \
   -p 8080:8080/tcp \
   --restart unless-stopped \
   tsaridas/stremio-docker:latest
@@ -63,7 +63,7 @@ docker run -d \
 
 The Web UI will now be available on `http://<YOUR_SERVER_IP>:8080`. The streaming server will be auto-configured for you from the URL of the browser you are using to open it.
 
-> 💡 Your configuration files and cache will be saved in `~/.stremio-server` on your host machine.
+> 💡 Your configuration files and cache will be saved in `./stremio-data` on your host machine.
 
 ## Usage & Configuration Scenarios
 
@@ -129,7 +129,7 @@ This is useful for accessing Stremio via HTTPS on your local network. It generat
       -e IPADDRESS=192.168.1.10 \
       -e AUTO_SERVER_URL=1 \
       -p 8080:8080 \
-      -v ~/.stremio-server:/root/.stremio-server \
+      -v ./stremio-data:/root/.stremio-server \
       tsaridas/stremio-docker:latest
     ```
 5.  Access Stremio at `https://192-168-1-10.519b6502d940.stremio.rocks:8080`.
@@ -149,7 +149,7 @@ docker run -d \
   -e DOMAIN=your.custom.domain \
   -e CERT_FILE=certificate.pem \
   -e AUTO_SERVER_URL=1 \
-  -v ~/.stremio-server:/root/.stremio-server \
+  -v ./stremio-data:/root/.stremio-server \
   -p 8080:8080 \
   tsaridas/stremio-docker:latest
 ```
@@ -162,8 +162,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | Env                   | Default | Example                      | Description                                                                                                                                                                                                  |
 |-----------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 in order to enable https and generate certificates with stremio domain. If you set this to 0-0-0-0 it will try to automatically get your public ip. Getting the public ip and DNS is not reliable and might need multiple retries. **It will not work for IPv6**                                                                                                                                                                                 |
-| `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Set this to set server url automatically to what you want. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
-| `AUTO_SERVER_URL`          | 0       | 1 | Set this to set server url automatically taken from the url of the browser. **If you change the default url in the UI script will change it back to what you defined here and page will be reloaded**                                          |
+| `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Manually sets the streaming server URL. This is useful when you want to force a specific URL.                                                                                                                     |
+| `AUTO_SERVER_URL`     | 0       | 1                            | When set to `1`, the streaming server URL is automatically detected from the browser's URL. This is the recommended setting for most users.                                                                    |
 | `NO_CORS`             | -       | `1`                          | Set to disable server's cors                                                                                                                                                                                 |
 | `CASTING_DISABLED`    | -       | `1`                          | Set to disable casting. You should set this to `1` if you're getting SSDP errors in the logs                                                                                                                 |
 | `WEBUI_LOCATION`      | -       | `http://192.168.1.10:8080`   | Sets the redirect page for web player and automatically sets up streaming server for you when one tries to access server at port 11470 or 12470. Default is https://app.strem.io/shell-v4.4/                 |
@@ -189,7 +189,7 @@ docker rm stremio-docker
 docker pull tsaridas/stremio-docker:latest
 ```
 
-And then run your `docker run` or `docker-compose up -d` command again.
+And then run your `docker run` or `docker compose up -d` command again.
 
 ## Advanced Topics
 
@@ -289,5 +289,6 @@ The `restart_if_idle.sh` script can restart the Stremio server when it's not in 
 
 - Build another image with a base that is small and has glibc.
 - Automatically add addons passed from environmental variables.
+- Add nginx CORS for security.
 
 PRs and Issues are welcome. If you find an issue, please let me know.

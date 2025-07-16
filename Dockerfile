@@ -90,7 +90,7 @@ WORKDIR /srv/stremio-server
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
 
-RUN apk add --no-cache nginx
+RUN apk add --no-cache nginx apache2-utils
 
 COPY ./nginx/ /etc/nginx/
 COPY ./stremio-web-service-run.sh ./
@@ -147,7 +147,7 @@ COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl apache2-utils
+RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \

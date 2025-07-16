@@ -9,4 +9,4 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - "/srv/config/stremio/:/root/.stremio-server" # set the first part to your local folder. Its not required though
+      - "./stremio-data:/root/.stremio-server"

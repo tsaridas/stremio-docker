@@ -123,7 +123,7 @@ ENV READABLE_STREAM=
 # Custom application path for storing server settings, certificates, etc
 # You can change this but server.js always saves cache to /root/.stremio-server/
 ENV APP_PATH=
-ENV NO_CORS=
+ENV NO_CORS=1
 ENV CASTING_DISABLED=
 
 # Do not change the above ENVs. 
@@ -138,10 +138,6 @@ ENV CERT_FILE=
 # Server url
 ENV SERVER_URL=
 ENV AUTO_SERVER_URL=0
-
-# Basic Auth username/password
-ENV USERNAME=
-ENV PASSWORD=
 
 # Copy ffmpeg
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/

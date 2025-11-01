@@ -70,7 +70,7 @@ WORKDIR /srv/stremio-web
 COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
 
-RUN corepack enable
+RUN npm install -g pnpm --force
 RUN pnpm install --frozen-lockfile --ignore-scripts --no-optional --reporter=silent
 RUN pnpm run build
 

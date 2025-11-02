@@ -85,7 +85,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | `CERT_FILE`           | -       | `certificate.pem`            | Set for custom certificate path. The server and web player will load the specified certificate.                                                                                                              |
 | `USERNAME`           | -       | `myusername`            | Set for custom username for http simple authentication.                                                                                                               |
 | `PASSWORD`           | -       | `Mypassword`            | Set for custom password for http simple authentication.                                                                                                               |
-| `DISABLE_CACHING`     | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |                  
+| `DISABLE_CACHING`     | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |
+| `ADDONS`              | -       | `https://v3-cinemeta.strem.io/manifest.json,https://v3-channels.strem.io/manifest.json` | Comma, space, or newline separated list of Stremio addon manifest.json URLs. Addons will be automatically added to localStorage.json at container startup if they don't already exist. |                  
 
 There are multiple other options defined but probably best not setting any.
 
@@ -245,6 +246,46 @@ docker run -d \
   -v /path/to/your/localStorage.json:/srv/stremio-server/build/localStorage.json \
   tsaridas/stremio-docker:latest
 ```
+
+#### Adding Stremio Addons to localStorage.json
+
+Stremio addons can be automatically added to `localStorage.json` at container startup using the `ADDONS` environment variable. The container will fetch addon manifests from the provided URLs and add them to your `localStorage.json` if they don't already exist.
+
+**Using Docker Run:**
+
+```bash
+docker run -d \
+  --name=stremio-docker \
+  -e NO_CORS=1 \
+  -e AUTO_SERVER_URL=1 \
+  -e ADDONS="https://v3-cinemeta.strem.io/manifest.json,https://v3-channels.strem.io/manifest.json" \
+  -p 8080:8080 \
+  tsaridas/stremio-docker:latest
+```
+
+**Using Docker Compose:**
+
+```yaml
+services:
+  stremio:
+    image: tsaridas/stremio-docker:latest
+    restart: unless-stopped
+    environment:
+      NO_CORS: 1
+      AUTO_SERVER_URL: 1
+      ADDONS: "https://v3-cinemeta.strem.io/manifest.json,https://v3-channels.strem.io/manifest.json"
+    ports:
+      - "8080:8080"
+```
+
+**Addon URL Format:**
+
+The `ADDONS` environment variable accepts URLs separated by:
+- **Commas**: `URL1,URL2,URL3`
+- **Spaces**: `URL1 URL2 URL3`
+- **Newlines**: `URL1\nURL2\nURL3`
+
+URLs should point to Stremio addon manifest.json files. If a URL doesn't end with `/manifest.json`, it will be automatically appended.
 
 ### Shell
 

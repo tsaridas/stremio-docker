@@ -2,21 +2,15 @@ let isRunning = false;
 let cachedData = {};
 let items = {};
 let server_url = null;
-let serverUrlChecked = false;
-let autoServerUrlEnabled = false;
-let serverUrlFileExists = false;
-let addonsChecked = false;
+let setServerUrlEnabled = false;
 let setAddonsFileExists = false;
 
 async function checkServerUrlFiles() {
-    if (serverUrlChecked) return;
-    
-    serverUrlChecked = true;
     
     try {
         const autoServerUrlResponse = await fetch('autoserver_url.env', { method: 'HEAD' });
         if (autoServerUrlResponse.ok) {
-            autoServerUrlEnabled = true;
+            setServerUrlEnabled = true;
             const timestamp = new Date().toISOString();
             server_url = getCurrentUrl().toString();
             items[server_url] = timestamp;
@@ -29,7 +23,7 @@ async function checkServerUrlFiles() {
     try {
         const serverUrlResponse = await fetch('server_url.env', { method: 'HEAD' });
         if (serverUrlResponse.ok) {
-            serverUrlFileExists = true;
+            setServerUrlEnabled = true;
             if (cachedData.streaming_server_urls && cachedData.streaming_server_urls.items) {
                 items = cachedData.streaming_server_urls.items;
                 server_url = Object.keys(items)[0];
@@ -41,10 +35,6 @@ async function checkServerUrlFiles() {
 }
 
 async function checkAddonsFile() {
-    if (addonsChecked) return;
-    
-    addonsChecked = true;
-    
     try {
         const setAddonsResponse = await fetch('set_addons.env', { method: 'HEAD' });
         if (setAddonsResponse.ok) {
@@ -74,8 +64,6 @@ async function loadJsonAndStoreInLocalStorage() {
 
     } catch (error) {
         console.info('localStorage.json not available. Using browser localStorage only.');
-        await checkServerUrlFiles();
-        await checkAddonsFile();
     } finally {
         isRunning = false;
     }
@@ -115,7 +103,7 @@ function processLocalStorageData() {
     Object.entries(cachedData).forEach(([key, value]) => {
         if (!localStorage.getItem(key)) {
             localStorage.setItem(key, JSON.stringify(value));
-        } else if (key === 'streaming_server_urls') {
+        } else if (setServerUrlEnabled && key === 'streaming_server_urls') {
             const existingData = JSON.parse(localStorage.getItem(key));
             if (existingData.items && !existingData.items[server_url]) {
                 existingData.items = items;
@@ -125,7 +113,7 @@ function processLocalStorageData() {
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
 
-            if (serverUrlFileExists && server_url && existingProfile.settings?.streamingServerUrl !== server_url) {
+            if (setServerUrlEnabled && server_url && existingProfile.settings?.streamingServerUrl !== server_url) {
                 existingProfile.settings.streamingServerUrl = server_url;
                 localStorage.setItem(key, JSON.stringify(existingProfile));
                 reload = true;

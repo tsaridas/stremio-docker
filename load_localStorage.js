@@ -133,7 +133,7 @@ function processLocalStorageData() {
 
                 if (addonsUpdated) {
                     existingProfile.addons = existingAddons;
-                    profileChanged = true;
+                    // profileChanged = false;
                 }
             }
 

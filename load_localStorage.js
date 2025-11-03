@@ -116,6 +116,7 @@ function processLocalStorageData() {
 
             if (setServerUrlEnabled && server_url && existingProfile.settings?.streamingServerUrl !== server_url) {
                 existingProfile.settings.streamingServerUrl = server_url;
+                localStorage.setItem(key, JSON.stringify(existingProfile));
                 profileChanged = true;
             }
 
@@ -133,6 +134,7 @@ function processLocalStorageData() {
 
                 if (addonsUpdated) {
                     existingProfile.addons = existingAddons;
+                    localStorage.setItem(key, JSON.stringify(existingProfile));
                     profileChanged = false;
                 }
             }

@@ -133,14 +133,14 @@ function processLocalStorageData() {
 
                 if (addonsUpdated) {
                     existingProfile.addons = existingAddons;
-                    // profileChanged = false;
+                    profileChanged = false;
                 }
             }
 
             if (profileChanged) {
                 console.log('Profile changed, saving to localStorage and reloading page ...', existingProfile);
                 localStorage.setItem(key, JSON.stringify(existingProfile));
-                reload = true;
+                reload = false;
             }
         }
     });

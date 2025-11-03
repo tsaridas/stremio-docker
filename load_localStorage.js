@@ -112,29 +112,35 @@ function processLocalStorageData() {
             }
         } else if (key === 'profile') {
             const existingProfile = JSON.parse(localStorage.getItem(key));
+            let profileChanged = false;
 
             if (setServerUrlEnabled && server_url && existingProfile.settings?.streamingServerUrl !== server_url) {
                 existingProfile.settings.streamingServerUrl = server_url;
-                localStorage.setItem(key, JSON.stringify(existingProfile));
-                reload = true;
+                profileChanged = true;
             }
 
             if (setAddonsFileExists && value.addons && Array.isArray(value.addons)) {
-                const existingAddons = existingProfile.addons || [];
+                const existingAddons = Array.isArray(existingProfile.addons) ? existingProfile.addons : [];
                 let addonsUpdated = false;
 
                 value.addons.forEach(newAddon => {
                     if (!addonExistsInArray(existingAddons, newAddon)) {
                         existingAddons.push(newAddon);
+                        console.log('Adding addon:', newAddon);
                         addonsUpdated = true;
                     }
                 });
 
                 if (addonsUpdated) {
                     existingProfile.addons = existingAddons;
-                    localStorage.setItem(key, JSON.stringify(existingProfile));
-                    reload = true;
+                    profileChanged = true;
                 }
+            }
+
+            if (profileChanged) {
+                console.log('Profile changed, saving to localStorage and reloading page ...', existingProfile);
+                localStorage.setItem(key, JSON.stringify(existingProfile));
+                reload = true;
             }
         }
     });

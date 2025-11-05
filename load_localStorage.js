@@ -120,7 +120,7 @@ function processLocalStorageData() {
                 profileChanged = true;
             }
 
-            if (setAddonsFileExists && value.addons && Array.isArray(value.addons)) {
+            if (setAddonsFileExists && value.addons && Array.isArray(value.addons) && existingProfile.auth != null) {
                 const existingAddons = Array.isArray(existingProfile.addons) ? existingProfile.addons : [];
                 let addonsUpdated = false;
 
@@ -135,14 +135,13 @@ function processLocalStorageData() {
                 if (addonsUpdated) {
                     existingProfile.addons = existingAddons;
                     localStorage.setItem(key, JSON.stringify(existingProfile));
-                    profileChanged = false;
                 }
             }
 
             if (profileChanged) {
                 console.log('Profile changed, saving to localStorage and reloading page ...', existingProfile);
                 localStorage.setItem(key, JSON.stringify(existingProfile));
-                reload = false;
+                reload = true;
             }
         }
     });

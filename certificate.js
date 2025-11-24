@@ -76,7 +76,7 @@ async function getCertificate() {
 
     fs.writeFileSync('certificates.pem', combinedCertificates);
 
-    console.log(`Certificates saved successfully! Setup an A record for ${ipAddress} to point to ${ipAddress.replace('.', '-')}.519b6502d940.stremio.rocks`)
+    console.log(`Certificates saved successfully! Setup an A record for ${ipAddress} to point to ${ipAddress.replace(/\./g, '-')}.519b6502d940.stremio.rocks`)
   } catch (error) {
     console.error('Error fetching certificate:', error);
   }

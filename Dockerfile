@@ -100,6 +100,7 @@ COPY ./certificate.js ./
 RUN chmod +x stremio-web-service-run.sh
 COPY ./restart_if_idle.sh ./
 RUN chmod +x restart_if_idle.sh
+COPY ./add-addons.js ./
 COPY localStorage.json ./
 
 ENV FFMPEG_BIN=
@@ -139,6 +140,8 @@ ENV CERT_FILE=
 # Server url
 ENV SERVER_URL=
 ENV AUTO_SERVER_URL=0
+# Comma, space, or newline separated list of addon manifest URLs
+ENV ADDONS=
 
 # Copy ffmpeg
 COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/

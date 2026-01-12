@@ -173,6 +173,40 @@ docker run -d \
 ```
 The WebPlayer will be available at `https://your.custom.domain:8080`.
 
+### Scenario 5: Local Streaming Server
+
+If you have an older Smart TV, it may:
+- not support all of the latest codecs
+- struggle to decode some of the latest codecs
+- consume large CPU cycles to access the network (e.g. torrent)
+
+In this case, it may be beneficial to set up a local streaming server to transcode media and or offload network functions.
+
+For security reasons, the latest versions of stremio no longer allow any streaming server other than localhost to be accessed by http - they must all be accessed by *https with a valid certificate*. This can be accomplished as follows:
+
+```bash
+docker run -d \
+  --name=stremio-docker \
+  -e IPADDRESS=192.168.1.10 \
+  -e AUTO_SERVER_URL=1 \
+  -p 12470:12470 \
+  -v ./stremio-data:/root/.stremio-server \
+  tsaridas/stremio-docker:latest
+```
+
+When run `/root/.stremio-server` have a file called `httpsCert.json`. Open that file which should like the the following:
+
+```json
+{
+  "domain": "192.168.1.10.abcdef12345.stremio.rocks",
+  "key": "REDACTED"
+  "cert": "REDACTED"
+  "notBefore": "2025-11-29T12:35:32.000Z",
+  "notAfter": "2026-02-27T12:35:31.000Z"
+}
+```
+Use the value from `domain` as your streaming servers appending the port e.g. `192.168.1.10.abcdef12345.stremio.rocks:12470`. This will only work locally - for security reasons it is not recommended to open your streaming server directly to the internet.
+
 ## Updating
 
 To update to the latest version, simply run:

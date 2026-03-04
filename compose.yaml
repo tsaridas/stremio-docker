@@ -3,10 +3,21 @@ services:
     image: tsaridas/stremio-docker:latest
     restart: unless-stopped
     environment:
-      NO_CORS: 1
-      AUTO_SERVER_URL: 1
-      #IPADDRESS: 192.168.1.10 # Setup your ip address here
+      - NO_CORS=1
+      - AUTO_SERVER_URL=0
+      - IPADDRESS=192.168.0.100
+      - SERVER_URL=https://stremio.raspberrypi.lan/
+      - WEBUI_INTERNAL_PORT=8080
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
     ports:
-      - "8080:8080"
+      - "8085:8080"
     volumes:
-      - "./stremio-data:/root/.stremio-server"
+      - "/mnt/lvm1-storage/.stremio-server:/root/.stremio-server"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1"
+        reservations:
+          memory: 64M

@@ -1,0 +1,150 @@
+# NVIDIA GPU-accelerated variant using CUDA + NVENC
+# Requires: nvidia-container-toolkit on the host
+FROM nvidia/cuda:12.2.2-devel-ubuntu22.04 AS ffmpeg
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential git nasm yasm pkg-config \
+  libgnutls28-dev libfreetype6-dev libass-dev \
+  libogg-dev libtheora-dev libvorbis-dev libvpx-dev \
+  libwebp-dev libopus-dev libx264-dev libx265-dev \
+  libmp3lame-dev libfdk-aac-dev libdav1d-dev \
+  libbluray-dev libdrm-dev libzimg-dev libaom-dev \
+  libxvidcore-dev librtmp-dev libva-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV BIN="/usr/bin"
+RUN cd && \
+  DIR=$(mktemp -d) && cd "${DIR}" && \
+  git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
+  cd jellyfin-ffmpeg* && \
+  PATH="$BIN:$PATH" && \
+  ./configure --bindir="$BIN" --disable-debug \
+  --prefix=/usr/lib/jellyfin-ffmpeg \
+  --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared \
+  --disable-libxcb --disable-sdl2 --disable-xlib \
+  --enable-lto --enable-gpl --enable-version3 \
+  --enable-gmp --enable-gnutls --enable-libdrm \
+  --enable-libass --enable-libfreetype --enable-libfribidi \
+  --enable-libfontconfig --enable-libbluray \
+  --enable-libmp3lame --enable-libopus --enable-libtheora \
+  --enable-libvorbis --enable-libdav1d --enable-libwebp \
+  --enable-libvpx --enable-libx264 --enable-libx265 \
+  --enable-libzimg --enable-small --enable-nonfree \
+  --enable-libxvid --enable-libaom --enable-libfdk_aac \
+  --enable-vaapi \
+  --enable-hwaccel=h264_vaapi --enable-hwaccel=hevc_vaapi \
+  --enable-cuda-nvcc --enable-nvenc --enable-nvdec \
+  --enable-cuvid --enable-libnpp \
+  --extra-cflags="-I/usr/local/cuda/include" \
+  --extra-ldflags="-L/usr/local/cuda/lib64" \
+  --toolchain=hardened && \
+  make -j$(nproc) && \
+  make install && \
+  make distclean && \
+  rm -rf "${DIR}"
+
+#########################################################################
+
+# Builder image (same as original)
+FROM node:20-alpine3.18 AS builder-web
+
+WORKDIR /srv
+RUN apk add --no-cache git wget
+
+ARG BRANCH=development
+RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | awk '{print $2}' | sort -V | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
+
+WORKDIR /srv/stremio-web
+
+COPY ./load_localStorage.js ./src/load_localStorage.js
+RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
+
+RUN npm install -g pnpm --force
+RUN pnpm install --frozen-lockfile --reporter=silent
+RUN pnpm run build
+
+RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" "https://app.strem.io/images/empty.png" -P build/shell/ || true
+
+##########################################################################
+
+# Main image - NVIDIA runtime
+FROM nvidia/cuda:12.2.2-runtime-ubuntu22.04 AS final
+
+ARG VERSION=main
+LABEL org.opencontainers.image.source=https://github.com/tsaridas/stremio-docker
+LABEL org.opencontainers.image.description="Stremio Web Player and Server (NVIDIA GPU)"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL version=${VERSION}
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Node.js 20
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+  && mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update && apt-get install -y --no-install-recommends \
+  nodejs nginx apache2-utils curl \
+  libfreetype6 libass9 libvorbis0a libvorbisenc2 \
+  libx265-199 libx264-163 libopus0 libmp3lame0 \
+  libgnutls30 libvpx7 libtheora0 libdrm2 \
+  libbluray2 libzimg2 libdav1d5 libaom3 \
+  libxvidcore4 libfdk-aac2 libwebp7 libva2 libva-drm2 \
+  && rm -rf /var/lib/apt/lists/*
+
+# Match Alpine nginx directory structure used by stremio scripts
+RUN mkdir -p /etc/nginx/http.d && \
+    rm -f /etc/nginx/sites-enabled/default
+
+WORKDIR /srv/stremio-server
+COPY --from=builder-web /srv/stremio-web/build ./build
+COPY --from=builder-web /srv/stremio-web/server.js ./
+
+COPY ./nginx/ /etc/nginx/
+COPY ./stremio-web-service-run.sh ./
+COPY ./certificate.js ./
+RUN chmod +x stremio-web-service-run.sh
+COPY ./restart_if_idle.sh ./
+RUN chmod +x restart_if_idle.sh
+COPY localStorage.json ./
+
+ENV FFMPEG_BIN=
+ENV FFPROBE_BIN=
+ENV WEBUI_LOCATION=
+ENV WEBUI_INTERNAL_PORT=
+ENV OPEN=
+ENV HLS_DEBUG=
+ENV DEBUG=
+ENV DEBUG_MIME=
+ENV DEBUG_FD=
+ENV FFMPEG_DEBUG=
+ENV FFSPLIT_DEBUG=
+ENV NODE_DEBUG=
+ENV NODE_ENV=production
+ENV HTTPS_CERT_ENDPOINT=
+ENV DISABLE_CACHING=
+ENV READABLE_STREAM=
+ENV APP_PATH=
+ENV NO_CORS=1
+ENV CASTING_DISABLED=
+ENV IPADDRESS=
+ENV DOMAIN=
+ENV CERT_FILE=
+ENV SERVER_URL=
+ENV AUTO_SERVER_URL=0
+
+# NVIDIA env vars for container toolkit
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+
+# Copy ffmpeg built with NVENC
+COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
+COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
+
+VOLUME ["/root/.stremio-server"]
+EXPOSE 8080
+
+ENTRYPOINT []
+CMD ["./stremio-web-service-run.sh"]

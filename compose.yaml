@@ -1,6 +1,10 @@
 services:
   stremio:
-    image: tsaridas/stremio-docker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.nvidia
+    image: stremio-docker:nvidia
+    runtime: nvidia
     restart: unless-stopped
     environment:
       - NO_CORS=1
@@ -17,7 +21,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: "1"
+          memory: 2G
         reservations:
-          memory: 64M
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, video, compute]

@@ -52,41 +52,28 @@ elif [ -n "${CERT_FILE}" ]; then
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
     fi
 fi
-node server.js &
-SERVER_PID=$!
-
-# Force NVENC hw accel: pre-set and watch for auto-test reset
+# Force NVENC hw accel: patch server.js to skip the broken auto-test
+# The auto-test always fails (0.2s sample + concurrency race) and disables hw accel.
+# We disable the test and set correct NVENC settings directly.
 if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
     SETTINGS="${CONFIG_FOLDER}server-settings.json"
-    # Pre-set before test runs
+
+    # Patch server.js: disable hw accel auto-detection (always fails on short sample)
+    sed -i 's/initialDetection = process.env.HLS_DEBUG || userSettings.transcodeHardwareAccel && !(userSettings.allTranscodeProfiles || \[\]).length/initialDetection = false/' server.js
+    echo "NVENC: patched server.js to skip hw accel auto-test"
+
+    # Set NVENC settings in config file
     if [ -f "$SETTINGS" ]; then
         sed -i \
             -e 's/"transcodeHardwareAccel": false/"transcodeHardwareAccel": true/' \
             -e 's/"transcodeProfile": null/"transcodeProfile": "nvenc-linux"/' \
             -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
             "$SETTINGS"
+        echo "NVENC: settings configured (transcodeHardwareAccel: true, profile: nvenc-linux)"
     fi
-    # Watch for auto-test resetting it back to false (test can take up to 5 min)
-    (
-        set +e
-        FIXED=0
-        for i in $(seq 1 360); do
-            sleep 1
-            if grep -q '"transcodeHardwareAccel": false' "$SETTINGS" 2>/dev/null; then
-                sed -i \
-                    -e 's/"transcodeHardwareAccel": false/"transcodeHardwareAccel": true/' \
-                    -e 's/"transcodeProfile": null/"transcodeProfile": "nvenc-linux"/' \
-                    -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
-                    "$SETTINGS"
-                echo "NVENC hardware acceleration re-applied after auto-test (iteration $i)"
-                FIXED=1
-                break
-            fi
-        done
-        if [ "$FIXED" -eq 0 ]; then
-            echo "NVENC watcher: settings stayed true (no auto-test reset detected)"
-        fi
-    ) &
 fi
+
+node server.js &
+SERVER_PID=$!
 
 start_http_server

@@ -152,11 +152,19 @@ watch -n1 "docker exec $(docker ps --filter 'ancestor=stremio-docker:nvidia' -q)
 
 ### Perfil nvenc-linux (pipeline ffmpeg)
 
-O perfil `nvenc-linux` no server.js do Stremio usa:
-- **Decode:** `hevc_cuvid`, `h264_cuvid`, `av1_cuvid` (GPU)
-- **Scale:** `scale_cuda` (GPU)
-- **Encode:** `h264_nvenc`, `hevc_nvenc` (GPU)
-- **Args:** `-init_hw_device cuda=cu:0 -filter_hw_device cu -hwaccel cuda -hwaccel_output_format cuda`
+O perfil `nvenc-linux` é patcheado em runtime pelo entrypoint para compatibilidade 10-bit (Pascal/GTX 1070):
+
+- **Decode:** `hevc_cuvid`, `h264_cuvid`, `av1_cuvid` (GPU — ffmpeg auto-downloads para memória sistema)
+- **Scale:** CPU `scale` com lanczos (necessário para 10-bit → 8-bit)
+- **Encode:** `h264_nvenc` preset p1, tune ull (GPU — aceita frames de memória sistema)
+- **Args:** `-hwaccel cuda`
+
+Pipeline: HW decode (CUVID) → auto-download → CPU scale/format → NVENC encode
+
+> **Nota sobre 10-bit:** O GTX 1070 (Pascal) não suporta encode H.264 10-bit via NVENC.
+> O perfil original usava `scale_cuda` + `hwaccel_output_format cuda` que mantém frames 10-bit
+> em memória CUDA, causando falha no encoder. O patch remove esses flags e usa CPU scale
+> para converter 10-bit → 8-bit antes do encode.
 
 ## Rebuild / Atualização
 
@@ -187,23 +195,16 @@ docker compose -f compose.yaml up -d
 # 4. Aguardar inicialização (~10s)
 sleep 10
 
-# 5. Verificar se GPU funciona
+# 5. Verificar GPU + patches
+docker logs stremio-docker-stremio-1 2>&1 | grep NVENC
+docker exec $(docker ps --filter "ancestor=stremio-docker:nvidia" -q) nvidia-smi
+
+# 6. Verificar settings
 docker exec $(docker ps --filter "ancestor=stremio-docker:nvidia" -q) \
-  ffmpeg -hwaccels 2>&1 | grep cuda
-
-# 6. Re-aplicar configuração NVENC (se teste automático falhar)
-docker exec $(docker ps --filter "ancestor=stremio-docker:nvidia" -q) sed -i \
-  -e 's/"transcodeHardwareAccel": false/"transcodeHardwareAccel": true/' \
-  -e 's/"transcodeProfile": null/"transcodeProfile": "nvenc-linux"/' \
-  -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
-  /root/.stremio-server/server-settings.json
-
-# 7. Reiniciar para aplicar
-docker compose -f compose.yaml restart
-
-# 8. Confirmar tudo ok
-docker logs stremio-docker-stremio-1 2>&1 | tail -5
+  grep -E 'transcodeHardware|transcodeProfile' /root/.stremio-server/server-settings.json
 ```
+
+> **Nota:** O entrypoint patcha `server.js` automaticamente a cada restart — não é mais necessário re-aplicar settings manualmente.
 
 ### Atualizar versão CUDA
 
@@ -227,7 +228,8 @@ Também verificar compatibilidade de `nv-codec-headers` (branch no git clone).
 | `getpwnam("nginx") failed` | `useradd -r -s /bin/false nginx` | Dockerfile.nvidia |
 | `libwebpmux.so.3: cannot open` | Adicionado `libwebpmux3` aos pacotes | Dockerfile.nvidia |
 | `Bad substitution` (dash vs bash) | `case` POSIX em vez de `${var: -1}` | stremio-web-service-run.sh |
-| Teste hwaccel falha (sample curto) | Configuração manual em server-settings.json | Pós-deploy |
+| Teste hwaccel falha (sample curto) | Patch `server.js`: `transcodeHardwareAccel:!1` → `!0` | stremio-web-service-run.sh |
+| 10-bit NVENC fail (Pascal GPU) | Patch perfil: remove `scale_cuda`/`hwaccel_output_format`, usa CPU scale | stremio-web-service-run.sh |
 
 ## Ambiente atual
 

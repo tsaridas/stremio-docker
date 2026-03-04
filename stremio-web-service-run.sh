@@ -66,10 +66,11 @@ if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
             -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
             "$SETTINGS"
     fi
-    # Watch for auto-test resetting it back to false
+    # Watch for auto-test resetting it back to false (test can take up to 5 min)
     (
         set +e
-        for i in $(seq 1 90); do
+        FIXED=0
+        for i in $(seq 1 360); do
             sleep 1
             if grep -q '"transcodeHardwareAccel": false' "$SETTINGS" 2>/dev/null; then
                 sed -i \
@@ -77,10 +78,14 @@ if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
                     -e 's/"transcodeProfile": null/"transcodeProfile": "nvenc-linux"/' \
                     -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
                     "$SETTINGS"
-                echo "NVENC hardware acceleration re-applied after auto-test"
+                echo "NVENC hardware acceleration re-applied after auto-test (iteration $i)"
+                FIXED=1
                 break
             fi
         done
+        if [ "$FIXED" -eq 0 ]; then
+            echo "NVENC watcher: settings stayed true (no auto-test reset detected)"
+        fi
     ) &
 fi
 

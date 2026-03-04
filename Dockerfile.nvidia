@@ -15,6 +15,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 ENV BIN="/usr/bin"
+ENV PATH="/usr/local/cuda/bin:${PATH}"
+
+# Install nv-codec-headers (ffnvcodec) required by NVENC/NVDEC/CUVID
+RUN cd /tmp && \
+  git clone --depth 1 --branch n12.0.16.1 https://github.com/FFmpeg/nv-codec-headers.git && \
+  cd nv-codec-headers && make install && \
+  rm -rf /tmp/nv-codec-headers
+
 RUN cd && \
   DIR=$(mktemp -d) && cd "${DIR}" && \
   git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
@@ -37,6 +45,7 @@ RUN cd && \
   --enable-hwaccel=h264_vaapi --enable-hwaccel=hevc_vaapi \
   --enable-cuda-nvcc --enable-nvenc --enable-nvdec \
   --enable-cuvid --enable-libnpp \
+  --nvccflags="-gencode arch=compute_52,code=sm_52 -O2" \
   --extra-cflags="-I/usr/local/cuda/include" \
   --extra-ldflags="-L/usr/local/cuda/lib64" \
   --toolchain=hardened && \
@@ -91,11 +100,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
   libx265-199 libx264-163 libopus0 libmp3lame0 \
   libgnutls30 libvpx7 libtheora0 libdrm2 \
   libbluray2 libzimg2 libdav1d5 libaom3 \
-  libxvidcore4 libfdk-aac2 libwebp7 libva2 libva-drm2 \
+  libxvidcore4 libfdk-aac2 libwebp7 libwebpmux3 libva2 libva-drm2 \
   && rm -rf /var/lib/apt/lists/*
 
 # Match Alpine nginx directory structure used by stremio scripts
-RUN mkdir -p /etc/nginx/http.d && \
+RUN useradd -r -s /bin/false nginx && \
+    mkdir -p /etc/nginx/http.d && \
     rm -f /etc/nginx/sites-enabled/default
 
 WORKDIR /srv/stremio-server

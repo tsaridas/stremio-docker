@@ -7,9 +7,9 @@ HTPASSWD_FILE="/etc/nginx/.htpasswd"
 sed -i 's/df -k/df -Pk/g' server.js
 
 if [ -n "${SERVER_URL}" ]; then
-    if [ "${SERVER_URL: -1}" != "/" ]; then
+    case "$SERVER_URL" in */) ;; *)
         SERVER_URL="$SERVER_URL/"
-    fi
+    ;; esac
     cp localStorage.json build/localStorage.json
     touch build/server_url.env
     sed -i "s|http://127.0.0.1:11470/|"${SERVER_URL}"|g" build/localStorage.json
@@ -53,4 +53,35 @@ elif [ -n "${CERT_FILE}" ]; then
     fi
 fi
 node server.js &
+SERVER_PID=$!
+
+# Force NVENC hw accel: pre-set and watch for auto-test reset
+if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
+    SETTINGS="${CONFIG_FOLDER}server-settings.json"
+    # Pre-set before test runs
+    if [ -f "$SETTINGS" ]; then
+        sed -i \
+            -e 's/"transcodeHardwareAccel": false/"transcodeHardwareAccel": true/' \
+            -e 's/"transcodeProfile": null/"transcodeProfile": "nvenc-linux"/' \
+            -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
+            "$SETTINGS"
+    fi
+    # Watch for auto-test resetting it back to false
+    (
+        set +e
+        for i in $(seq 1 90); do
+            sleep 1
+            if grep -q '"transcodeHardwareAccel": false' "$SETTINGS" 2>/dev/null; then
+                sed -i \
+                    -e 's/"transcodeHardwareAccel": false/"transcodeHardwareAccel": true/' \
+                    -e 's/"transcodeProfile": null/"transcodeProfile": "nvenc-linux"/' \
+                    -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
+                    "$SETTINGS"
+                echo "NVENC hardware acceleration re-applied after auto-test"
+                break
+            fi
+        done
+    ) &
+fi
+
 start_http_server

@@ -59,11 +59,21 @@ if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
     SETTINGS="${CONFIG_FOLDER}server-settings.json"
 
     # Patch server.js: prevent auto-test from disabling hw accel
-    # The auto-test always fails (0.2s sample + concurrency race condition).
-    # Change saveSettings({transcodeHardwareAccel: false}) to true,
-    # so test failures don't disable GPU transcoding.
     sed -i 's/transcodeHardwareAccel: !1/transcodeHardwareAccel: !0/g' server.js
-    echo "NVENC: patched server.js — hw accel cannot be disabled by auto-test"
+
+    # Patch nvenc-linux profile for 10-bit compatibility (GTX 1070 / Pascal):
+    # 1. Remove -hwaccel_output_format cuda (forces 10-bit CUDA frames → NVENC fails)
+    sed -i 's/"-hwaccel", "cuda", "-hwaccel_output_format", "cuda"/"-hwaccel", "cuda"/' server.js
+    # 2. Remove -init_hw_device/-filter_hw_device (only needed for scale_cuda)
+    sed -i 's/"-init_hw_device", "cuda=cu:0", "-filter_hw_device", "cu", "-hwaccel"/"-hwaccel"/' server.js
+    # 3. Use CPU scale instead of scale_cuda (CUDA frames auto-downloaded by ffmpeg)
+    sed -i 's/scale: "scale_cuda"/scale: !1/' server.js
+    # 4. Restore lanczos scaler flags for CPU scale
+    sed -i '/nvenc/,/vaapi/{s/scaleExtra: ""/scaleExtra: ":flags=lanczos"/}' server.js
+    # 5. Disable wrapSwFilters (no hwdownload/hwupload needed with CPU scale)
+    sed -i 's/wrapSwFilters: \[ "hwdownload", "hwupload_cuda" \]/wrapSwFilters: !1/' server.js
+
+    echo "NVENC: patched server.js (auto-test + 10-bit compat + CPU scale)"
 
     # Set NVENC settings in config file
     if [ -f "$SETTINGS" ]; then

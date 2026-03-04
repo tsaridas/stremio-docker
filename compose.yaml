@@ -24,10 +24,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2.0"
-          memory: 2G
+          cpus: "1.5"
+          memory: 1536M
         reservations:
-          memory: 512M
+          memory: 256M
           devices:
             - driver: nvidia
               count: 1

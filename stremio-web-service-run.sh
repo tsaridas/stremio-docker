@@ -58,9 +58,12 @@ fi
 if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
     SETTINGS="${CONFIG_FOLDER}server-settings.json"
 
-    # Patch server.js: disable hw accel auto-detection (always fails on short sample)
-    sed -i 's/initialDetection = process.env.HLS_DEBUG || userSettings.transcodeHardwareAccel && !(userSettings.allTranscodeProfiles || \[\]).length/initialDetection = false/' server.js
-    echo "NVENC: patched server.js to skip hw accel auto-test"
+    # Patch server.js: prevent auto-test from disabling hw accel
+    # The auto-test always fails (0.2s sample + concurrency race condition).
+    # Change saveSettings({transcodeHardwareAccel: false}) to true,
+    # so test failures don't disable GPU transcoding.
+    sed -i 's/transcodeHardwareAccel: !1/transcodeHardwareAccel: !0/g' server.js
+    echo "NVENC: patched server.js — hw accel cannot be disabled by auto-test"
 
     # Set NVENC settings in config file
     if [ -f "$SETTINGS" ]; then

@@ -6,6 +6,7 @@ on:
     - cron: "0 0 * * *"
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY_IMAGE: ${{ github.repository }}
   REGISTRY_TAG: nightly

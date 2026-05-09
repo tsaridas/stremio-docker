@@ -16,6 +16,7 @@ on:
       - "Dockerfile"
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY_IMAGE: ${{ github.repository }}
   TAG_NAME: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}

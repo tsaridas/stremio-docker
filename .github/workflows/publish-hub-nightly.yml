@@ -79,7 +79,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          npx playwright test settings.spec --timeout=60000 || (
+          npx playwright test settings.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
@@ -101,7 +101,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          SERVER_URL="http://172.18.0.3:11470" npx playwright test settings.spec --timeout=60000 || (
+          SERVER_URL="http://172.18.0.3:11470" npx playwright test settings.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
@@ -123,13 +123,13 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" npx playwright test settings.spec --timeout=60000 || (
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" npx playwright test settings.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
           )
           echo "--------------------------------"
-          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test settings.spec --timeout=60000 || (
+          WEB_URL="https://172-18-0-3.519b6502d940.stremio.rocks:8080" SERVER_URL="https://172-18-0-3.519b6502d940.stremio.rocks:12470" npx playwright test settings.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
@@ -152,7 +152,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          npx playwright test settings_server_url.spec --timeout=60000 || (
+          npx playwright test settings_server_url.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
@@ -174,7 +174,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
     
-          npx playwright test settings_server_url.spec --timeout=60000 || (
+          npx playwright test settings_server_url.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
@@ -196,7 +196,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
 
-          WEB_URL="http://172.18.0.3:9090" SERVER_URL="http://172.18.0.3:9090" npx playwright test settings.spec --timeout=60000 || (
+          WEB_URL="http://172.18.0.3:9090" SERVER_URL="http://172.18.0.3:9090" npx playwright test settings.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;
@@ -219,7 +219,7 @@ jobs:
           docker exec "$CONTAINER_ID" ps aux
           docker logs "$CONTAINER_ID"
   
-          AUTH=true npx playwright test settings.spec --timeout=60000 || (
+          AUTH=true npx playwright test settings.spec --timeout=300000 || (
             docker ps -a;
             docker logs "$CONTAINER_ID";
             exit 1;

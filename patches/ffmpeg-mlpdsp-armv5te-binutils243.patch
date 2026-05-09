@@ -5,7 +5,8 @@
 # Context:
 # - Fixes ARMv5TE assembly label parsing failures on newer binutils.
 # - Applied to jellyfin-ffmpeg v4.4.1-4 during Docker build.
-
+diff --git a/libavcodec/arm/mlpdsp_armv5te.S b/libavcodec/arm/mlpdsp_armv5te.S
+index 41258ecf95..8f9a0f0f00 100644
 --- a/libavcodec/arm/mlpdsp_armv5te.S
 +++ b/libavcodec/arm/mlpdsp_armv5te.S
 @@ -229,7 +229,7 @@

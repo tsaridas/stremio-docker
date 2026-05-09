@@ -1,5 +1,5 @@
 # We use node:20-alpine3.18 because it's the only one that supports the build-base package for ffmpeg. Changing to 3.21 will require a new ffmpeg build.
-FROM node:26.1.0-alpine3.23 AS base
+FROM node:20-alpine3.23 AS base
 
 RUN apk update && apk upgrade
 

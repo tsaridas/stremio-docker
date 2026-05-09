@@ -160,9 +160,7 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
   apk add --no-cache intel-media-driver mesa-va-gallium; \
   fi
 
-# Drop package managers: bytes live under /opt/yarn-v* and /usr/local/lib/node_modules
-# (npm/corepack trees). /usr/local/bin/yarn|npm|npx|corepack are only symlinks — remove
-# those too so nothing points at deleted paths. Runtime needs only /usr/local/bin/node.
+# Clean up package managers and docs.
 RUN rm -rf /opt/yarn-v* /usr/local/lib/node_modules \
   && rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
   && rm -rf /usr/share/man/* /usr/share/doc/* \

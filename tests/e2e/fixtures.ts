@@ -1,6 +1,5 @@
 import { test as baseTest } from '@playwright/test';
 
-/** Streaming "Online" after adding a URL — slow on CI when the server runs hwaccel probes under QEMU (e.g. arm/v7). */
 export const streamingOnlineTimeoutMs = process.env.CI ? 240_000 : 15_000;
 
 type MyFixtures = {

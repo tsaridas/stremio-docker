@@ -1,5 +1,5 @@
-# We use node:20-alpine3.18 because it's the only one that supports the build-base package for ffmpeg. Changing to 3.21 will require a new ffmpeg build.
-FROM node:20-alpine3.18 AS base
+# Base: Node 20 on Alpine 3.23 (jellyfin-ffmpeg is patched for this Alpine/gcc toolchain).
+FROM node:20-alpine3.23 AS base
 
 RUN apk update && apk upgrade
 
@@ -7,6 +7,8 @@ FROM base AS ffmpeg
 
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
+COPY ./patches/ffmpeg-mathops-binutils241.patch /tmp/ffmpeg-mathops-binutils241.patch
+COPY ./patches/ffmpeg-mlpdsp-armv5te-binutils243.patch /tmp/ffmpeg-mlpdsp-armv5te-binutils243.patch
 RUN cd && \
   apk add --no-cache --virtual .build-dependencies \
   gnutls \
@@ -43,12 +45,18 @@ RUN cd && \
   cd "${DIR}" && \
   git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
   cd jellyfin-ffmpeg* && \
+  awk '/^diff --git /,0' /tmp/ffmpeg-mathops-binutils241.patch | patch -p1 && \
+  awk '/^diff --git /,0' /tmp/ffmpeg-mlpdsp-armv5te-binutils243.patch | patch -p1 && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
+  EXTRA_FFMPEG_FLAGS="" && \
+  case "$(uname -m)" in armv6l|armv7l|armhf) EXTRA_FFMPEG_FLAGS="--disable-vaapi --disable-hwaccel=h264_vaapi --disable-hwaccel=hevc_vaapi";; esac && \
   ./configure --bindir="$BIN" --disable-debug \
-  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --enable-hwaccel=hevc_vaapi --toolchain=hardened && \
-  make -j4 && \
+  --extra-cflags="-Wno-error -Wno-error=deprecated-declarations -Wno-error=discarded-qualifiers" \
+  --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --enable-hwaccel=hevc_vaapi --toolchain=hardened $EXTRA_FFMPEG_FLAGS && \
+  make -j"$(nproc)" && \
   make install && \
+  find /usr/lib/jellyfin-ffmpeg -name '*.a' -delete && rm -rf /usr/lib/jellyfin-ffmpeg/include && \
   make distclean && \
   rm -rf "${DIR}"  && \
   apk del --purge .build-dependencies
@@ -145,15 +153,18 @@ COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
+RUN apk add --no-cache libwebp libwebpmux libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
   apk add --no-cache intel-media-driver mesa-va-gallium; \
   fi
 
-# Clear cache
-RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
+# Clean up package managers and docs.
+RUN rm -rf /opt/yarn-v* /usr/local/lib/node_modules \
+  && rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+  && rm -rf /usr/share/man/* /usr/share/doc/* \
+  && rm -rf /var/cache/apk/* /tmp/*
 
 VOLUME ["/root/.stremio-server"]
 

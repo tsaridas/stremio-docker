@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { test } from './fixtures';
+import { streamingOnlineTimeoutMs, test } from './fixtures';
 
 const username = process.env.AUTH_USERNAME || 'default_user';
 const password = process.env.AUTH_PASSWORD || 'default_pass';
@@ -48,7 +48,7 @@ test.describe('Stremio API and Settings', () => {
     await page.getByPlaceholder('Enter URL').press('Enter');
     await page.getByRole('radio').nth(2).click(); 
 
-    await expect(page.getByText('Online')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Online')).toBeVisible({ timeout: streamingOnlineTimeoutMs });
     
     const serverUrlElement = page.getByText(serverURL);
     await expect(serverUrlElement).toBeVisible();

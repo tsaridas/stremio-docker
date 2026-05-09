@@ -56,6 +56,7 @@ RUN cd && \
   --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-lto --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --enable-hwaccel=hevc_vaapi --toolchain=hardened $EXTRA_FFMPEG_FLAGS && \
   make -j2 && \
   make install && \
+  find /usr/lib/jellyfin-ffmpeg -name '*.a' -delete && rm -rf /usr/lib/jellyfin-ffmpeg/include && \
   make distclean && \
   rm -rf "${DIR}"  && \
   apk del --purge .build-dependencies
@@ -159,8 +160,12 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
   apk add --no-cache intel-media-driver mesa-va-gallium; \
   fi
 
-# Clear cache
-RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
+# Clear cache; drop package managers (runtime: node only) and bulky docs
+RUN rm -rf /opt/yarn-v* /usr/local/bin/yarn /usr/local/bin/yarnpkg \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+  && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+  && rm -rf /usr/share/man/* /usr/share/doc/* \
+  && rm -rf /var/cache/apk/* /tmp/*
 
 VOLUME ["/root/.stremio-server"]
 

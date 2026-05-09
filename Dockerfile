@@ -7,6 +7,7 @@ FROM base AS ffmpeg
 
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
+COPY ./patches/ffmpeg-mathops-binutils241.patch /tmp/ffmpeg-mathops-binutils241.patch
 RUN cd && \
   apk add --no-cache --virtual .build-dependencies \
   gnutls \
@@ -43,9 +44,10 @@ RUN cd && \
   cd "${DIR}" && \
   git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
   cd jellyfin-ffmpeg* && \
+  patch -p1 < /tmp/ffmpeg-mathops-binutils241.patch && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
-  ./configure --bindir="$BIN" --disable-debug --disable-x86asm --disable-inline-asm \
+  ./configure --bindir="$BIN" --disable-debug \
   --extra-cflags="-Wno-error -Wno-error=deprecated-declarations -Wno-error=discarded-qualifiers" \
   --prefix=/usr/lib/jellyfin-ffmpeg --extra-version=Jellyfin --disable-doc --disable-ffplay --disable-shared --disable-libxcb --disable-sdl2 --disable-xlib --enable-gpl --enable-version3 --enable-gmp --enable-gnutls --enable-libdrm --enable-libass --enable-libfreetype --enable-libfribidi --enable-libfontconfig --enable-libbluray --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libdav1d --enable-libwebp --enable-libvpx --enable-libx264 --enable-libx265  --enable-libzimg --enable-small --enable-nonfree --enable-libxvid --enable-libaom --enable-libfdk_aac --enable-vaapi --enable-hwaccel=h264_vaapi --enable-hwaccel=hevc_vaapi --toolchain=hardened && \
   make -j2 && \

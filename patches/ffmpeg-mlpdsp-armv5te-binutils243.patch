@@ -1,0 +1,38 @@
+# Source:
+# - FFmpeg cvslog: "libavcodec/arm/mlpdsp_armv5te: fix label format to work with binutils 2.43"
+#   https://ffmpeg.org/pipermail/ffmpeg-cvslog/2024-August/144996.html
+#
+# Context:
+# - Fixes ARMv5TE assembly label parsing failures on newer binutils.
+# - Applied to jellyfin-ffmpeg v4.4.1-4 during Docker build.
+
+diff --git a/libavcodec/arm/mlpdsp_armv5te.S b/libavcodec/arm/mlpdsp_armv5te.S
+--- a/libavcodec/arm/mlpdsp_armv5te.S
++++ b/libavcodec/arm/mlpdsp_armv5te.S
+@@ -229,7 +229,7 @@
+ .macro MLP_FILTER_CORE
+         mov             r12, #\offset
+         ldr             r3, [filter, r12]
+-01:
++1:
+         ldrsh           t, [sample_buffer], #2
+         ldr             c0, [state, r12]!
+         ldr             c1, [state, r12]!
+@@ -241,7 +241,7 @@
+         smlal           v2, f2, c2, t
+         smlal           v3, f3, c3, t
+         cmp             r12, #\offset_end
+-        bne             01b
++        bne             1b
+         ldr             c0, [state, r12]
+         ldr             c1, [state, r12, #4]
+         ldr             c2, [state, r12, #8]
+@@ -333,7 +333,7 @@
+         ldr             c2, [state], #4
+         smlal           v2, f2, c2, t
+         cmp             f3, #\idx
+-        bne             01b
++        bne             1b
+ 
+         mov             f0, #0
+         adc             f0, f0, f0

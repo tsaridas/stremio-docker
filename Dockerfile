@@ -8,6 +8,7 @@ FROM base AS ffmpeg
 # We build our own ffmpeg since 4.X is the only one supported
 ENV BIN="/usr/bin"
 COPY ./patches/ffmpeg-mathops-binutils241.patch /tmp/ffmpeg-mathops-binutils241.patch
+COPY ./patches/ffmpeg-mlpdsp-armv5te-binutils243.patch /tmp/ffmpeg-mlpdsp-armv5te-binutils243.patch
 RUN cd && \
   apk add --no-cache --virtual .build-dependencies \
   gnutls \
@@ -44,7 +45,8 @@ RUN cd && \
   cd "${DIR}" && \
   git clone --depth 1 --branch v4.4.1-4 https://github.com/jellyfin/jellyfin-ffmpeg.git && \
   cd jellyfin-ffmpeg* && \
-  patch -p1 < /tmp/ffmpeg-mathops-binutils241.patch && \
+  awk '/^diff --git /,0' /tmp/ffmpeg-mathops-binutils241.patch | patch -p1 && \
+  awk '/^diff --git /,0' /tmp/ffmpeg-mlpdsp-armv5te-binutils243.patch | patch -p1 && \
   PATH="$BIN:$PATH" && \
   ./configure --help && \
   ./configure --bindir="$BIN" --disable-debug \

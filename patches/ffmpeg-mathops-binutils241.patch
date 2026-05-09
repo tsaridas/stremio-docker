@@ -1,3 +1,12 @@
+# Source:
+# - FFmpeg cvslog: "avcodec/x86/mathops: clip constants used with shift instructions within inline assembly"
+#   https://ffmpeg.org/pipermail/ffmpeg-cvslog/2024-April/141961.html
+# - FFmpeg release/4.1 commit: 7ef6f317f8f90eb34d97e016af02905898827dc4
+#
+# Context:
+# - Fixes x86 inline asm shift operand failures with newer binutils (>= 2.41).
+# - Applied to jellyfin-ffmpeg v4.4.1-4 during Docker build.
+
 diff --git a/libavcodec/x86/mathops.h b/libavcodec/x86/mathops.h
 index 6298f5ed19..ca7e2dffc1 100644
 --- a/libavcodec/x86/mathops.h

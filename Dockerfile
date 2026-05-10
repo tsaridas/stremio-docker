@@ -1,7 +1,9 @@
+# syntax=docker/dockerfile:1
 # Base: Node 20 on Alpine 3.23 (jellyfin-ffmpeg is patched for this Alpine/gcc toolchain).
 FROM node:20-alpine3.23 AS base
 
-RUN apk update && apk upgrade
+RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
+  apk update && apk upgrade
 
 FROM base AS ffmpeg
 
@@ -153,12 +155,16 @@ COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libwebpmux libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
+RUN apk add --no-cache libwebp libwebpmux libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
   apk add --no-cache intel-media-driver mesa-va-gallium; \
   fi
+
+# Base apk upgrade may be a days-old Docker layer cache; refresh once more before image shrink.
+RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
+  apk update && apk upgrade
 
 # Clean up package managers and docs.
 RUN rm -rf /opt/yarn-v* /usr/local/lib/node_modules \

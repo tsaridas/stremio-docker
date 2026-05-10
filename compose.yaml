@@ -1,34 +1,12 @@
 services:
   stremio:
-    build:
-      context: .
-      dockerfile: Dockerfile.nvidia
-    image: stremio-docker:nvidia
-    runtime: nvidia
+    image: tsaridas/stremio-docker:latest
     restart: unless-stopped
     environment:
-      - NO_CORS=1
-      - AUTO_SERVER_URL=0
-      - IPADDRESS=192.168.0.100
-      - SERVER_URL=https://stremio.raspberrypi.lan/
-      - WEBUI_INTERNAL_PORT=8080
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      NO_CORS: 1
+      AUTO_SERVER_URL: 1
+      #IPADDRESS: 192.168.1.10 # Setup your ip address here
     ports:
-      - "8085:8080"
+      - "8080:8080"
     volumes:
-      - "/mnt/lvm1-storage/.stremio-server:/root/.stremio-server"
-    extra_hosts:
-      - "stremio.raspberrypi.lan:192.168.0.100"
-      - "raspberrypi.lan:192.168.0.100"
-    deploy:
-      resources:
-        limits:
-          cpus: "1.5"
-          memory: 1536M
-        reservations:
-          memory: 256M
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu, video, compute]
+      - "./stremio-data:/root/.stremio-server"

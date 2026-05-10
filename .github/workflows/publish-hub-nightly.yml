@@ -287,7 +287,7 @@ jobs:
           docker run -d --name stremio-nvidia-smoke -e NO_CORS=1 -e CASTING_DISABLED=1 \
             --platform "$platform" "${{ env.TAG }}"
           sleep 25
-          docker exec stremio-nvidia-smoke sh -c 'wget -qO- http://127.0.0.1:8080/ | head -c 500' | grep -q . || {
+          docker exec stremio-nvidia-smoke sh -c 'curl -fsS http://127.0.0.1:8080/ | head -c 500' | grep -q . || {
             docker logs stremio-nvidia-smoke
             exit 1
           }

@@ -291,7 +291,7 @@ jobs:
           docker run -d --name stremio-nvidia-smoke -e NO_CORS=1 -e CASTING_DISABLED=1 \
             --platform "$platform" "${{ env.TAG }}"
           sleep 25
-          docker exec stremio-nvidia-smoke sh -c 'wget -qO- http://127.0.0.1:8080/ | head -c 500' | grep -q . || {
+          docker exec stremio-nvidia-smoke sh -c 'curl -fsS http://127.0.0.1:8080/ | head -c 500' | grep -q . || {
             docker logs stremio-nvidia-smoke
             exit 1
           }
@@ -325,12 +325,11 @@ jobs:
       - name: Load images
         run: |
           for image in /tmp/images/*.tar; do
-            docker load -i "$image"
+            docker load -i $image
           done
       - name: Push images to local registry
         run: |
           docker push -a ${{ env.TMP_LOCAL_IMAGE }}
-          docker push -a ${{ env.TMP_LOCAL_IMAGE_NVIDIA }}
       - name: Login to ghcr.io
         uses: docker/login-action@v3
         with:
@@ -341,9 +340,6 @@ jobs:
         run: |
           docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }} \
             $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE }}' | tr '\n' ' ')
-          docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}-nvidia \
-            $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE_NVIDIA }}' | tr '\n' ' ')
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}-nvidia

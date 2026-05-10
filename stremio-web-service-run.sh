@@ -7,9 +7,9 @@ HTPASSWD_FILE="/etc/nginx/.htpasswd"
 sed -i 's/df -k/df -Pk/g' server.js
 
 if [ -n "${SERVER_URL}" ]; then
-    if [ "${SERVER_URL: -1}" != "/" ]; then
+    case "$SERVER_URL" in */) ;; *)
         SERVER_URL="$SERVER_URL/"
-    fi
+    ;; esac
     cp localStorage.json build/localStorage.json
     touch build/server_url.env
     sed -i "s|http://127.0.0.1:11470/|"${SERVER_URL}"|g" build/localStorage.json
@@ -52,5 +52,41 @@ elif [ -n "${CERT_FILE}" ]; then
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
     fi
 fi
+# Force NVENC hw accel: patch server.js to skip the broken auto-test
+# The auto-test always fails (0.2s sample + concurrency race) and disables hw accel.
+# We disable the test and set correct NVENC settings directly.
+if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
+    SETTINGS="${CONFIG_FOLDER}server-settings.json"
+
+    # Patch server.js: prevent auto-test from disabling hw accel
+    sed -i 's/transcodeHardwareAccel: !1/transcodeHardwareAccel: !0/g' server.js
+
+    # Patch nvenc-linux profile for 10-bit compatibility (GTX 1070 / Pascal):
+    # 1. Remove -hwaccel_output_format cuda (forces 10-bit CUDA frames → NVENC fails)
+    sed -i 's/"-hwaccel", "cuda", "-hwaccel_output_format", "cuda"/"-hwaccel", "cuda"/' server.js
+    # 2. Remove -init_hw_device/-filter_hw_device (only needed for scale_cuda)
+    sed -i 's/"-init_hw_device", "cuda=cu:0", "-filter_hw_device", "cu", "-hwaccel"/"-hwaccel"/' server.js
+    # 3. Use CPU scale instead of scale_cuda (CUDA frames auto-downloaded by ffmpeg)
+    sed -i 's/scale: "scale_cuda"/scale: !1/' server.js
+    # 4. Restore lanczos scaler flags for CPU scale
+    sed -i '/nvenc/,/vaapi/{s/scaleExtra: ""/scaleExtra: ":flags=lanczos"/}' server.js
+    # 5. Disable wrapSwFilters (no hwdownload/hwupload needed with CPU scale)
+    sed -i 's/wrapSwFilters: \[ "hwdownload", "hwupload_cuda" \]/wrapSwFilters: !1/' server.js
+
+    echo "NVENC: patched server.js (auto-test + 10-bit compat + CPU scale)"
+
+    # Set NVENC settings in config file
+    if [ -f "$SETTINGS" ]; then
+        sed -i \
+            -e 's/"transcodeHardwareAccel": false/"transcodeHardwareAccel": true/' \
+            -e 's/"transcodeProfile": null/"transcodeProfile": "nvenc-linux"/' \
+            -e 's/"allTranscodeProfiles": \[\]/"allTranscodeProfiles": ["nvenc-linux"]/' \
+            "$SETTINGS"
+        echo "NVENC: settings configured (transcodeHardwareAccel: true, profile: nvenc-linux)"
+    fi
+fi
+
 node server.js &
+SERVER_PID=$!
+
 start_http_server

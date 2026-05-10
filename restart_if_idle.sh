@@ -20,13 +20,13 @@ if [ "$1" = "--force" ]; then
     exit 0
 fi
 
-# Make the HTTP call
-response=$(curl -s "$URL")
-curl_exit_status=$?
+# Make the HTTP call (BusyBox wget — avoids shipping standalone curl in the image)
+response=$(wget -qO- "$URL" 2>/dev/null)
+wget_exit_status=$?
 
-# Check if curl failed (non-zero exit status)
-if [ $curl_exit_status -ne 0 ]; then
-    restart_process "Curl failed with connection error. Restarting the process..."
+# Check if the HTTP fetch failed (non-zero exit status)
+if [ $wget_exit_status -ne 0 ]; then
+    restart_process "HTTP fetch failed (wget). Restarting the process..."
 # Check if the response is an empty JSON object
 elif [ "$response" = "{}" ]; then
     restart_process "Empty JSON response detected. Restarting the process..."

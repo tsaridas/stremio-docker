@@ -162,6 +162,10 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
   apk add --no-cache intel-media-driver mesa-va-gallium; \
   fi
 
+# Base apk upgrade may be a days-old Docker layer cache; refresh once more before image shrink.
+RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
+  apk update && apk upgrade
+
 # Clean up package managers and docs.
 RUN rm -rf /opt/yarn-v* /usr/local/lib/node_modules \
   && rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \

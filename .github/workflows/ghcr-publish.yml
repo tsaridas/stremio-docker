@@ -330,16 +330,24 @@ jobs:
       - name: Push images to local registry
         run: |
           docker push -a ${{ env.TMP_LOCAL_IMAGE }}
+          docker push -a ${{ env.TMP_LOCAL_IMAGE_NVIDIA }}
       - name: Login to ghcr.io
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Default image: multi-arch manifest (same package as Docker Hub name: ghcr.io/owner/repo:branch)
       - name: Create manifest list and push
         run: |
           docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }} \
             $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE }}' | tr '\n' ' ')
-      - name: Inspect image
+      # NVIDIA image: same GHCR package, tag is branch name + "-nvidia" (e.g. ghcr.io/owner/repo:my-branch-nvidia)
+      - name: Create NVIDIA manifest list and push
+        run: |
+          docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}-nvidia \
+            $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE_NVIDIA }}' | tr '\n' ' ')
+      - name: Inspect images
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}-nvidia

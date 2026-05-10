@@ -1,7 +1,9 @@
+# syntax=docker/dockerfile:1
 # Base: Node 20 on Alpine 3.23 (jellyfin-ffmpeg is patched for this Alpine/gcc toolchain).
 FROM node:20-alpine3.23 AS base
 
-RUN apk update && apk upgrade
+RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
+  apk update && apk upgrade
 
 FROM base AS ffmpeg
 
@@ -97,8 +99,6 @@ LABEL org.opencontainers.image.licenses=MIT
 LABEL version=${VERSION}
 
 WORKDIR /srv/stremio-server
-# Pick up security fixes for base-layer packages (e.g. busybox) at image build time.
-RUN apk update && apk upgrade --no-cache
 COPY --from=builder-web /srv/stremio-web/build ./build
 COPY --from=builder-web /srv/stremio-web/server.js ./
 

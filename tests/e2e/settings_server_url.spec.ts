@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { test } from './fixtures';
+import { streamingOnlineTimeoutMs, test } from './fixtures';
 
 test.describe('Stremio API and Settings', () => {
   test('Automatically set streaming server URL', async ({ page, serverURL, webURL }) => {
@@ -8,7 +8,7 @@ test.describe('Stremio API and Settings', () => {
     
     await page.getByTitle('Streaming').click();
 
-    await expect(page.getByText('Online')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Online')).toBeVisible({ timeout: streamingOnlineTimeoutMs });
     
     const serverUrlElement = page.getByText(serverURL);
     await expect(serverUrlElement).toBeVisible();

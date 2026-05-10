@@ -1,5 +1,7 @@
 import { test as baseTest } from '@playwright/test';
 
+export const streamingOnlineTimeoutMs = process.env.CI ? 240_000 : 15_000;
+
 type MyFixtures = {
   serverURL: string;
   webURL: string;

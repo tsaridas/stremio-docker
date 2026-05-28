@@ -2,6 +2,59 @@ const fs = require('fs');
 const process = require('process');
 const path = require('path');
 const crypto = require('crypto');
+
+function isValidIPv4(ipAddress) {
+    return /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ipAddress);
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+async function getPublicIPv4() {
+    const providers = [
+        {
+            url: 'https://ifconfig.me/ip',
+            parse: async (response) => (await response.text()).trim(),
+        },
+        {
+            url: 'https://4.ident.me',
+            parse: async (response) => (await response.text()).trim(),
+        },
+        {
+            url: 'https://4.tnedi.me',
+            parse: async (response) => (await response.text()).trim(),
+        },
+    ];
+
+    const errors = [];
+    for (const provider of providers) {
+        try {
+            const response = await fetchWithTimeout(provider.url, {}, 3000);
+            if (!response.ok) {
+                errors.push(`${provider.url} returned HTTP ${response.status}`);
+                continue;
+            }
+
+            const ipAddress = await provider.parse(response);
+            if (isValidIPv4(ipAddress)) {
+                return ipAddress;
+            }
+
+            errors.push(`${provider.url} returned invalid IPv4: "${ipAddress}"`);
+        } catch (error) {
+            errors.push(`${provider.url} failed: ${error.message}`);
+        }
+    }
+
+    throw new Error(`Unable to detect public IPv4 address from all providers: ${errors.join(' | ')}`);
+}
 // Usage examples:
 // Load certificate:
 // node certificate.js --action load --pem-path /path/to/certificate.pem --domain example.com --json-path /path/to/output.json
@@ -17,11 +70,10 @@ async function getCertificate() {
     let ipAddress = process.env.IPADDRESS;
 
     if (ipAddress === "0-0-0-0") {
-        const publicIp = await fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => data.ip);
-        ipAddress = publicIp;
+        ipAddress = await getPublicIPv4();
     }
 
-    if (!/^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ipAddress)) {
+    if (!isValidIPv4(ipAddress)) {
         throw new Error('Invalid IPv4 address format.');
     }
 

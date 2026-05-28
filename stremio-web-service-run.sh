@@ -52,5 +52,5 @@ elif [ -n "${CERT_FILE}" ]; then
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${DOMAIN}" --json-path "${CONFIG_FOLDER}httpsCert.json"
     fi
 fi
-node server.js &
+node --no-deprecation server.js &
 start_http_server

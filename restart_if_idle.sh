@@ -4,7 +4,7 @@
 URL="http://localhost:11470/stats.json"
 
 # Process name
-PROCESS_NAME="node server.js"
+PROCESS_NAME="node --no-deprecation server.js"
 
 # Function to restart the process
 restart_process() {

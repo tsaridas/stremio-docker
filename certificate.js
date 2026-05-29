@@ -83,7 +83,7 @@ async function getCertificate() {
     const maxAttempts = Number(process.env.MAXATTEMPTS) || 5;
     while (attempts < maxAttempts) {
         try {
-            const response = await fetch('http://api.strem.io/api/certificateGet', {
+            const response = await fetch('https://api.strem.io/api/certificateGet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -91,11 +91,12 @@ async function getCertificate() {
                     ipAddress: ipAddress,
                 }),
             });
-            if (!response || !response.ok) {
-                throw new Error(`Failed to fetch certificate.`);
-            }
 
             data = await response.json();
+            if (!response || !response.ok || data.error) {
+                const apiMessage = data?.error?.message || `HTTP ${response?.status}`;
+                throw new Error(`Failed to fetch certificate: ${apiMessage}`);
+            }
             break;
         } catch (error) {
             console.error(`Failed to fetch certificate. Retrying... (${attempts + 1}/${maxAttempts})`);

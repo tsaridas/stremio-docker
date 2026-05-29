@@ -76,7 +76,7 @@ These options can be configured by setting environment variables using `-e KEY="
 
 | Env                   | Default | Example                      | Description                                                                                                                                                                                                  |
 |-----------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 in order to enable https and generate certificates with stremio domain. If you set this to 0-0-0-0 it will try to automatically get your public ip. Getting the public ip and DNS is not reliable and might need multiple retries. **It will not work for IPv6**                                                                                                                                                                                 |
+| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 to enable HTTPS and generate certificates with the stremio domain. For public HTTPS, this must be your real public IPv4 address (or use `0-0-0-0` for auto-detect). If the detected/provided IP is not your real routable IPv4, certificate generation can fail. **It will not work for IPv6**                                                                                                                                                                                 |
 | `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Manually sets the streaming server URL. This is useful when you want to force a specific URL.                                                                                                                     |
 | `AUTO_SERVER_URL`     | 0       | 1                            | When set to `1`, the streaming server URL is automatically detected from the browser's URL. This is the recommended setting for most users.                                                                    |
 | `NO_CORS`             | 1       | `0`                          | Set to enable server's cors. Default is disabled.                                                                                                                                                                                 |
@@ -120,13 +120,14 @@ Access Stremio at `http://<YOUR_LAN_IP>:8080`.
 
 This option automatically gets a certificate for a `*.stremio.rocks` subdomain and points it to your public IP address.
 
-- Set `IPADDRESS=0.0.0.0` to auto-detect your public IP.
+- Set `IPADDRESS=0-0-0-0` to auto-detect your public IP.
+- The detected IP must be your real public IPv4 (routable on the internet). If your network/proxy returns a different IP, certificate generation will fail.
 - Expose port `8080` and configure port forwarding on your router.
 
 ```bash
 docker run -d \
   --name=stremio-docker \
-  -e IPADDRESS=0.0.0.0 \
+  -e IPADDRESS=0-0-0-0 \
   -e AUTO_SERVER_URL=1 \
   -p 8080:8080 \
   tsaridas/stremio-docker:latest

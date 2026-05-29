@@ -71,6 +71,7 @@ async function getCertificate() {
 
     if (ipAddress === "0-0-0-0") {
         ipAddress = await getPublicIPv4();
+        fs.writeFileSync('detected-ip.txt', ipAddress);
     }
 
     if (!isValidIPv4(ipAddress)) {

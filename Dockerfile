@@ -77,8 +77,7 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
-COPY ./patches/webpack-commit-hash.patch /tmp/webpack-commit-hash.patch
-RUN patch -p1 < /tmp/webpack-commit-hash.patch
+RUN sed -i "s|const COMMIT_HASH = execSync('git rev-parse HEAD').toString().trim();|const GIT_COMMIT = execSync('git rev-parse HEAD').toString().trim();\\nconst BUILD_LABEL = process.env.COMMIT_HASH ? String(process.env.COMMIT_HASH).replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '') : '';\\nconst COMMIT_HASH = BUILD_LABEL ? \\`\\${BUILD_LABEL}-\\${GIT_COMMIT}\\` : GIT_COMMIT;|" webpack.config.js
 
 COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js

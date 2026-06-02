@@ -104,6 +104,7 @@ jobs:
           build-args: |
             BRANCH=release
             VERSION=${{ env.TAG_NAME }}
+            COMMIT_HASH=${{ needs.check_release.outputs.version }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
 
       - name: Load images

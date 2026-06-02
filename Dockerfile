@@ -77,12 +77,15 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
+RUN sed -i "s#const COMMIT_HASH = execSync('git rev-parse HEAD').toString().trim();#const GIT_COMMIT = execSync('git rev-parse HEAD').toString().trim();\\nconst BUILD_LABEL = process.env.COMMIT_HASH ? String(process.env.COMMIT_HASH).replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+\$/g, '') : '';\\nconst COMMIT_HASH = BUILD_LABEL ? BUILD_LABEL + '-' + GIT_COMMIT : GIT_COMMIT;\\nprocess.env.COMMIT_HASH = COMMIT_HASH;#" webpack.config.js
+
 COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
 
 RUN npm install -g pnpm@9 --force
 RUN pnpm install --frozen-lockfile --reporter=silent
-RUN pnpm run build
+ARG COMMIT_HASH=
+RUN COMMIT_HASH=$COMMIT_HASH pnpm run build
 
 RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" "https://app.strem.io/images/empty.png" -P build/shell/ || true
 

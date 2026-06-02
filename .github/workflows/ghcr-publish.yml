@@ -39,8 +39,11 @@ jobs:
         run: |
           mkdir -p /tmp/images
           platform=${{ matrix.platform }}
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          BRANCH_NAME="${BRANCH_NAME//\//-}"
           echo "TARFILE=${platform//\//-}.tar" >> $GITHUB_ENV
           echo "TAG=${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}" >> $GITHUB_ENV
+          echo "COMMIT_HASH=${BRANCH_NAME}-${GITHUB_SHA}" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -56,6 +59,7 @@ jobs:
           build-args: |
             BRANCH=${{ env.BRANCH }}
             VERSION=${{ env.VERSION }}
+            COMMIT_HASH=${{ env.COMMIT_HASH }}
           tags: ${{ env.TAG }}
           outputs: type=docker,dest=/tmp/images/${{ env.TARFILE }}
 

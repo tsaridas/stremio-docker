@@ -82,7 +82,8 @@ RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack
 
 RUN npm install -g pnpm@9 --force
 RUN pnpm install --frozen-lockfile --reporter=silent
-RUN pnpm run build
+ARG COMMIT_HASH=
+RUN COMMIT_HASH=$COMMIT_HASH pnpm run build
 
 RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" "https://app.strem.io/images/empty.png" -P build/shell/ || true
 

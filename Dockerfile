@@ -77,6 +77,9 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
+COPY ./patches/webpack-commit-hash.patch /tmp/webpack-commit-hash.patch
+RUN patch -p1 < /tmp/webpack-commit-hash.patch
+
 COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
 

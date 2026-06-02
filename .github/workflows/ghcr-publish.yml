@@ -39,8 +39,10 @@ jobs:
         run: |
           mkdir -p /tmp/images
           platform=${{ matrix.platform }}
-          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-          BRANCH_NAME="${BRANCH_NAME//\//-}"
+          sanitize_path_segment() {
+            echo "$1" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/-\+/-/g' | sed 's/^-//;s/-$//'
+          }
+          BRANCH_NAME="$(sanitize_path_segment "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}")"
           echo "TARFILE=${platform//\//-}.tar" >> $GITHUB_ENV
           echo "TAG=${{ env.TMP_LOCAL_IMAGE }}:${platform//\//-}" >> $GITHUB_ENV
           echo "COMMIT_HASH=${BRANCH_NAME}-${GITHUB_SHA}" >> $GITHUB_ENV

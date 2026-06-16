@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
-# Base: Node 20 on Alpine 3.23 (jellyfin-ffmpeg is patched for this Alpine/gcc toolchain).
-FROM node:20-alpine3.23 AS base
+# Base: Alpine 3.23 across all target architectures; install Node in-image.
+FROM alpine:3.23 AS base
 
 RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
-  apk update && apk upgrade
+  apk update && apk upgrade && apk add --no-cache nodejs npm
 
 FROM base AS ffmpeg
 
@@ -68,6 +68,8 @@ RUN cd && \
 # Builder image
 FROM base AS builder-web
 
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 WORKDIR /srv
 RUN apk add --no-cache git wget
@@ -82,7 +84,7 @@ RUN sed -i "s#const COMMIT_HASH = execSync('git rev-parse HEAD').toString().trim
 COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
 
-RUN npm install -g pnpm@9 --force
+RUN npm install -g pnpm@11 --force
 RUN pnpm install --frozen-lockfile --reporter=silent
 ARG COMMIT_HASH=
 RUN COMMIT_HASH=$COMMIT_HASH pnpm run build

@@ -86,7 +86,7 @@ RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack
 
 RUN npm install -g pnpm@11 --force
 RUN if [ "$BRANCH" = "release" ]; then \
-      pnpm install --no-frozen-lockfile; \
+      rm -f pnpm-lock.yaml && pnpm install; \
     else \
       pnpm install --frozen-lockfile; \
     fi

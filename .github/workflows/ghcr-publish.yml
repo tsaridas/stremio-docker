@@ -15,7 +15,7 @@ env:
   REGISTRY_IMAGE: ${{ github.repository }}
   REGISTRY_TAG: ${{ github.head_ref || github.ref_name }} 
   VERSION: testing
-  BRANCH: development
+  BRANCH: release
   TAG: 
   TARFILE: 
 

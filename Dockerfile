@@ -85,7 +85,11 @@ COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
 
 RUN npm install -g pnpm@11 --force
-RUN pnpm install --frozen-lockfile
+RUN if [ "$BRANCH" = "release" ]; then \
+      pnpm install --no-frozen-lockfile; \
+    else \
+      pnpm install --frozen-lockfile; \
+    fi
 ARG COMMIT_HASH=
 RUN COMMIT_HASH=$COMMIT_HASH pnpm run build
 

@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-# Base: Alpine 3.23 across all target architectures; install Node from Alpine repos.
+# Base: Alpine 3.23 across all target architectures; install Node in-image.
+
 FROM alpine:3.23 AS base
 
 RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \

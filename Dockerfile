@@ -86,7 +86,9 @@ RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack
 
 RUN npm install -g pnpm@11 --force
 RUN if [ "$BRANCH" = "release" ]; then \
-      rm -f pnpm-lock.yaml && pnpm install; \
+      rm -f pnpm-lock.yaml \
+      && printf "minimumReleaseAgeExclude:\n  - '@stremio/*'\n\nblockExoticSubdeps: false\n" > pnpm-workspace.yaml \
+      && pnpm install; \
     else \
       pnpm install --frozen-lockfile; \
     fi

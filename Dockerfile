@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Base: Alpine 3.23 across all target architectures; install Node from Alpine repos.
-FROM alpine:3.23 AS base
+# Base: Alpine 3.24 across all target architectures; install Node from Alpine repos.
+FROM alpine:3.24 AS base
 
 RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
   apk update && apk upgrade && apk add --no-cache nodejs npm

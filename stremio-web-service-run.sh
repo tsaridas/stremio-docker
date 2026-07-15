@@ -38,8 +38,12 @@ if [ -n "${IPADDRESS}" ]; then
     EXTRACT_STATUS="$?"
 
     if [ "${EXTRACT_STATUS}" -eq 0 ] && [ -f "/srv/stremio-server/certificates.pem" ]; then
-        IP_DOMAIN=$(echo "${IPADDRESS}" | sed 's/\./-/g')
-        echo "${IPADDRESS} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
+        RESOLVED_IP="${IPADDRESS}"
+        if [ "${IPADDRESS}" = "0-0-0-0" ] && [ -f "/srv/stremio-server/detected-ip.txt" ]; then
+            RESOLVED_IP=$(cat /srv/stremio-server/detected-ip.txt)
+        fi
+        IP_DOMAIN=$(echo "${RESOLVED_IP}" | sed 's/\./-/g')
+        echo "${RESOLVED_IP} ${IP_DOMAIN}.519b6502d940.stremio.rocks" >> /etc/hosts
         cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${IP_DOMAIN}.519b6502d940.stremio.rocks" --json-path "${CONFIG_FOLDER}httpsCert.json"
     else
@@ -86,7 +90,7 @@ if [ -f /usr/bin/nvidia-smi ] 2>/dev/null; then
     fi
 fi
 
-node server.js &
+node --no-deprecation server.js &
 SERVER_PID=$!
 
 start_http_server

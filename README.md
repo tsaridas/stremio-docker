@@ -15,19 +15,22 @@ I built this to run Stremio on my Raspberry Pi 5 and couldn't find something tha
 - **Automatic Server Configuration:** Use `AUTO_SERVER_URL` or `SERVER_URL` to automatically configure the streaming server URL in the web player.
 - **HTTPS Out-of-the-Box:** Automatically generates and uses SSL certificates when an `IPADDRESS` is provided.
 - **Custom Certificates:** Supports using your own domain and SSL certificates.
-- **Hardware Acceleration:** Includes ffmpeg with VAAPI support for Intel and AMD GPUs.
+- **Hardware Acceleration (Linux hosts):** Includes ffmpeg with VAAPI support for Intel and AMD GPUs when you pass through the GPU on Linux (see [FFMPEG](#ffmpeg)).
 - **Cross-Platform:** Builds are available for `amd64`, `arm/v6`, `arm/v7`, `arm64/v8`, and `ppc64le`.
+- **Runs on Linux, Windows, and macOS:** Use Docker Engine on Linux or [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Windows and macOS—the same `docker` / `docker compose` commands apply. On **macOS**, Docker pulls the matching image for your Mac: **Intel** (`linux/amd64`) or **Apple Silicon (M series)** (`linux/arm64`).
+- **Transcoding on Windows and macOS:** When you run this container on **Windows** or **macOS**, transcoding uses the **CPU** only. GPU/VAAPI passthrough (see [FFMPEG](#ffmpeg)) is for **Linux** hosts.
 - **HTTP Basic Auth:** Secure your instance with a username and password.
 
 ## Requirements
 
-- A host with Docker installed.
+- **Docker** on your machine. The container runs on **Linux** (Docker Engine or similar), **Windows**, and **macOS** (typically via [Docker Desktop](https://www.docker.com/products/docker-desktop/)). On macOS, **Intel Macs** use the `amd64` image and **Apple Silicon (M series)** use the `arm64` image; Docker Desktop selects the correct architecture automatically.
+- Expect **CPU transcoding** on **Windows** and **macOS**—do not rely on GPU acceleration inside the container on those platforms.
 
 ## Installation
 
 ### 1. Install Docker
 
-If you haven't installed Docker yet, you can usually install it with:
+- **Linux:** If you haven't installed Docker yet, you can usually install it with:
 
 ```bash
 curl -sSL https://get.docker.com | sh
@@ -35,6 +38,8 @@ sudo usermod -aG docker $(whoami)
 exit
 ```
 And log in again.
+
+- **Windows and macOS:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and ensure it is running before you use `docker` or `docker compose`.
 
 ### 2. Run Stremio
 
@@ -71,7 +76,7 @@ These options can be configured by setting environment variables using `-e KEY="
 
 | Env                   | Default | Example                      | Description                                                                                                                                                                                                  |
 |-----------------------|---------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 in order to enable https and generate certificates with stremio domain. If you set this to 0-0-0-0 it will try to automatically get your public ip. Getting the public ip and DNS is not reliable and might need multiple retries. **It will not work for IPv6**                                                                                                                                                                                 |
+| `IPADDRESS`           | -       | `192.168.1.10`               | Set this to a valid IPv4 to enable HTTPS and generate certificates with the stremio domain. For public HTTPS, this must be your real public IPv4 address (or use `0-0-0-0` for auto-detect). If the detected/provided IP is not your real routable IPv4, certificate generation can fail. **It will not work for IPv6**                                                                                                                                                                                 |
 | `SERVER_URL`          | -       | `http://192.168.1.10:11470/` | Manually sets the streaming server URL. This is useful when you want to force a specific URL.                                                                                                                     |
 | `AUTO_SERVER_URL`     | 0       | 1                            | When set to `1`, the streaming server URL is automatically detected from the browser's URL. This is the recommended setting for most users.                                                                    |
 | `NO_CORS`             | 1       | `0`                          | Set to enable server's cors. Default is disabled.                                                                                                                                                                                 |
@@ -115,13 +120,14 @@ Access Stremio at `http://<YOUR_LAN_IP>:8080`.
 
 This option automatically gets a certificate for a `*.stremio.rocks` subdomain and points it to your public IP address.
 
-- Set `IPADDRESS=0.0.0.0` to auto-detect your public IP.
+- Set `IPADDRESS=0-0-0-0` to auto-detect your public IP.
+- The detected IP must be your real public IPv4 (routable on the internet). If your network/proxy returns a different IP, certificate generation will fail.
 - Expose port `8080` and configure port forwarding on your router.
 
 ```bash
 docker run -d \
   --name=stremio-docker \
-  -e IPADDRESS=0.0.0.0 \
+  -e IPADDRESS=0-0-0-0 \
   -e AUTO_SERVER_URL=1 \
   -p 8080:8080 \
   tsaridas/stremio-docker:latest
@@ -194,11 +200,15 @@ We build our own ffmpeg from the jellyfin repo (version 4.4.1-4), which includes
 - Multiple codec support (H.264, HEVC, VP9, etc.)
 - Optimized for streaming workloads
 
-Hardware acceleration is automatically detected. To enable it, you must expose your GPU device to the container.
+On **Linux**, hardware acceleration is used when the GPU is available to the container. To enable it, you must expose your GPU device to the container.
 
-**Support for Intel/AMD GPU Transcoding (VAAPI)**
+**Windows and macOS**
 
-If you have a supported Intel or AMD GPU on Linux, you can enable hardware transcoding by passing the `dri` device to the container:
+Docker Desktop on **Windows** and **macOS** does not expose Linux VAAPI devices the way this image expects. Transcoding runs on the **CPU**; plan for higher CPU use than on a Linux host with GPU passthrough.
+
+**Support for Intel/AMD GPU Transcoding (VAAPI) — Linux only**
+
+If you have a supported Intel or AMD GPU on **Linux**, you can enable hardware transcoding by passing the `dri` device to the container:
 
 **Docker Compose:**
 ```yaml

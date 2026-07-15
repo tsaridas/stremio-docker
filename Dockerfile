@@ -1,7 +1,9 @@
-# Base: Node 20 on Alpine 3.23 (jellyfin-ffmpeg is patched for this Alpine/gcc toolchain).
-FROM node:20-alpine3.23 AS base
+# syntax=docker/dockerfile:1
+# Base: Alpine 3.24 across all target architectures; install Node from Alpine repos.
+FROM alpine:3.24 AS base
 
-RUN apk update && apk upgrade
+RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
+  apk update && apk upgrade && apk add --no-cache nodejs npm
 
 FROM base AS ffmpeg
 
@@ -66,6 +68,8 @@ RUN cd && \
 # Builder image
 FROM base AS builder-web
 
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 WORKDIR /srv
 RUN apk add --no-cache git wget
@@ -75,12 +79,15 @@ RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "releas
 
 WORKDIR /srv/stremio-web
 
+RUN sed -i "s#const COMMIT_HASH = execSync('git rev-parse HEAD').toString().trim();#const GIT_COMMIT = execSync('git rev-parse HEAD').toString().trim();\\nconst BUILD_LABEL = process.env.COMMIT_HASH ? String(process.env.COMMIT_HASH).replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+\$/g, '') : '';\\nconst COMMIT_HASH = BUILD_LABEL ? BUILD_LABEL + '-' + GIT_COMMIT : GIT_COMMIT;\\nprocess.env.COMMIT_HASH = COMMIT_HASH;#" webpack.config.js
+
 COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
 
-RUN npm install -g pnpm@9 --force
+RUN npm install -g pnpm@11 --force
 RUN pnpm install --frozen-lockfile --reporter=silent
-RUN pnpm run build
+ARG COMMIT_HASH=
+RUN COMMIT_HASH=$COMMIT_HASH pnpm run build
 
 RUN wget $(wget -O- https://raw.githubusercontent.com/Stremio/stremio-shell/master/server-url.txt) && wget -mkEpnp -nH "https://app.strem.io/" "https://app.strem.io/worker.js" "https://app.strem.io/images/stremio.png" "https://app.strem.io/images/empty.png" -P build/shell/ || true
 
@@ -153,12 +160,16 @@ COPY --from=ffmpeg /usr/bin/ffmpeg /usr/bin/ffprobe /usr/bin/
 COPY --from=ffmpeg /usr/lib/jellyfin-ffmpeg /usr/lib/
 
 # Add libs
-RUN apk add --no-cache libwebp libwebpmux libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva curl
+RUN apk add --no-cache libwebp libwebpmux libvorbis x265-libs x264-libs libass opus libgmpxx lame-libs gnutls libvpx libtheora libdrm libbluray zimg libdav1d aom-libs xvidcore fdk-aac libva
 
 # Add arch specific libs
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
   apk add --no-cache intel-media-driver mesa-va-gallium; \
   fi
+
+# Base apk upgrade may be a days-old Docker layer cache; refresh once more before image shrink.
+RUN --mount=type=cache,id=apk-base,target=/var/cache/apk \
+  apk update && apk upgrade
 
 # Clean up package managers and docs.
 RUN rm -rf /opt/yarn-v* /usr/local/lib/node_modules \

@@ -530,6 +530,7 @@ overwrites the in-memory value. **Always combine** with the `server.js` patch.
 | 5 | Entrypoint crash | `Bad substitution` | `dash` (POSIX sh) vs `bash` | POSIX `case` instead of `${var: -1}` | stremio-web-service-run.sh |
 | 6 | GPU not used | ffmpeg uses `libx264` | Auto-test fails and disables hwaccel | `sed 's/transcodeHardwareAccel: !1/!0/g'` | stremio-web-service-run.sh |
 | 7 | Video HTTP 500 | `10 bit encode not supported` | Pascal cannot NVENC 10-bit H.264 | Remove `hwaccel_output_format cuda`, use CPU scale | stremio-web-service-run.sh |
+| 8 | Safari "Video Not Supported" / probe 500 | Lavf GET `/{infoHash}/-1` returns SPA `index.html` (1127 B) | nginx only matched `/([0-9]+)$`, not `-1` (addon `fileIdx: null`) | Allow optional sign: `(-?[0-9]+)` | nginx/http.d/default.conf, nginx/https.conf |
 
 ## Technical reference
 

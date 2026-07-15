@@ -56,21 +56,21 @@ RUN cd && \
 
 #########################################################################
 
-# Builder image (same as original Dockerfile)
-FROM node:20-alpine3.23 AS builder-web
+# Builder image — stremio-web (development) currently requires Node >=22 and pnpm >=11
+FROM node:22-alpine AS builder-web
 
 WORKDIR /srv
 RUN apk add --no-cache git wget
 
 ARG BRANCH=development
-RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" == "release" ];then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | awk '{print $2}' | sort -V | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
+RUN REPO="https://github.com/Stremio/stremio-web.git"; if [ "$BRANCH" = "release" ]; then git clone "$REPO" --depth 1 --branch $(git ls-remote --tags --refs $REPO | awk '{print $2}' | sort -V | tail -n1 | cut -d/ -f3); else git clone --depth 1 --branch "$BRANCH" https://github.com/Stremio/stremio-web.git; fi
 
 WORKDIR /srv/stremio-web
 
 COPY ./load_localStorage.js ./src/load_localStorage.js
 RUN sed -i "/entry: {/a \\        loader: './src/load_localStorage.js'," webpack.config.js
 
-RUN npm install -g pnpm@9 --force
+RUN npm install -g pnpm@11 --force
 RUN pnpm install --frozen-lockfile --reporter=silent
 RUN pnpm run build
 

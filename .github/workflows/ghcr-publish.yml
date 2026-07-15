@@ -13,7 +13,6 @@ env:
   TMP_LOCAL_IMAGE: localhost:5000/${{ github.repository }}
   REGISTRY: ghcr.io
   REGISTRY_IMAGE: ${{ github.repository }}
-  REGISTRY_TAG: ${{ github.head_ref || github.ref_name }} 
   VERSION: testing
   BRANCH: development
   TAG: 
@@ -273,6 +272,13 @@ jobs:
       - name: Push images to local registry
         run: |
           docker push -a ${{ env.TMP_LOCAL_IMAGE }}
+      - name: Sanitize registry tag
+        run: |
+          # Docker tags cannot contain '/' (branch names like fix/foo break imagetools).
+          sanitize_path_segment() {
+            echo "$1" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/-\+/-/g' | sed 's/^-//;s/-$//'
+          }
+          echo "REGISTRY_TAG=$(sanitize_path_segment "${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}")" >> "$GITHUB_ENV"
       - name: Login to ghcr.io
         uses: docker/login-action@v3
         with:
@@ -281,8 +287,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Create manifest list and push
         run: |
-          docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }} \
-            $(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE }}' | tr '\n' ' ')
+          SOURCES="$(docker image ls --format '{{.Repository}}:{{.Tag}}' '${{ env.TMP_LOCAL_IMAGE }}' | tr '\n' ' ')"
+          if [ -z "$(echo "$SOURCES" | tr -d '[:space:]')" ]; then
+            echo "No local images found for ${{ env.TMP_LOCAL_IMAGE }}"
+            docker image ls
+            exit 1
+          fi
+          echo "Creating manifest ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}"
+          echo "Sources: $SOURCES"
+          docker buildx imagetools create -t "${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}" $SOURCES
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:${{ env.REGISTRY_TAG }}

@@ -1,5 +1,4 @@
-# Delete Docker images after PR merge or on request for a specific package name
-#
+# Delete Docker images after PR merge or on request (default + `-nvidia` tags from ghcr-publish).
 
 name: 'Clean up Docker images from PR or on request'
 
@@ -29,4 +28,12 @@ jobs:
         with:
           package-name: ${{ github.event.repository.name }}
           tag: ${{ steps.tag.outputs.tag }}
+          github-token: ${{ secrets.GH_DEL_PACK }}
+
+      - name: Delete NVIDIA tag (same package, `-nvidia` suffix from ghcr-publish)
+        continue-on-error: true
+        uses: chipkent/action-cleanup-package@v1.0.1
+        with:
+          package-name: ${{ github.event.repository.name }}
+          tag: ${{ steps.tag.outputs.tag }}-nvidia
           github-token: ${{ secrets.GH_DEL_PACK }}

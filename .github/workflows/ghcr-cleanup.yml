@@ -16,10 +16,18 @@ jobs:
     name: Delete image from ghcr.io
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve package tag
+        id: tag
+        run: |
+          sanitize_path_segment() {
+            echo "$1" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/-\+/-/g' | sed 's/^-//;s/-$//'
+          }
+          RAW="${{ github.event.inputs.package-name || github.head_ref || github.ref_name }}"
+          echo "tag=$(sanitize_path_segment "$RAW")" >> "$GITHUB_OUTPUT"
       - uses: chipkent/action-cleanup-package@v1.0.1
         with:
           package-name: ${{ github.event.repository.name }}
-          tag: ${{ github.event.inputs.package-name  || github.head_ref || github.ref_name }}
+          tag: ${{ steps.tag.outputs.tag }}
           github-token: ${{ secrets.GH_DEL_PACK }}
 
       - name: Delete NVIDIA tag (same package, `-nvidia` suffix from ghcr-publish)
@@ -27,5 +35,5 @@ jobs:
         uses: chipkent/action-cleanup-package@v1.0.1
         with:
           package-name: ${{ github.event.repository.name }}
-          tag: ${{ github.event.inputs.package-name || github.head_ref || github.ref_name }}-nvidia
+          tag: ${{ steps.tag.outputs.tag }}-nvidia
           github-token: ${{ secrets.GH_DEL_PACK }}

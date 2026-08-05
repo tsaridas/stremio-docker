@@ -15,6 +15,20 @@ if [ -n "${SERVER_URL}" ]; then
     sed -i "s|http://127.0.0.1:11470/|"${SERVER_URL}"|g" build/localStorage.json
 elif [ -n "${AUTO_SERVER_URL}" ] && [ "${AUTO_SERVER_URL}" -eq 1 ]; then
     cp localStorage.json build/localStorage.json
+    touch build/autoserver_url.env
+fi
+
+if [ -n "${ADDONS}" ]; then
+    echo "Processing addons from ADDONS environment variable..."
+    if [ -f build/localStorage.json ]; then
+        cp build/localStorage.json localStorage.json
+    fi
+    if node add-addons.js; then
+        cp localStorage.json build/localStorage.json
+        touch build/set_addons.env
+    else
+        echo "Warning: Failed to process addons. Continuing with existing configuration."
+    fi
 fi
 
 if [ -n "${USERNAME}" ] && [ -n "${PASSWORD}" ]; then

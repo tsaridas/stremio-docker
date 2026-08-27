@@ -62,7 +62,7 @@ vaapi_preflight() {
     done
 
     case "$ok_nodes" in
-        *"/dev/dri/renderD128")
+        *"renderD128"*)
             echo "[vaapi] /dev/dri/renderD128 is VA-API capable."
             ;;
         "")
@@ -81,7 +81,7 @@ vaapi_preflight() {
             echo "[vaapi] stremio-server probes renderD128 only and will silently fall back to CPU (issue #141)."
             for n in $ok_nodes; do
                 case "$n" in
-                    */renderD128) ;;
+                    *"renderD128"*) ;;
                     *) echo "[vaapi] Suggested compose remap: \"- /dev/dri/$(basename "$n"):/dev/dri/renderD128\"" ;;
                 esac
             done

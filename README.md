@@ -91,6 +91,8 @@ These options can be configured by setting environment variables using `-e KEY="
 | `USERNAME`           | -       | `myusername`            | Set for custom username for http simple authentication.                                                                                                               |
 | `PASSWORD`           | -       | `Mypassword`            | Set for custom password for http simple authentication.                                                                                                               |
 | `DISABLE_CACHING`     | -       | `1`                          | Disable caching for server if set to 1.                                                                                                                                                                      |                  
+| `VAAPI_PREFLIGHT`     | 1       | `0`                          | Enables/disables the startup VA-API DRM render-node probe. Set to `0` to suppress all preflight output (see Troubleshooting hardware acceleration).                                                          |
+| `VAAPI_PREFLIGHT_DEBUG` | 0     | `1`                          | When `1`, prints the full ffmpeg stderr for each DRM node probed at startup (see Troubleshooting hardware acceleration).                                                                                    |
 
 There are multiple other options defined but probably best not setting any.
 

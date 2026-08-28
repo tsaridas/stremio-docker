@@ -18,12 +18,16 @@ elif [ -n "${AUTO_SERVER_URL}" ] && [ "${AUTO_SERVER_URL}" -eq 1 ]; then
 fi
 
 if [ -n "${USERNAME}" ] && [ -n "${PASSWORD}" ]; then
-    echo "Setting up HTTP basic authentication..."
-    htpasswd -bc "${HTPASSWD_FILE}" "${USERNAME}" "${PASSWORD}"
+    echo "[auth] Setting up HTTP basic authentication..."
+    if ! htpasswd_msg=$(htpasswd -bc "${HTPASSWD_FILE}" "${USERNAME}" "${PASSWORD}" 2>&1); then
+        echo "[auth] ${htpasswd_msg}"
+        exit 1
+    fi
+    [ -n "${htpasswd_msg}" ] && echo "[auth] ${htpasswd_msg}"
     echo 'auth_basic "Restricted Content";' >"${AUTH_CONF_FILE}"
     echo 'auth_basic_user_file '"${HTPASSWD_FILE}"';' >>"${AUTH_CONF_FILE}"
 else
-    echo "No HTTP basic authentication will be used."
+    echo "[auth] No HTTP basic authentication will be used."
 fi
 
 start_http_server() {
@@ -56,7 +60,7 @@ vaapi_preflight() {
         else
             echo "[vaapi] $node: FAILED${err:+: $(printf '%s\n' "$err" | head -n 1)}"
             if [ "${VAAPI_PREFLIGHT_DEBUG:-0}" = "1" ]; then
-                printf '%s\n' "$err"
+                printf '%s\n' "$err" | sed 's/^/[vaapi] /'
             fi
         fi
     done
@@ -103,7 +107,7 @@ if [ -n "${IPADDRESS}" ]; then
         cp /etc/nginx/https.conf /etc/nginx/http.d/default.conf
         node certificate.js --action load --pem-path "/srv/stremio-server/certificates.pem" --domain "${IP_DOMAIN}.519b6502d940.stremio.rocks" --json-path "${CONFIG_FOLDER}httpsCert.json"
     else
-        echo "Failed to setup HTTPS. Falling back to HTTP."
+        echo "[cert] Failed to setup HTTPS. Falling back to HTTP."
     fi
 elif [ -n "${CERT_FILE}" ]; then
     if [ -f "${CONFIG_FOLDER}${CERT_FILE}" ]; then
@@ -113,5 +117,6 @@ elif [ -n "${CERT_FILE}" ]; then
     fi
 fi
 vaapi_preflight || true
-node --no-deprecation server.js &
+# Prefix EngineFS logs via -r preload; do not patch vendor server.js.
+node --no-deprecation -r ./server-log-prefix.js server.js &
 start_http_server

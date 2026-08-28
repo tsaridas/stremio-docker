@@ -4,14 +4,14 @@
 URL="http://localhost:11470/stats.json"
 
 # Process name
-PROCESS_NAME="node --no-deprecation server.js"
+PROCESS_NAME="node --no-deprecation -r ./server-log-prefix.js server.js"
 
 # Function to restart the process
 restart_process() {
-    echo "$1" > /proc/1/fd/1 2>/proc/1/fd/2
+    echo "[idle] $1" > /proc/1/fd/1 2>/proc/1/fd/2
     pkill -f "$PROCESS_NAME"
     nohup $PROCESS_NAME > /proc/1/fd/1 2>/proc/1/fd/2 &
-    echo "Process restarted." > /proc/1/fd/1 2>/proc/1/fd/2
+    echo "[idle] Process restarted." > /proc/1/fd/1 2>/proc/1/fd/2
 }
 
 # Check if force restart is requested
@@ -31,5 +31,5 @@ if [ $wget_exit_status -ne 0 ]; then
 elif [ "$response" = "{}" ]; then
     restart_process "Empty JSON response detected. Restarting the process..."
 else
-    echo "Non-empty JSON response. No action needed." > /proc/1/fd/1 2>/proc/1/fd/2
+    echo "[idle] Non-empty JSON response. No action needed." > /proc/1/fd/1 2>/proc/1/fd/2
 fi

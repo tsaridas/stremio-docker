@@ -112,6 +112,7 @@ RUN apk add --no-cache nginx apache2-utils
 COPY ./nginx/ /etc/nginx/
 COPY ./stremio-web-service-run.sh ./
 COPY ./certificate.js ./
+COPY ./server-log-prefix.js ./
 RUN chmod +x stremio-web-service-run.sh
 COPY ./restart_if_idle.sh ./
 RUN chmod +x restart_if_idle.sh

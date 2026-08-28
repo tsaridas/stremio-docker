@@ -99,7 +99,7 @@ async function getCertificate() {
             }
             break;
         } catch (error) {
-            console.error(`Failed to fetch certificate. Retrying... (${attempts + 1}/${maxAttempts})`);
+            console.error(`[cert] Failed to fetch certificate. Retrying... (${attempts + 1}/${maxAttempts})`);
             attempts++;
             if (attempts === maxAttempts) {
                 throw new Error(`Failed to fetch certificate after ${maxAttempts} attempts.`);
@@ -130,9 +130,9 @@ async function getCertificate() {
 
     fs.writeFileSync('certificates.pem', combinedCertificates);
 
-    console.log(`Certificates saved successfully! Setup an A record for ${ipAddress} to point to ${ipAddress.replace(/\./g, '-')}.519b6502d940.stremio.rocks`)
+    console.log(`[cert] Certificates saved successfully! Setup an A record for ${ipAddress} to point to ${ipAddress.replace(/\./g, '-')}.519b6502d940.stremio.rocks`)
   } catch (error) {
-    console.error('Error fetching certificate:', error);
+    console.error('[cert] Error fetching certificate:', error);
   }
 }
 
@@ -147,7 +147,7 @@ function parseCommandLineArgs() {
     }
 
     if (!parsedArgs.action || (parsedArgs.action === 'load' && (!parsedArgs['pem-path'] || !parsedArgs.domain || !parsedArgs['json-path'])) || (parsedArgs.action === 'extract' && !parsedArgs['json-path']) || (parsedArgs.action === 'fetch' && Object.keys(parsedArgs).length !== 1)) {
-        console.error('Usage: node certificate.js --action <load|extract|fetch> [--pem-path <path_to_pem_file> --domain <domain_name>] --json-path <path_to_json_file>');
+        console.error('[cert] Usage: node certificate.js --action <load|extract|fetch> [--pem-path <path_to_pem_file> --domain <domain_name>] --json-path <path_to_json_file>');
         process.exit(1);
     }
 
@@ -186,9 +186,9 @@ function loadCertificate(pemPath, domain, jsonPath) {
 
         fs.writeFileSync(jsonPath, JSON.stringify(httpsCertContent, null, 2));
 
-        console.log(`Certificate information saved to ${jsonPath} .`);
+        console.log(`[cert] Certificate information saved to ${jsonPath} .`);
     } catch (error) {
-        console.error(`Error loading certificate: ${error.message} .`);
+        console.error(`[cert] Error loading certificate: ${error.message} .`);
         process.exit(1);
     }
 }
@@ -202,9 +202,9 @@ function extractCertificate(jsonPath) {
         const outputPath = path.join(path.dirname(jsonPath), `${certData.domain}.pem`);
         fs.writeFileSync(outputPath, pemContent);
 
-        console.log(`${certData.domain}`);
+        console.log(`[cert] ${certData.domain}`);
     } catch (error) {
-        console.error(`Error extracting certificate: ${error.message} .`);
+        console.error(`[cert] Error extracting certificate: ${error.message} .`);
         process.exit(1);
     }
 }
@@ -222,6 +222,6 @@ try {
         throw new Error('Invalid action specified!');
     }
 } catch (error) {
-    console.error(`Error: ${error.message}`);
+    console.error(`[cert] Error: ${error.message}`);
     process.exit(1);
 }

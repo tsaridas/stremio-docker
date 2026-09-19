@@ -14,6 +14,11 @@ async function loadJsonAndStoreInLocalStorage() {
         if (!response.ok) {
             throw new Error(`Failed to load localStorage.json: ${response.status} ${response.statusText}`);
         }
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json') && !contentType.includes('text/json')) {
+            // SPA fallback used to return index.html with 200 for a missing file.
+            throw new Error(`localStorage.json has unexpected content-type: ${contentType || '(none)'}`);
+        }
         cachedData = await response.json();
 
         const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });

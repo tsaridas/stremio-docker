@@ -38,27 +38,34 @@ test.describe('Stremio API and Settings', () => {
         'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64')
       });
     }
-    await page.goto(`${webURL}/#/settings`);
-    
-    await page.getByTitle('Streaming').click();
-    
-    await page.getByText('Add URL').click();
-    await page.getByPlaceholder('Enter URL').click();
-    await page.getByPlaceholder('Enter URL').fill(serverURL);
-    await page.getByPlaceholder('Enter URL').press('Enter');
+    // Stremio normalizes streaming URLs with a trailing slash (see DEFAULT_STREAMING_SERVER_URL).
+    const urlToAdd = serverURL.endsWith('/') ? serverURL : `${serverURL}/`;
 
-    // Core may ship only one default URL; after add there are two radios, not three.
-    // Click the radio that sits next to the URL we just added (same .content row).
-    const addedUrl = page.getByText(serverURL, { exact: true });
-    await expect(addedUrl).toBeVisible();
-    await addedUrl.locator('..').getByRole('radio').click();
+    await page.goto(`${webURL}/#/settings`);
+
+    await page.getByTitle('Streaming').click();
+
+    await page.getByText('Add URL').click();
+    const urlInput = page.getByPlaceholder('Enter URL');
+    await urlInput.click();
+    // pressSequentially so React controlled state is updated before submit
+    // (fill + Enter can race and call handleAddUrl with "").
+    await urlInput.pressSequentially(urlToAdd, { delay: 15 });
+    await expect(urlInput).toHaveValue(urlToAdd);
+    // Checkmark button is more reliable than Enter for the controlled input.
+    await urlInput.locator('xpath=following-sibling::div[1]').getByRole('button').first().click();
+
+    // Match with or without trailing slash in case core stores either form.
+    const addedUrl = page.getByText(urlToAdd, { exact: true }).or(page.getByText(serverURL, { exact: true }));
+    await expect(addedUrl.first()).toBeVisible({ timeout: 15_000 });
+    await addedUrl.first().locator('..').getByRole('radio').click();
 
     await expect(page.getByText('Online')).toBeVisible({ timeout: streamingOnlineTimeoutMs });
-    
-    const serverUrlElement = page.getByText(serverURL);
-    await expect(serverUrlElement).toBeVisible();
-    
+
+    await expect(addedUrl.first()).toBeVisible();
+
     await page.reload();
-    await expect(serverUrlElement).toBeVisible();
+    await page.getByTitle('Streaming').click();
+    await expect(addedUrl.first()).toBeVisible();
   });
 });

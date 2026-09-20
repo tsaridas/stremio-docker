@@ -14,7 +14,15 @@ async function loadJsonAndStoreInLocalStorage() {
         if (!response.ok) {
             throw new Error(`Failed to load localStorage.json: ${response.status} ${response.statusText}`);
         }
-        cachedData = await response.json();
+        const parsedData = await response.json();
+        if (typeof parsedData !== 'object' || parsedData === null || Array.isArray(parsedData)) {
+            throw new Error('Invalid localStorage.json: expected a plain object');
+        }
+        cachedData = {};
+        for (const key of Object.keys(parsedData)) {
+            if (isUnsafeKey(key)) continue;
+            cachedData[key] = parsedData[key];
+        }
 
         const serverUrlExists = await fetch('server_url.env', { method: 'HEAD' });
         if (!serverUrlExists.ok) {

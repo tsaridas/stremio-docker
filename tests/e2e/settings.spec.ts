@@ -43,17 +43,21 @@ test.describe('Stremio API and Settings', () => {
 
     await page.goto(`${webURL}/#/settings`);
 
+    await expect(page.getByTitle('Streaming')).toBeVisible({ timeout: 60_000 });
     await page.getByTitle('Streaming').click();
 
-    await page.getByText('Add URL').click();
+    // "Add URL" is a Stremio <div> Button, not a real <button>.
+    await page.getByText('Add URL', { exact: true }).click();
     const urlInput = page.getByPlaceholder('Enter URL');
+    await expect(urlInput).toBeVisible();
     await urlInput.click();
     // pressSequentially so React controlled state is updated before submit
     // (fill + Enter can race and call handleAddUrl with "").
     await urlInput.pressSequentially(urlToAdd, { delay: 15 });
     await expect(urlInput).toHaveValue(urlToAdd);
-    // Checkmark button is more reliable than Enter for the controlled input.
-    await urlInput.locator('xpath=following-sibling::div[1]').getByRole('button').first().click();
+    // Do not getByRole('button') — Stremio Button renders as <div>.
+    // Enter is handled by TextInput once state has the typed value.
+    await urlInput.press('Enter');
 
     // Match with or without trailing slash in case core stores either form.
     const addedUrl = page.getByText(urlToAdd, { exact: true }).or(page.getByText(serverURL, { exact: true }));
@@ -65,6 +69,7 @@ test.describe('Stremio API and Settings', () => {
     await expect(addedUrl.first()).toBeVisible();
 
     await page.reload();
+    await expect(page.getByTitle('Streaming')).toBeVisible({ timeout: 60_000 });
     await page.getByTitle('Streaming').click();
     await expect(addedUrl.first()).toBeVisible();
   });

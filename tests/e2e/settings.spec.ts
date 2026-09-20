@@ -46,7 +46,12 @@ test.describe('Stremio API and Settings', () => {
     await page.getByPlaceholder('Enter URL').click();
     await page.getByPlaceholder('Enter URL').fill(serverURL);
     await page.getByPlaceholder('Enter URL').press('Enter');
-    await page.getByRole('radio').nth(2).click(); 
+
+    // Core may ship only one default URL; after add there are two radios, not three.
+    // Click the radio that sits next to the URL we just added (same .content row).
+    const addedUrl = page.getByText(serverURL, { exact: true });
+    await expect(addedUrl).toBeVisible();
+    await addedUrl.locator('..').getByRole('radio').click();
 
     await expect(page.getByText('Online')).toBeVisible({ timeout: streamingOnlineTimeoutMs });
     

@@ -38,22 +38,39 @@ test.describe('Stremio API and Settings', () => {
         'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64')
       });
     }
+    // Stremio normalizes streaming URLs with a trailing slash (see DEFAULT_STREAMING_SERVER_URL).
+    const urlToAdd = serverURL.endsWith('/') ? serverURL : `${serverURL}/`;
+
     await page.goto(`${webURL}/#/settings`);
-    
+
+    await expect(page.getByTitle('Streaming')).toBeVisible({ timeout: 60_000 });
     await page.getByTitle('Streaming').click();
-    
-    await page.getByText('Add URL').click();
-    await page.getByPlaceholder('Enter URL').click();
-    await page.getByPlaceholder('Enter URL').fill(serverURL);
-    await page.getByPlaceholder('Enter URL').press('Enter');
-    await page.getByRole('radio').nth(2).click(); 
+
+    // "Add URL" is a Stremio <div> Button, not a real <button>.
+    await page.getByText('Add URL', { exact: true }).click();
+    const urlInput = page.getByPlaceholder('Enter URL');
+    await expect(urlInput).toBeVisible();
+    await urlInput.click();
+    // pressSequentially so React controlled state is updated before submit
+    // (fill + Enter can race and call handleAddUrl with "").
+    await urlInput.pressSequentially(urlToAdd, { delay: 15 });
+    await expect(urlInput).toHaveValue(urlToAdd);
+    // Do not getByRole('button') — Stremio Button renders as <div>.
+    // Enter is handled by TextInput once state has the typed value.
+    await urlInput.press('Enter');
+
+    // Match with or without trailing slash in case core stores either form.
+    const addedUrl = page.getByText(urlToAdd, { exact: true }).or(page.getByText(serverURL, { exact: true }));
+    await expect(addedUrl.first()).toBeVisible({ timeout: 15_000 });
+    await addedUrl.first().locator('..').getByRole('radio').click();
 
     await expect(page.getByText('Online')).toBeVisible({ timeout: streamingOnlineTimeoutMs });
-    
-    const serverUrlElement = page.getByText(serverURL);
-    await expect(serverUrlElement).toBeVisible();
-    
+
+    await expect(addedUrl.first()).toBeVisible();
+
     await page.reload();
-    await expect(serverUrlElement).toBeVisible();
+    await expect(page.getByTitle('Streaming')).toBeVisible({ timeout: 60_000 });
+    await page.getByTitle('Streaming').click();
+    await expect(addedUrl.first()).toBeVisible();
   });
 });

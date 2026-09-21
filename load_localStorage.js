@@ -3,6 +3,10 @@ let cachedData = {};
 let items = {};
 let server_url = null;
 
+function isUnsafeKey(key) {
+    return key === '__proto__' || key === 'constructor' || key === 'prototype';
+}
+
 async function loadJsonAndStoreInLocalStorage() {
     if (isRunning) return;
     

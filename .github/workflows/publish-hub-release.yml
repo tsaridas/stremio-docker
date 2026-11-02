@@ -65,7 +65,9 @@ jobs:
             echo "continue=true" >> $GITHUB_OUTPUT
           fi
   build:
-    runs-on: ubuntu-latest
+    # Playwright 1.64 WebKit crashes on page load on Ubuntu 26.04 (ubuntu-latest
+    # through Nov 2026). 24.04 is the last image where this suite passed.
+    runs-on: ubuntu-24.04
     needs:
       - check_release
     if: ${{ needs.check_release.outputs.id }}

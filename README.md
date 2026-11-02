@@ -229,6 +229,45 @@ docker run -d \
   tsaridas/stremio-docker:latest
 ```
 
+#### Troubleshooting hardware acceleration
+
+If transcoding runs on CPU without an obvious error, check the container logs first:
+
+```bash
+docker logs stremio-docker 2>&1 | grep '\[vaapi\]'
+```
+
+The container probes every DRM render node at startup and reports which one is VA-API capable. A common failure mode (issue #141): on kernels >= 6.1 and hosts with hybrid graphics, the Intel iGPU enumerates as `/dev/dri/renderD129` (or later) instead of the legacy `renderD128` that stremio-server probes. The server then fails its profile test with `Failed to initialise VAAPI connection: -1` and **silently falls back to CPU transcoding**.
+
+**Diagnose from inside the container:**
+
+```bash
+ls -l /dev/dri/                                        # which nodes exist?
+docker exec -it stremio vainfo --display drm --device /dev/dri/renderD129   # is the GPU usable?
+```
+
+**Fix — remap the correct node onto the path the server expects:**
+
+```yaml
+services:
+  stremio:
+    # ... your other config
+    devices:
+      - "/dev/dri/renderD129:/dev/dri/renderD128"
+      - "/dev/dri/card1:/dev/dri/card1"   # adjust cardN to match your GPU
+```
+
+**Other knobs:**
+
+| Setting | Effect |
+|---|---|
+| `VAAPI_PREFLIGHT=0` | Disable the startup probe |
+| `VAAPI_PREFLIGHT_DEBUG=1` | Print full ffmpeg output for each probe |
+| `LIBVA_DRIVER_NAME=iHD` | Pin the driver explicitly (`iHD` for Intel Gen8+, `i965` for older) |
+| `FFMPEG_DEBUG=1` | Verbose ffmpeg logging from stremio-server |
+
+Verify acceleration end-to-end with `intel_gpu_top` on the host while playing something that requires transcoding.
+
 ### Builds
 
 Builds are created for the following architectures:

@@ -268,6 +268,55 @@ services:
 
 Verify acceleration end-to-end with `intel_gpu_top` on the host while playing something that requires transcoding.
 
+### Troubleshooting HLS probing behind an HTTPS reverse proxy
+
+If `/hlsv2/probe` returns HTTP 500 with `Probe process exited with code: 1`, check whether the media URL is accessible **from inside the Stremio container**. A hostname that works in your browser may not resolve inside Docker. This can prevent probing and transcoding; it does not necessarily mean a codec is missing.
+
+In [issue #169](https://github.com/tsaridas/stremio-docker/issues/169), FFprobe could inspect the stream through the container's internal HTTP endpoint, but failed to resolve the custom HTTPS hostname used by the media URL.
+
+**Diagnose from inside the container**
+
+Replace `stremio-docker` with your container name and use the actual media URL from the failed request's `mediaURL` parameter (URL-decoded, not the `/hlsv2/probe` URL itself):
+
+```bash
+docker exec stremio-docker node -e \
+  'require("dns").lookup("stremio.home.test", (err, address) => { if (err) { console.error(err.message); process.exitCode = 1; } else { console.log(address); } })'
+
+docker exec stremio-docker ffprobe \
+  -v error \
+  -show_entries stream=codec_name,codec_type \
+  -of json \
+  "https://stremio.home.test/<hash>/<file-index>"
+```
+
+Keep the stream active while testing. FFprobe's stderr can reveal the underlying DNS, connection, TLS, or HTTP error that the generic probe failure does not show.
+
+**Make the reverse-proxy hostname reachable**
+
+Configure DNS available to the container, or add an `extra_hosts` entry to your existing Compose service:
+
+```yaml
+services:
+  stremio:
+    # Keep your existing image, environment, volumes, and ports.
+    extra_hosts:
+      - "stremio.home.test:192.168.1.10"
+```
+
+The hostname and IP above are examples. Use the hostname from your media URL and an address where your HTTPS reverse proxy listens that is reachable from the Docker network. With bridge networking, `127.0.0.1` inside the container refers to the container itself, not the host.
+
+A hostname mapping only fixes name resolution. The container must also be able to connect to the proxy's HTTPS port: check the proxy listener, routing, and firewall rules for the Docker network. If you use a private certificate authority, configure trust for the clients making the requests; Node.js's `NODE_EXTRA_CA_CERTS` setting does not configure FFprobe's certificate trust.
+
+**Apply and verify**
+
+From the directory containing your Compose file, recreate the service to apply the mapping (this briefly interrupts playback):
+
+```bash
+docker compose up -d --force-recreate stremio
+```
+
+Use your actual Compose service name if different. Repeat the DNS and FFprobe checks after recreation, then retry playback and confirm that `/hlsv2/probe` succeeds. Avoid relying on manual edits to the running container's `/etc/hosts`, which are not a persistent Compose configuration.
+
 ### Builds
 
 Builds are created for the following architectures:
